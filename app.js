@@ -41,9 +41,10 @@ main()
 
 async function main() {
     await mongoose.connect(dbUrl);
+    // console.log("MongoDB URI:", dbUrl);
 }
 
-//home page
+// home page
 // app.get("/", (req, res) => {
 //     res.send("Hi, I am root.");
 // });
@@ -59,6 +60,7 @@ const store = MongoStore.create({
 store.on("error", ()=>{
     console.log("ERROR IN  MONGO SESSION STORE", err);
 })
+
 const sessionOption = {
     store,
     secret: process.env.SECRET,
@@ -74,6 +76,7 @@ const sessionOption = {
 
 
 app.use(session(sessionOption));
+
 app.use(flash());
 
 app.use(passport.initialize());
