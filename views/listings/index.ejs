@@ -1,121 +1,422 @@
 <% layout("/layout/boilerplate") %>
 
-<style>
-   #filters{
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-   }
-   .filter{
-    text-align: center;
-    margin-top: 2rem;
-    margin-right: 2rem;
-    opacity: 0.7;
-   }
-
-   .filter:hover{
-    opacity: 1;
-    cursor: pointer;
-   }
-   .filter p{
-    font-size: 0.8rem;
-   }
-   .tax-info{
-    display: none;
-   }
-   .tax-toogle{
-    border: 1px solid black;
-    border-radius: 1rem;
-    height: 3.5rem;
-    padding: 1rem;
-    margin-left: 3rem;
-    display: flex;
-    align-items: center;
-   }
-</style>
-
-
-
-   
-        <!-- <h3>All Listings</h3> -->
-        <div id="filters">
-            <div class="filter">
-                <div><i class="fa-solid fa-fire"></i></div>
-                <p>Trending</p>
-            </div>
-            <div class="filter">
-                <div><i class="fa-solid fa-bed"></i></div>
-                <p>Rooms</p>
-            </div>
-            <div class="filter">
-                <div><i class="fa-solid fa-mountain-city"></i></div>
-                <p>Iconic Cities</p>
-            </div>
-            <div class="filter">
-                <div><i class="fa-solid fa-mountain"></i></div>
-                <p>Mountains</p>
-            </div>
-            <div class="filter">
-                <div><i class="fa-brands fa-fort-awesome"></i></div>
-                <p>Castles</p>
-            </div>
-            <div class="filter">
-                <div><i class="fa-solid fa-person-swimming"></i></div>
-                <p>Amazing Pools</p>
-            </div>
-            <div class="filter">
-                <div><i class="fa-solid fa-campground"></i></div>
-                <p>Camping</p>
-            </div>
-            <div class="filter">
-                <div><i class="fa-solid fa-cow"></i></div>
-                <p>Farms</p>
-            </div>
-            <div class="filter">
-                <div><i class="fa-regular fa-snowflake"></i></div>
-                <p>Arctic</p>
-            </div>
-            <div class="tax-toogle">
-                <div class="form-check-reverse form-switch">
-                    <input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckDefault">
-                    <label class="form-check-label" for="flexSwitchCheckDefault">Display total before taxes</label>
-                  </div>
-            </div>
-        </div>
-
-
-        <div class="card-group mt-3">
-                <%for(let listing of listings){%>
-                    <div class="card-deck">
-                    <a href="/listings/<%= listing._id %>" class="listing-link">
-                        <div class="card listing-card" style="width: 20rem;">
-                            <img class="card-img-top" src="<%= listing.image.url %>" alt="listing_image" style="height: 20rem;">
-                            <div class="card-img-overlay">abcd</div>
-                            <div class="card-body">
-                                <p class="card-text">
-                                    <b><%= listing.title %></b> <br>
-                                    &#8377; <%= listing.price.toLocaleString("en-IN") %> / night
-                                    <i class="tax-info">&nbsp; &nbsp; +18% GST</i>
-                                </p>
-                                
-                            </div>
-                        </div>
-                    </a>
-               </div>
-                <%} %>
-        </div>
-
-<script>
-    let taxSwitch = document.getElementById("flexSwitchCheckDefault");
-    taxSwitch.addEventListener("click", ()=>{
-        let taxInfo = document.getElementsByClassName("tax-info");
-        for (const info of taxInfo) {
-            if (info.style.display != "inline") {
-                info.style.display = "inline";
-            }else{
-                info.style.display = "none";
-            }
-            
+    <style>
+        /* Existing styles... */
+        .filter-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 2rem;
+            position: relative;
+            max-width: 100%;
+            overflow: hidden;
         }
-    })
-</script>        
+
+        .filter-scroll {
+            overflow-x: auto;
+            scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch;
+            width: 100%;
+            padding: 10px 0;
+            scrollbar-width: none;
+        }
+
+        .filter-scroll::-webkit-scrollbar {
+            display: none;
+        }
+
+        #filters {
+            display: flex;
+            gap: 15px;
+            width: max-content;
+            padding: 0 10px;
+        }
+
+        .filter {
+            text-align: center;
+            opacity: 0.7;
+            text-decoration: none;
+            color: inherit;
+            min-width: 80px;
+            flex-shrink: 0;
+        }
+
+        .scroll-btn {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            flex-shrink: 0;
+            z-index: 1;
+        }
+
+        .scroll-btn.hidden {
+            visibility: hidden;
+        }
+
+        .tax-toogle {
+            border: 1px solid #ddd;
+            border-radius: 1rem;
+            height: 3.5rem;
+            padding: 0 1rem;
+            margin-left: 1.5rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            background-color: white;
+            flex-shrink: 0;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            transition: all 0.2s ease;
+        }
+
+        .tax-toogle:hover {
+            border-color: #bbb;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-check-reverse {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            flex-direction: row-reverse;
+        }
+
+        .form-switch .form-check-input {
+            width: 2.5em;
+            height: 1.5em;
+            margin-left: 0;
+            background-color: #ddd;
+            border: none;
+            cursor: pointer;
+        }
+
+        .form-switch .form-check-input:checked {
+            background-color: #0d6efd;
+        }
+
+        .form-check-label {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: #333;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .heart-btn {
+            position: absolute;
+            top: 15px;
+            right: 50px;
+            background: rgba(255, 255, 255, 0.8);
+            border: none;
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            font-size: 20px;
+            cursor: pointer;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            transition: all 0.2s ease;
+        }
+
+        .heart-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .heart-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        .card-deck {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 576px) {
+            .tax-toogle {
+                padding: 0 0.75rem;
+                margin-left: 1rem;
+            }
+
+            .form-check-label {
+                font-size: 0.85rem;
+            }
+        }
+    </style>
+
+    <div class="filter-container">
+        <button class="scroll-btn left-btn hidden" id="scrollLeftBtn"><i class="fa-solid fa-chevron-left"></i></button>
+        <div class="filter-scroll" id="filterScroll">
+            <div id="filters">
+                <!-- Your filters -->
+                <a href="/listings?category=All" class="filter">
+                    <div><i class="fa-solid fa-bars"></i></div>
+                    <p>All</p>
+                </a>
+                <a href="/listings?category=Trending" class="filter">
+                    <div><i class="fa-solid fa-fire"></i></div>
+                    <p>Trending</p>
+                </a>
+                <a href="/listings?category=Castles" class="filter">
+                    <div><i class="fa-solid fa-chess-rook"></i></div>
+                    <p>Castles</p>
+                </a>
+                <a href="/listings?category=Mountains" class="filter">
+                    <div><i class="fa-solid fa-mountain"></i></div>
+                    <p>Mountains</p>
+                </a>
+                <a href="/listings?category=IconicCities" class="filter">
+                    <div><i class="fa-solid fa-city"></i></div>
+                    <p>Iconic Cities</p>
+                </a>
+                <a href="/listings?category=Rooms" class="filter">
+                    <div><i class="fa-solid fa-bed"></i></div>
+                    <p>Rooms</p>
+                </a>
+                <a href="/listings?category=AmazingPools" class="filter">
+                    <div><i class="fa-solid fa-water-ladder"></i></div>
+                    <p>Amazing Pools</p>
+                </a>
+                <a href="/listings?category=Camping" class="filter">
+                    <div><i class="fa-solid fa-campground"></i></div>
+                    <p>Camping</p>
+                </a>
+                <a href="/listings?category=Farms" class="filter">
+                    <div><i class="fa-solid fa-tractor"></i></div>
+                    <p>Farms</p>
+                </a>
+                <a href="/listings?category=Arctic" class="filter">
+                    <div><i class="fa-solid fa-snowflake"></i></div>
+                    <p>Arctic</p>
+                </a>
+            </div>
+        </div>
+        <button class="scroll-btn right-btn" id="scrollRightBtn"><i class="fa-solid fa-chevron-right"></i></button>
+
+        <div class="tax-toogle">
+            <div class="form-check-reverse form-switch">
+                <input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckDefault">
+                <label class="form-check-label" for="flexSwitchCheckDefault">Display total before taxes</label>
+            </div>
+        </div>
+    </div>
+
+    <div class="card-group mt-3">
+        <% for (let listing of listings) { %>
+            <div class="card-deck">
+                <a href="/listings/<%= listing._id %>" class="listing-link">
+                    <div class="card listing-card" style="width: 20rem;">
+                        <img class="card-img-top" src="<%= listing.image.url %>" alt="listing_image"
+                            style="height: 20rem;">
+                        <div class="card-body">
+                            <p class="card-text">
+                                <b>
+                                    <%= listing.title %>
+                                </b> <br>
+                                &#8377; <%= listing.price.toLocaleString("en-IN") %> / night
+                                    <i class="tax-info" style="display:none;">&nbsp;&nbsp;+18% GST</i>
+                            </p>
+                        </div>
+                    </div>
+                </a>
+                <button class="heart-btn" data-listing-id="<%= listing._id %>"
+                    style="color: '<%= watchlistListingIds.includes(listing._id.toString()) ? 'red' : 'gray' %>'">
+                    <%= watchlistListingIds.includes(listing._id.toString()) ? '♥' : '♡' %>
+                </button>
+            </div>
+            <% } %>
+    </div>
+
+    <!-- Watchlist Modal -->
+    <div class="modal fade" id="watchlistModal" tabindex="-1" aria-labelledby="watchlistModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <form id="watchlistForm">
+                <div class="modal-content rounded-4">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="watchlistModalLabel">Add to Watchlist</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" name="listingId" id="modalListingId" />
+                        <div class="mb-3">
+                            <input type="text" class="form-control" name="newWatchlist"
+                                placeholder="New Watchlist Name" />
+                        </div>
+                        <p>Select existing watchlist:</p>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="existingWatchlist" value="Favorites"
+                                id="fav" />
+                            <label class="form-check-label" for="fav">Favorites</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="existingWatchlist" value="Summer"
+                                id="summer" />
+                            <label class="form-check-label" for="summer">Summer</label>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary">Save to Watchlist</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const taxSwitch = document.getElementById("flexSwitchCheckDefault");
+            if (taxSwitch) {
+                taxSwitch.addEventListener("change", () => {
+                    const taxInfoElements = document.querySelectorAll(".tax-info");
+                    taxInfoElements.forEach(info => {
+                        info.style.display = taxSwitch.checked ? "inline" : "none";
+                    });
+                });
+            }
+
+            document.addEventListener('click', async (e) => {
+                const heartBtn = e.target.closest('.heart-btn');
+                if (!heartBtn) return;
+
+
+                e.preventDefault();
+                e.stopPropagation();
+
+                const isLoggedIn = "<%= currUser ? 'true' : 'false' %>";
+                
+                if (isLoggedIn !== 'true') {
+                    window.location.href = '/login';
+                    return;
+                }
+                const listingId = heartBtn.dataset.listingId;
+                const isFavorited = heartBtn.innerHTML.includes('♥');
+
+                try {
+                    heartBtn.disabled = true;
+                    const originalHTML = heartBtn.innerHTML;
+                    heartBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+                    if (!isFavorited) {
+                        document.getElementById("modalListingId").value = listingId;
+                        const modal = new bootstrap.Modal(document.getElementById("watchlistModal"));
+                        modal.show();
+                    } else {
+                        const confirmed = confirm("Remove this listing from your watchlist?");
+                        if (!confirmed) {
+                            heartBtn.innerHTML = originalHTML;
+                            return;
+                        }
+
+                        const response = await fetch(`/watchlist/remove/${listingId}`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            credentials: 'include'
+                        });
+
+                        if (!response.ok) throw new Error('Failed to remove from watchlist');
+
+                        heartBtn.innerHTML = '♡';
+                        heartBtn.style.color = 'gray';
+                    }
+                } catch (err) {
+                    console.error("Error:", err);
+                    alert(err.message);
+                    heartBtn.innerHTML = isFavorited ? '♥' : '♡';
+                    heartBtn.style.color = isFavorited ? 'red' : 'gray';
+                } finally {
+                    heartBtn.disabled = false;
+                }
+            });
+
+            const watchlistForm = document.getElementById("watchlistForm");
+
+            if (watchlistForm) {
+                watchlistForm.addEventListener("submit", async (e) => {
+                    e.preventDefault();
+
+                    const form = e.target;
+                    const formData = new FormData(form);
+                    const data = Object.fromEntries(formData);
+                    const listingId = formData.get("listingId");
+
+                    const submitBtn = watchlistForm.querySelector('button[type="submit"]');
+
+                    try {
+                        submitBtn.disabled = true;
+                        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Saving...';
+
+                        const response = await fetch("/watchlist/add", {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(data)
+                        });
+
+                        if (!response.ok) {
+                            const errorData = await response.json().catch(() => ({}));
+                            console.error("Server response:", errorData);
+                            throw new Error(errorData.message || 'Failed to add to watchlist');
+                        }
+
+                        const heartBtn = document.querySelector(`.heart-btn[data-listing-id="${listingId}"]`);
+                        if (heartBtn) {
+                            heartBtn.innerHTML = '♥';
+                            heartBtn.style.color = 'red';
+                        }
+
+                        const modal = bootstrap.Modal.getInstance(document.getElementById("watchlistModal"));
+                        modal.hide();
+
+                        alert('Successfully added to watchlist!');
+                    } catch (err) {
+                        console.error("Error adding to watchlist:", err);
+                        alert(err.message);
+                    } finally {
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = 'Save to Watchlist';
+                    }
+                });
+            }
+
+
+            const scrollContainer = document.getElementById("filterScroll");
+            if (scrollContainer) {
+                const leftBtn = document.getElementById("scrollLeftBtn");
+                const rightBtn = document.getElementById("scrollRightBtn");
+                const filtersContainer = document.getElementById("filters");
+                const scrollAmount = 200;
+
+                if (leftBtn && rightBtn) {
+                    leftBtn.addEventListener("click", () => {
+                        scrollContainer.scrollBy({ left: -scrollAmount, behavior: "smooth" });
+                    });
+
+                    rightBtn.addEventListener("click", () => {
+                        scrollContainer.scrollBy({ left: scrollAmount, behavior: "smooth" });
+                    });
+
+                    scrollContainer.addEventListener("scroll", () => {
+                        leftBtn.classList.toggle("hidden", scrollContainer.scrollLeft <= 0);
+                        const maxScroll = filtersContainer.scrollWidth - scrollContainer.clientWidth;
+                        rightBtn.classList.toggle("hidden", scrollContainer.scrollLeft >= maxScroll);
+                    });
+
+                    const checkScrollButtons = () => {
+                        const maxScroll = filtersContainer.scrollWidth - scrollContainer.clientWidth;
+                        leftBtn.classList.toggle("hidden", scrollContainer.scrollLeft <= 0);
+                        rightBtn.classList.toggle("hidden", scrollContainer.scrollLeft >= maxScroll || maxScroll <= 0);
+                    };
+                    window.addEventListener("load", checkScrollButtons);
+                    window.addEventListener("resize", checkScrollButtons);
+                }
+            }
+        });
+    </script>

@@ -1,0 +1,179 @@
+<% layout("/layout/boilerplate") %>
+
+    <style>
+        .watchlist-block {
+            background-color: #f9f9f9;
+            padding: 1.5rem;
+            border-radius: 16px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+            margin-bottom: 2rem;
+        }
+
+        .watchlist-block h4 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #333;
+        }
+
+        .card-wrapper {
+            display: flex;
+            justify-content: center;
+        }
+
+        .card {
+            width: 100%;
+            max-width: 320px;
+            border: none;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            transition: transform 0.2s ease-in-out;
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+        }
+
+        .card-img-top {
+            height: 200px;
+            object-fit: cover;
+        }
+
+        .card-body {
+            padding: 1rem;
+        }
+
+        .card-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #222;
+        }
+
+        .card-text {
+            font-size: 1rem;
+            color: #555;
+            margin-bottom: 0.75rem;
+        }
+
+        .btn-outline-primary {
+            font-size: 0.85rem;
+            padding: 0.4rem 0.75rem;
+            border-radius: 8px;
+        }
+
+        .btn-danger {
+            font-size: 0.8rem;
+            padding: 0.35rem 0.65rem;
+            border-radius: 8px;
+            margin-left: 0.3rem;
+        }
+
+        @media (max-width: 768px) {
+            .card-img-top {
+                height: 180px;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .card-img-top {
+                height: 160px;
+            }
+        }
+    </style>
+
+    <div class="container mt-4">
+        <h2 class="mb-4">Your Watchlists</h2>
+
+        <% const groupedWatchlists={}; watchlists.forEach(function(w) { if (!groupedWatchlists[w.name]) {
+            groupedWatchlists[w.name]=[]; } groupedWatchlists[w.name]=groupedWatchlists[w.name].concat(w.listings); });
+            %>
+
+            <% if (Object.keys(groupedWatchlists).length===0) { %>
+                <p>No watchlists found. Add listings to your favorites!</p>
+                <% } else { %>
+                    <% Object.entries(groupedWatchlists).forEach(function([name, listings]) { %>
+                        <div class="mb-4 watchlist-block" data-watchlist="<%= name %>">
+                            <h4>
+                                <%= name %>
+                            </h4>
+                            <div class="row">
+                                <% listings.forEach(function(listing) { %>
+                                    <div class="col-md-4 mb-3 card-wrapper" data-listing-id="<%= listing._id %>">
+                                        <div class="card">
+                                            <img src="<%= listing.image.url %>" class="card-img-top"
+                                                alt="<%= listing.title %>">
+                                            <div class="card-body">
+                                                <h5 class="card-title">
+                                                    <%= listing.title %>
+                                                </h5>
+                                                <p class="card-text">₹ <%= listing.price.toLocaleString("en-IN") %> /
+                                                        night</p>
+                                                <a href="/listings/<%= listing._id %>"
+                                                    class="btn btn-outline-primary btn-sm">View Listing</a>
+
+                                                <form class="remove-form d-inline-block mt-2" method="POST"
+                                                    action="/watchlist/remove">
+                                                    <input type="hidden" name="listingId" value="<%= listing._id %>">
+                                                    <input type="hidden" name="watchlistName" value="<%= name %>">
+                                                    <button type="submit" class="btn btn-danger btn-sm">Remove</button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <% }) %>
+                            </div>
+                        </div>
+                        <% }) %>
+                            <% } %>
+    </div>
+
+
+    <script>
+        document.querySelectorAll('.remove-form').forEach(form => {
+            form.addEventListener('submit', async function (e) {
+                e.preventDefault();
+
+                const formData = new FormData(form);
+                const listingId = formData.get('listingId');
+                const watchlistName = formData.get('watchlistName');
+
+                console.log('Attempting to remove:', { listingId, watchlistName });
+
+                if (!listingId || !watchlistName) {
+                    alert('Missing data in form.');
+                    return;
+                }
+
+                try {
+                    const response = await fetch(`/watchlist/remove/${listingId}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ listingId, watchlistName }),
+                        credentials: 'include',
+                    });
+
+                    if (!response.ok) throw new Error('Failed to remove');
+
+                    const result = await response.json();
+
+                    const listingCard = form.closest('.col-md-4');
+                    if (listingCard) listingCard.remove();
+
+                    const watchlistContainer = form.closest('div.mb-4');
+                    if (watchlistContainer) {
+                        const remainingListings = watchlistContainer.querySelectorAll('.col-md-4');
+                        if (remainingListings.length === 0) {
+                            watchlistContainer.remove();
+                        }
+                    }
+
+                    alert(result.message);
+
+                } catch (err) {
+                    console.error('Client-side error:', err);
+                    alert('Error removing from watchlist');
+                }
+            });
+        });
+    </script>

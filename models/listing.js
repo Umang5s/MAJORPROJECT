@@ -1,51 +1,53 @@
 const mongoose = require("mongoose");
 const Review = require("./review");
-const User = require("./user.js");
+const User = require("./user");
 const { listingSchema } = require("../schema");
-const schema = mongoose.Schema;
+const Schema = mongoose.Schema;
 
-const listeningSchema = new schema({
+// Check if model already exists before defining
+const Listing = mongoose.models.Listing || 
+  mongoose.model("Listing", new Schema({
     title: {
         type: String,
         required: true,
     },
     description: String,
-    image:{
+    image: {
         url: String,
         filename: String
     },
     price: Number,
     location: String,
     country: String,
+    category: String,
     reviews: [
         {
-            type: schema.Types.ObjectId,
+            type: Schema.Types.ObjectId,
             ref: "Review"
         },
     ],
     owner: {
-        type: schema.Types.ObjectId,
+        type: Schema.Types.ObjectId,
         ref: "User"
     },
     geometry: {
         type: {
-            type: String, // Don't do `{ location: { type: String } }`
-            enum: ['Point'], // 'location.type' must be 'Point'
+            type: String,
+            enum: ['Point'],
             required: true
-          },
-          coordinates: {
+        },
+        coordinates: {
             type: [Number],
             required: true
-          }
+        }
+    }
+}));
+
+// Middleware remains the same
+Listing.schema.post("findOneAndDelete", async (listing) => {
+    if (listing) {
+        await Review.deleteMany({ _id: { $in: listing.reviews } });
     }
 });
-
-listeningSchema.post("findOneAndDelete", async (listing)=>{
-    if(listing){
-        await Review.deleteMany({ _id : { $in : listing.reviews}});
-    }
-});
-
-const Listing = mongoose.model("Listing", listeningSchema);
 
 module.exports = Listing;
