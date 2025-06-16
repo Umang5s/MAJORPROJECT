@@ -7,17 +7,36 @@ const Review = require("../models/review");
 
 const geocodingClient = mbxGeocoding({ accessToken: mapToken });
 
+async function calculateListingRatings(listings) {
+  for (let listing of listings) {
+    const reviews = await Review.find({ listing: listing._id });
+    listing.reviewCount = reviews.length;
+
+    if (reviews.length > 0) {
+      const totalRating = reviews.reduce(
+        (sum, review) => sum + review.rating,
+        0
+      );
+      listing.avgRating = Number((totalRating / reviews.length).toFixed(1)); // Ensure it's a Number
+    } else {
+      listing.avgRating = null; // Use null when no reviews exist
+    }
+  }
+  return listings;
+}
+
 module.exports.index = async (req, res) => {
   const { category } = req.query;
   let filter = {};
   if (category && category !== "All") {
     filter.$or = [
       { category },
-      { category: "Trending", originalCategory: category } // Show trending listings also under original category
+      { category: "Trending", originalCategory: category }, // Show trending listings also under original category
     ];
   }
 
   const listings = await Listing.find(filter);
+  await calculateListingRatings(listings);
 
   let watchlistListingIds = [];
   if (req.user) {
@@ -32,7 +51,10 @@ module.exports.index = async (req, res) => {
     listing.reviewCount = reviews.length;
 
     if (reviews.length > 0) {
-      const totalRating = reviews.reduce((sum, review) => sum + review.rating, 0);
+      const totalRating = reviews.reduce(
+        (sum, review) => sum + review.rating,
+        0
+      );
       const avgRating = totalRating / reviews.length;
       listing.avgRating = avgRating.toFixed(1);
 
@@ -43,11 +65,15 @@ module.exports.index = async (req, res) => {
         await listing.save();
       }
     } else {
-      listing.avgRating = "N/A";
+      listing.avgRating = null;
     }
   }
 
-  res.render("listings/index.ejs", { listings, watchlistListingIds, user: req.user });
+  res.render("listings/index.ejs", {
+    listings,
+    watchlistListingIds,
+    user: req.user,
+  });
 };
 
 module.exports.renderNewForm = (req, res) => {
@@ -170,6 +196,8 @@ module.exports.searchListings = async (req, res) => {
     req.flash("error", `No results found for "${q}"`);
     return res.redirect("/listings");
   }
+
+  await calculateListingRatings(listings);
 
   let watchlistListingIds = [];
   if (req.user) {

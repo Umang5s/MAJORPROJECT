@@ -254,15 +254,15 @@
                             </span>
 
                             <!-- Review Summary -->
-                            <% if (listing.avgRating !=="N/A" ) { %>
+                            <% if (listing.reviewCount> 0 && listing.avgRating !== null) { %>
                                 <div class="mb-1 text-warning">
-                                    <% for (let i=0; i < Math.round(listing.avgRating); i++) { %>
-                                        <i class="fa-solid fa-star"></i>
-                                        <% } %>
-                                            <% for (let i=Math.round(listing.avgRating); i < 5; i++) { %>
-                                                <i class="fa-regular fa-star"></i>
-                                                <% } %>
-                                                    <span class="text-dark ms-1">(<%= listing.avgRating %>/5)</span>
+                                    <% const rating=Math.min(5, Math.max(1, Math.round(listing.avgRating))); %>
+                                        <% for (let i=1; i <=5; i++) { %>
+                                            <i class="<%= i <= rating ? 'fa-solid' : 'fa-regular' %> fa-star"></i>
+                                            <% } %>
+                                                <span class="text-dark ms-1">
+                                                    (<%= Number(listing.avgRating).toFixed(1) %>/5)
+                                                </span>
                                 </div>
                                 <small class="text-muted">
                                     <%= listing.reviewCount %> review<%= listing.reviewCount !==1 ? 's' : '' %>
