@@ -1,0 +1,41 @@
+<%- layout("/layout/boilerplate") %>
+
+  <div class="container mt-5">
+    <h2 class="mb-4">My Bookings</h2>
+
+    <% if (bookings.length===0) { %>
+      <p>You haven't booked any listings yet.</p>
+      <% } else { %>
+        <div class="row">
+          <% bookings.forEach(booking=> { %>
+            <div class="col-md-4 mb-4">
+              <div class="card h-100 shadow">
+                <img src="<%= booking.listing.image.url %>" class="card-img-top" alt="Listing Image">
+                <div class="card-body">
+                  <h5 class="card-title">
+                    <%= booking.listing.title %>
+                  </h5>
+                  <p class="card-text">
+                    <strong>Price:</strong> ₹<%= booking.price %><br>
+                      <strong>Host:</strong>
+                      <%= booking.host.username %><br>
+                        <strong>Booking ID:</strong>
+                        <%= booking._id %><br>
+                          <strong>Payment ID:</strong>
+                          <%= booking.paymentId || "N/A" %><br>
+                            <strong>Booked On:</strong>
+                            <%= booking.createdAt.toDateString() %>
+                  </p>
+                  <a href="/listings/<%= booking.listing._id %>" class="btn btn-primary">View Listing</a>
+                  <form action="/bookings/<%= booking._id %>?_method=DELETE" method="POST"
+                    onsubmit="return confirm('Are you sure you want to cancel this booking?');">
+                    <button class="btn btn-danger btn-sm">Cancel Booking</button>
+                  </form>
+
+                </div>
+              </div>
+            </div>
+            <% }) %>
+        </div>
+        <% } %>
+  </div>

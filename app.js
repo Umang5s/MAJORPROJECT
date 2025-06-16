@@ -1,125 +1,113 @@
-if (process.env.NODE_ENV != "production") {
+if (process.env.NODE_ENV !== "production") {
   require("dotenv").config();
 }
 
 const express = require("express");
 const app = express();
 const mongoose = require("mongoose");
-const ejs = require("ejs");
 const path = require("path");
 const methodOverride = require("method-override");
 const ejsMate = require("ejs-mate");
-const ExpressError = require("./utils/ExpressError.js");
 const session = require("express-session");
-const MongoStore = require("connect-mongo");
 const flash = require("connect-flash");
 const passport = require("passport");
 const LocalStrategy = require("passport-local");
-const User = require("./models/user.js");
-// const expressLayouts = require("express-ejs-layouts");
-const multer = require("multer");
-const upload = multer();
-const port = 8080;
+const MongoStore = require("connect-mongo");
 
+const User = require("./models/user.js");
+const ExpressError = require("./utils/ExpressError.js");
+
+// Routes
 const listingRouter = require("./routes/listing.js");
 const reviewRouter = require("./routes/review.js");
 const userRouter = require("./routes/user.js");
-const watchlistRoutes = require("./routes/watchlist");
+const authRouter = require("./routes/auth.js");
+const watchlistRouter = require("./routes/watchlist.js");
+const bookingRoutes = require("./routes/booking");
 
-app.set("view engine", "ejs");
-app.set("views", path.join(__dirname, "views"));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(methodOverride("_method"));
-app.engine("ejs", ejsMate);
-app.use(express.static(path.join(__dirname, "/public")));
+require("./passport");
 
+// MongoDB Connection
 const dbUrl = process.env.ATLAS_URL;
 
-main()
-  .then(() => {
-    console.log("connected to DB");
-  })
-  .catch((err) => console.log(err));
+mongoose
+  .connect(dbUrl)
+  .then(() => console.log("Connected to MongoDB"))
+  .catch((err) => console.error("MongoDB connection error:", err));
 
-async function main() {
-  await mongoose.connect(dbUrl);
-  // console.log("MongoDB URI:", dbUrl);
-}
+// View engine and static files
+app.engine("ejs", ejsMate);
+app.set("view engine", "ejs");
+app.set("views", path.join(__dirname, "views"));
+app.use(express.static(path.join(__dirname, "public")));
 
-// home page
-// app.get("/", (req, res) => {
-//     res.send("Hi, I am root.");
-// });
+// Middleware
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+app.use(methodOverride("_method"));
 
+// Session store
 const store = MongoStore.create({
   mongoUrl: dbUrl,
-  crypto: {
-    secret: process.env.SECRET,
-  },
+  crypto: { secret: process.env.SECRET },
   touchAfter: 24 * 3600,
 });
-
-store.on("error", () => {
-  console.log("ERROR IN  MONGO SESSION STORE", err);
+store.on("error", (e) => {
+  console.log("Session store error:", e);
 });
 
-const sessionOption = {
+const sessionOptions = {
   store,
   secret: process.env.SECRET,
   resave: false,
-  saveUninitialized: true,
+  saveUninitialized: false,
   cookie: {
-    expires: Date.now() + 7 * 24 * 60 * 60 * 1000,
-    maxAge: 7 * 24 * 60 * 60 * 1000,
     httpOnly: true,
+    maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
   },
 };
 
-app.use(session(sessionOption));
-
+app.use(session(sessionOptions));
 app.use(flash());
 
+// Passport config
 app.use(passport.initialize());
 app.use(passport.session());
-passport.use(new LocalStrategy(User.authenticate()));
 
+passport.use(new LocalStrategy({ usernameField: "email" }, User.authenticate()));
 passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
 
+// Flash & user injection middleware
 app.use((req, res, next) => {
+  res.locals.currUser = req.user;
   res.locals.success = req.flash("success");
   res.locals.error = req.flash("error");
-  res.locals.currUser = req.user;
-
   next();
 });
 
-// app.get("/demouser", async (req,res)=>{
-//     let fakeUser = new User({
-//         email: "umang26462@fmail.com",
-//         username: "umang123",
-//     });
+// Routes
+app.use("/listings", listingRouter);
+app.use("/listings/:id/reviews", reviewRouter);
+app.use("/", userRouter); // signup, login, logout, set password
+app.use("/", authRouter); // Google OAuth
+app.use("/watchlist", watchlistRouter);
+app.use(bookingRoutes);
 
-//     let registeredUser = await User.register(fakeUser, "helloworld");
-//     res.send(registeredUser);
-// });
-
-app.use("/listings", listingRouter); //listings
-app.use("/listings/:id/reviews", reviewRouter); //reviews
-app.use("/", userRouter); //users
-app.use("/watchlist", watchlistRoutes);
-
+// Catch all
 app.all("*", (req, res, next) => {
-  next(new ExpressError(404, "Page Not Found!"));
+  next(new ExpressError(404, "Page Not Found"));
 });
 
+// Error handler
 app.use((err, req, res, next) => {
-  let { statusCode = 500, message = "something went wrong!" } = err;
-  res.status(statusCode).render("listings/error.ejs", { err });
-  // res.status(statusCode).send(message);
+  const { statusCode = 500 } = err;
+  if (!err.message) err.message = "Something went wrong!";
+  res.status(statusCode).render("listings/error", { err });
 });
 
+// Start server
+const port = process.env.PORT || 8080;
 app.listen(port, () => {
-  console.log(`listening on port ${port}`);
+  console.log(`Serving on port ${port}`);
 });

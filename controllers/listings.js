@@ -3,6 +3,7 @@ const User = require("../models/user");
 const mbxGeocoding = require("@mapbox/mapbox-sdk/services/geocoding");
 const mapToken = process.env.MAP_TOKEN;
 const Watchlist = require("../models/watchlist");
+const Review = require("../models/review");
 
 const geocodingClient = mbxGeocoding({ accessToken: mapToken });
 
@@ -10,22 +11,43 @@ module.exports.index = async (req, res) => {
   const { category } = req.query;
   let filter = {};
   if (category && category !== "All") {
-    filter.category = category;
+    filter.$or = [
+      { category },
+      { category: "Trending", originalCategory: category } // Show trending listings also under original category
+    ];
   }
 
   const listings = await Listing.find(filter);
 
   let watchlistListingIds = [];
   if (req.user) {
-    // Fetch all watchlists of user (if multiple), or one main watchlist if you prefer
     const watchlists = await Watchlist.find({ user: req.user._id });
-    // Collect all listing IDs from all watchlists
     watchlistListingIds = watchlists.flatMap((wl) =>
       wl.listings.map((id) => id.toString())
     );
   }
 
-  res.render("listings/index.ejs", { listings, watchlistListingIds ,user: req.user});
+  for (let listing of listings) {
+    const reviews = await Review.find({ listing: listing._id });
+    listing.reviewCount = reviews.length;
+
+    if (reviews.length > 0) {
+      const totalRating = reviews.reduce((sum, review) => sum + review.rating, 0);
+      const avgRating = totalRating / reviews.length;
+      listing.avgRating = avgRating.toFixed(1);
+
+      // Update category to 'Trending' if avgRating >= 4
+      if (avgRating >= 4 && listing.category !== "Trending") {
+        listing.originalCategory = listing.category;
+        listing.category = "Trending";
+        await listing.save();
+      }
+    } else {
+      listing.avgRating = "N/A";
+    }
+  }
+
+  res.render("listings/index.ejs", { listings, watchlistListingIds, user: req.user });
 };
 
 module.exports.renderNewForm = (req, res) => {

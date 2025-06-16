@@ -140,6 +140,18 @@
             margin-bottom: 20px;
         }
 
+        .hover-shadow:hover {
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            transition: box-shadow 0.3s ease-in-out;
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
         @media (max-width: 576px) {
             .tax-toogle {
                 padding: 0 0.75rem;
@@ -209,31 +221,69 @@
         </div>
     </div>
 
-    <div class="card-group mt-3">
-        <% for (let listing of listings) { %>
-            <div class="card-deck">
-                <a href="/listings/<%= listing._id %>" class="listing-link">
-                    <div class="card listing-card" style="width: 20rem;">
-                        <img class="card-img-top" src="<%= listing.image.url %>" alt="listing_image"
-                            style="height: 20rem;">
-                        <div class="card-body">
-                            <p class="card-text">
-                                <b>
-                                    <%= listing.title %>
-                                </b> <br>
-                                &#8377; <%= listing.price.toLocaleString("en-IN") %> / night
-                                    <i class="tax-info" style="display:none;">&nbsp;&nbsp;+18% GST</i>
-                            </p>
+    <div class="container mt-4">
+        <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-4">
+            <% for (let listing of listings) { %>
+                <div class="col">
+                    <div class="card h-100 shadow-sm border-0 rounded-4 position-relative hover-shadow">
+
+                        <!-- Heart (Favorite) Button -->
+                        <button
+                            class="btn position-absolute top-0 end-0 m-2 heart-btn border-0 bg-white bg-opacity-75 rounded-circle"
+                            data-listing-id="<%= listing._id %>"
+                            style="color: <%= watchlistListingIds.includes(listing._id.toString()) ? 'red' : '#999' %>; font-size: 1.4rem;">
+                            <%= watchlistListingIds.includes(listing._id.toString()) ? '♥' : '♡' %>
+                        </button>
+
+                        <!-- Listing Image -->
+                        <a href="/listings/<%= listing._id %>" class="text-decoration-none text-dark">
+                            <img src="<%= listing.image.url %>" class="card-img-top" alt="listing image"
+                                style="height: 230px; object-fit: cover;">
+                        </a>
+
+                        <!-- Card Body -->
+                        <div class="card-body px-3">
+                            <!-- Title -->
+                            <h5 class="card-title fw-bold text-truncate">
+                                <%= listing.title %>
+                            </h5>
+
+                            <!-- Category Badge -->
+                            <span class="badge bg-secondary mb-2">
+                                <%= listing.category %>
+                            </span>
+
+                            <!-- Review Summary -->
+                            <% if (listing.avgRating !=="N/A" ) { %>
+                                <div class="mb-1 text-warning">
+                                    <% for (let i=0; i < Math.round(listing.avgRating); i++) { %>
+                                        <i class="fa-solid fa-star"></i>
+                                        <% } %>
+                                            <% for (let i=Math.round(listing.avgRating); i < 5; i++) { %>
+                                                <i class="fa-regular fa-star"></i>
+                                                <% } %>
+                                                    <span class="text-dark ms-1">(<%= listing.avgRating %>/5)</span>
+                                </div>
+                                <small class="text-muted">
+                                    <%= listing.reviewCount %> review<%= listing.reviewCount !==1 ? 's' : '' %>
+                                </small>
+                                <% } else { %>
+                                    <p class="text-muted">No ratings yet</p>
+                                    <% } %>
+
+                                        <!-- Price -->
+                                        <p class="mt-2 fw-semibold fs-6">
+                                            ₹ <%= listing.price.toLocaleString("en-IN") %>/ night
+                                                <small class="text-muted tax-info" style="display: none;">+ 18%
+                                                    GST</small>
+                                        </p>
                         </div>
                     </div>
-                </a>
-                <button class="heart-btn" data-listing-id="<%= listing._id %>"
-                    style="color: '<%= watchlistListingIds.includes(listing._id.toString()) ? 'red' : 'gray' %>'">
-                    <%= watchlistListingIds.includes(listing._id.toString()) ? '♥' : '♡' %>
-                </button>
-            </div>
-            <% } %>
+                </div>
+                <% } %>
+        </div>
     </div>
+
 
     <!-- Watchlist Modal -->
     <div class="modal fade" id="watchlistModal" tabindex="-1" aria-labelledby="watchlistModalLabel" aria-hidden="true">
@@ -292,7 +342,7 @@
                 e.stopPropagation();
 
                 const isLoggedIn = "<%= currUser ? 'true' : 'false' %>";
-                
+
                 if (isLoggedIn !== 'true') {
                     window.location.href = '/login';
                     return;
