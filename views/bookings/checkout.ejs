@@ -1,0 +1,31 @@
+<%- layout("/layout/boilerplate") %>
+
+
+<h2>Confirm Payment</h2>
+
+<p>Listing: <%= listing.title %></p>
+<p>Check-in: <%= checkIn %></p>
+<p>Check-out: <%= checkOut %></p>
+<p>Total: ₹<%= totalPrice %></p>
+
+<form action="/bookings/confirm" method="POST">
+  <script 
+    src="https://checkout.razorpay.com/v1/checkout.js"
+    data-key="<%= process.env.RAZORPAY_KEY_ID %>" 
+    data-amount="<%= order.amount %>" 
+    data-currency="INR"
+    data-order_id="<%= order.id %>"
+    data-buttontext="Pay Now"
+    data-name="Hotel Booking"
+    data-description="Payment for booking"
+    data-theme.color="#F37254">
+  </script>
+  
+  <input type="hidden" name="order_id" value="<%= order.id %>">
+  <input type="hidden" name="payment_id" id="payment_id">
+  <input type="hidden" name="listing_id" value="<%= listing._id %>">
+  <input type="hidden" name="checkIn" value="<%= checkIn %>">
+  <input type="hidden" name="checkOut" value="<%= checkOut %>">
+  <input type="hidden" name="price" value="<%= totalPrice %>">
+</form>
+
