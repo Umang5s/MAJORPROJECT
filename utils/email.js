@@ -1,18 +1,50 @@
+const nodemailer = require("nodemailer");
 const { Resend } = require("resend");
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+let sendEmail;
 
-exports.sendEmail = async (to, subject, html) => {
-  try {
-    const data = await resend.emails.send({
-      from: "Booking <onboarding@resend.dev>",
-      to: to,
-      subject: subject,
-      html: html,
+if (process.env.NODE_ENV === "production") {
+  // ===== PRODUCTION (Render) =====
+  const resend = new Resend(process.env.RESEND_API_KEY);
+
+  sendEmail = async (to, subject, html) => {
+    try {
+      const data = await resend.emails.send({
+        from: "Booking <onboarding@resend.dev>",
+        to,
+        subject,
+        html,
+      });
+
+      console.log("Email sent (production):", data);
+    } catch (err) {
+      console.error("Production email error:", err);
+    }
+  };
+
+} else {
+  // ===== DEVELOPMENT (Localhost) =====
+  sendEmail = async (to, subject, html) => {
+    let testAccount = await nodemailer.createTestAccount();
+
+    let transporter = nodemailer.createTransport({
+      host: "smtp.ethereal.email",
+      port: 587,
+      auth: {
+        user: testAccount.user,
+        pass: testAccount.pass,
+      },
     });
 
-    console.log("Email sent:", data);
-  } catch (err) {
-    console.error("Email error:", err);
-  }
-};
+    let info = await transporter.sendMail({
+      from: '"ApnaStay" <test@apnastay.com>',
+      to,
+      subject,
+      html,
+    });
+
+    console.log("Preview URL:", nodemailer.getTestMessageUrl(info));
+  };
+}
+
+module.exports = { sendEmail };
