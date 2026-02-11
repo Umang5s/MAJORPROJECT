@@ -89,11 +89,11 @@
          <form action="/book/<%= listing._id %>" method="POST">
             <div class="mb-3">
                <label for="checkIn" class="form-label">Check-in Date</label>
-               <input type="date" class="form-control" name="checkIn" id="checkIn" required>
+               <input type="date" class="form-control" name="checkIn" id="checkIn" min="" required>
             </div>
             <div class="mb-3">
                <label for="checkOut" class="form-label">Check-out Date</label>
-               <input type="date" class="form-control" name="checkOut" id="checkOut" required>
+               <input type="date" class="form-control" name="checkOut" id="checkOut" min="" required>
             </div>
             <button type="submit" class="btn btn-success">Confirm Booking</button>
          </form>
@@ -108,5 +108,17 @@
       </div>
    <% } %>
 </div>
+
+<script>
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById("checkIn").setAttribute("min", today);
+  document.getElementById("checkOut").setAttribute("min", today);
+
+  // Optional: auto-adjust checkOut date when checkIn is picked
+  document.getElementById("checkIn").addEventListener("change", function () {
+    const selectedDate = this.value;
+    document.getElementById("checkOut").setAttribute("min", selectedDate);
+  });
+</script>
 
 <script src="/js/map.js"></script>

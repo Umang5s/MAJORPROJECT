@@ -34,44 +34,54 @@
       margin-right: 8px;
     }
 
-    .profile-preview {
+    .profile-image-wrapper {
       width: 90px;
       height: 90px;
-      object-fit: cover;
       border-radius: 50%;
+      overflow: hidden;
       border: 2px solid #ddd;
+      margin: 0 auto 1rem;
+    }
+
+    .profile-image-wrapper img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
     }
   </style>
 
-  <nav class="navbar navbar-expand-md bg-body-light border-bottom sticky-top">
+  <nav class="navbar navbar-expand-md bg-white shadow-sm sticky-top py-2">
     <div class="container-fluid">
-      <a class="navbar-brand" href="/listings"><i class="fa-solid fa-compass"></i></a>
+      <a class="navbar-brand fw-bold text-danger d-flex align-items-center gap-2" href="/listings">
+        <i class="fa-solid fa-compass"></i> Explore
+      </a>
+
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup"
         aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
       </button>
 
       <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
-        <div class="navbar-nav">
-          <a class="nav-link" href="/listings">Explore</a>
-        </div>
+        <div class="navbar-nav me-auto"></div>
 
-        <div class="navbar-nav ms-auto">
-          <form class="d-flex" role="search" action="/listings/search" method="GET">
-            <input class="form-control me-2 search-inp" type="search" name="q" placeholder="Search destinations"
-              required>
-            <button class="btn search-btn" type="submit"><i class="fa-solid fa-magnifying-glass"></i>Search</button>
-          </form>
-        </div>
+        <form class="d-flex me-3" role="search" action="/listings/search" method="GET">
+          <input class="form-control search-inp me-2" type="search" name="q" placeholder="Search destinations" required>
+          <button class="btn search-btn" type="submit">
+            <i class="fa-solid fa-magnifying-glass"></i>Search
+          </button>
+        </form>
 
-        <div class="navbar-nav ms-auto">
+        <div class="navbar-nav d-flex align-items-center gap-3">
           <a class="nav-link" href="/listings/new">Airbnb your home</a>
-
           <% if (!user) { %>
             <a class="nav-link" href="/signup"><b>Sign Up</b></a>
             <a class="nav-link" href="/login"><b>Log In</b></a>
             <% } else { %>
-              <!-- Profile icon triggers modal -->
+              <a class="nav-link" href="/watchlist" title="Watchlist" data-bs-toggle="tooltip"
+                data-bs-placement="bottom">
+                <i class="fa-solid fa-heart text-danger"></i>
+              </a>
               <a href="#" id="profileBtn" class="nav-link d-flex align-items-center">
                 <% if (user.localPhoto) { %>
                   <img src="<%= user.localPhoto %>" alt="Profile" class="rounded-profile">
@@ -80,12 +90,6 @@
                     <% } else { %>
                       <i class="fa-solid fa-user-circle fa-2x"></i>
                       <% } %>
-              </a>
-
-              <!-- Watchlist Icon -->
-              <a class="nav-link" href="/watchlist" title="Watchlist" data-bs-toggle="tooltip"
-                data-bs-placement="bottom">
-                <i class="fa-solid fa-heart" style="color: red;"></i>
               </a>
               <% } %>
         </div>
@@ -98,67 +102,59 @@
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content">
         <% if (user) { %>
-
           <div class="modal-header">
             <h5 class="modal-title" id="profileModalLabel">Your Profile</h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
-
-          <!-- Profile Update Form -->
           <div>
-            <form action="/profile/edit" method="POST" enctype="multipart/form-data">
+            <form id="photoForm" action="/profile/edit" method="POST" enctype="multipart/form-data">
               <div class="modal-body text-center">
-                <% if (user.localPhoto) { %>
-                  <img src="<%= user.localPhoto %>?ts=<%= Date.now() %>" id="profilePreview"
-                    class="profile-preview mb-3">
-                  <% } else if (user.avatar) { %>
-                    <img src="<%= user.avatar %>" id="profilePreview" class="profile-preview mb-3">
-                    <% } else { %>
-                      <i class="fa-solid fa-user-circle fa-3x mb-3"></i>
-                      <% } %>
+                <% if (user.localPhoto || user.avatar) { %>
+                  <div class="profile-image-wrapper">
+                    <img src="<%= (user.localPhoto || user.avatar) + '?ts=' + Date.now() %>" alt="Profile"
+                      id="profilePreview" />
+                  </div>
+                  <% } else { %>
+                    <i class="fa-solid fa-user-circle fa-3x mb-3"></i>
+                    <% } %>
 
-                        <input type="file" name="photo" id="photoInput" accept="image/*" hidden
-                          onchange="previewProfilePhoto(this)">
-                        <div class="d-grid gap-2 mb-3">
-                          <button type="button" class="btn btn-outline-primary btn-sm"
-                            onclick="document.getElementById('photoInput').click()">Change Photo</button>
-                        </div>
+                      <input type="file" name="photo" id="photoInput" accept="image/*" hidden
+                        onchange="autoUploadPhoto(this)">
+                      <div class="d-grid gap-2 mb-3">
+                        <button type="button" class="btn btn-outline-primary btn-sm"
+                          onclick="document.getElementById('photoInput').click()">Change Photo</button>
+                      </div>
 
-                        <hr class="my-3">
+                      <hr class="my-3">
 
-                        <p><strong>Name:</strong>
-                          <%= user.name || user.displayName || 'N/A' %>
-                        </p>
-                        <p><strong>Email:</strong>
-                          <%= user.email %>
-                        </p>
+                      <p><strong>Name:</strong>
+                        <%= user.name || user.displayName || 'N/A' %>
+                      </p>
+                      <p><strong>Email:</strong>
+                        <%= user.email %>
+                      </p>
               </div>
               <div class="row mt-4">
                 <div class="col-6">
                   <a href="/bookings/my"
                     class="btn btn-outline-primary w-100 d-flex align-items-center justify-content-center gap-2 py-2 shadow-sm rounded">
-                    <i class="fa-solid fa-suitcase-rolling"></i>
-                    <span>My Bookings</span>
+                    <i class="fa-solid fa-suitcase-rolling"></i><span>My Bookings</span>
                   </a>
                 </div>
                 <div class="col-6">
                   <a href="/bookings/received"
                     class="btn btn-outline-success w-100 d-flex align-items-center justify-content-center gap-2 py-2 shadow-sm rounded">
-                    <i class="fa-solid fa-clipboard-list"></i>
-                    <span>Received Bookings</span>
+                    <i class="fa-solid fa-clipboard-list"></i><span>Received Bookings</span>
                   </a>
                 </div>
               </div>
               <div class="modal-footer justify-content-between align-items-center">
                 <a href="/logout" class="btn btn-danger btn-sm">Logout</a>
                 <div class="d-flex gap-2">
-                  <button type="submit" class="btn btn-success btn-sm">Save</button>
-                  <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
                 </div>
               </div>
             </form>
 
-            <!-- Separate Delete Photo Form -->
             <% if (user.localPhoto) { %>
               <div class="text-center mt-3">
                 <form action="/profile/delete-photo" method="POST">
@@ -167,21 +163,16 @@
               </div>
               <% } %>
 
-                <!-- ✅ Change Password Button -->
                 <div class="text-center mt-3">
                   <button class="btn btn-sm btn-warning" onclick="window.location.href='/allow-change-password'">
                     Change Password
                   </button>
                 </div>
           </div>
-
           <% } %>
       </div>
     </div>
   </div>
-
-
-
 
   <script>
     document.addEventListener('DOMContentLoaded', () => {
@@ -198,7 +189,7 @@
       }
     });
 
-    function previewProfilePhoto(input) {
+    function autoUploadPhoto(input) {
       const file = input.files[0];
       if (file) {
         const reader = new FileReader();
@@ -207,6 +198,17 @@
           if (preview) preview.src = e.target.result;
         };
         reader.readAsDataURL(file);
+
+        // Submit form immediately after file selected
+        const form = document.getElementById('photoForm');
+        const formData = new FormData(form);
+
+        fetch('/profile/edit', {
+          method: 'POST',
+          body: formData
+        })
+          .then(response => response.ok ? window.location.reload() : alert('Upload failed'))
+          .catch(error => console.error('Error uploading:', error));
       }
     }
   </script>

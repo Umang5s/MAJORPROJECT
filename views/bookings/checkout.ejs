@@ -1,31 +1,46 @@
 <%- layout("/layout/boilerplate") %>
 
+<div class="container d-flex justify-content-center align-items-center min-vh-100">
+  <div class="card shadow p-4 w-100" style="max-width: 500px;">
+    <h2 class="text-center mb-4">Confirm Payment</h2>
 
-<h2>Confirm Payment</h2>
+    <ul class="list-group mb-4">
+      <li class="list-group-item d-flex justify-content-between">
+        <strong>Listing:</strong> <span><%= listing.title %></span>
+      </li>
+      <li class="list-group-item d-flex justify-content-between">
+        <strong>Check-in:</strong> <span><%= checkIn %></span>
+      </li>
+      <li class="list-group-item d-flex justify-content-between">
+        <strong>Check-out:</strong> <span><%= checkOut %></span>
+      </li>
+      <li class="list-group-item d-flex justify-content-between">
+        <strong>Total:</strong> <span>₹<%= totalPrice %></span>
+      </li>
+    </ul>
 
-<p>Listing: <%= listing.title %></p>
-<p>Check-in: <%= checkIn %></p>
-<p>Check-out: <%= checkOut %></p>
-<p>Total: ₹<%= totalPrice %></p>
+    <form action="/bookings/confirm" method="POST">
+      <script 
+        src="https://checkout.razorpay.com/v1/checkout.js"
+        data-key="<%= process.env.RAZORPAY_KEY_ID %>" 
+        data-amount="<%= order.amount %>" 
+        data-currency="INR"
+        data-order_id="<%= order.id %>"
+        data-buttontext="Pay Now"
+        data-name="Hotel Booking"
+        data-description="Payment for booking"
+        data-theme.color="#0d6efd"
+        class="razorpay-payment-button btn btn-primary w-100"
+      >
+      </script>
 
-<form action="/bookings/confirm" method="POST">
-  <script 
-    src="https://checkout.razorpay.com/v1/checkout.js"
-    data-key="<%= process.env.RAZORPAY_KEY_ID %>" 
-    data-amount="<%= order.amount %>" 
-    data-currency="INR"
-    data-order_id="<%= order.id %>"
-    data-buttontext="Pay Now"
-    data-name="Hotel Booking"
-    data-description="Payment for booking"
-    data-theme.color="#F37254">
-  </script>
-  
-  <input type="hidden" name="order_id" value="<%= order.id %>">
-  <input type="hidden" name="payment_id" id="payment_id">
-  <input type="hidden" name="listing_id" value="<%= listing._id %>">
-  <input type="hidden" name="checkIn" value="<%= checkIn %>">
-  <input type="hidden" name="checkOut" value="<%= checkOut %>">
-  <input type="hidden" name="price" value="<%= totalPrice %>">
-</form>
-
+      <!-- Hidden Fields -->
+      <input type="hidden" name="order_id" value="<%= order.id %>">
+      <input type="hidden" name="payment_id" id="payment_id">
+      <input type="hidden" name="listing_id" value="<%= listing._id %>">
+      <input type="hidden" name="checkIn" value="<%= checkIn %>">
+      <input type="hidden" name="checkOut" value="<%= checkOut %>">
+      <input type="hidden" name="price" value="<%= totalPrice %>">
+    </form>
+  </div>
+</div>

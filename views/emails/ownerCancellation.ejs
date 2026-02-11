@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<body style="font-family: Arial; background:#f4f4f4; padding:20px;">
+  <div style="max-width:600px; background:white; padding:20px; border-radius:8px;">
+
+    <h2 style="color:#c0392b;">Booking Cancelled by Guest</h2>
+
+    <p>Hello <b><%= ownerName %></b>,</p>
+
+    <p>A guest has cancelled their booking.</p>
+
+    <h3>Booking Details</h3>
+    <ul>
+      <li><b>Property:</b> <%= listingTitle %></li>
+      <li><b>Check-In:</b> <%= from %></li>
+      <li><b>Check-Out:</b> <%= to %></li>
+      <li><b>Booking ID:</b> <%= bookingId %></li>
+    </ul>
+
+    <a href="<%= siteUrl %>/bookings/received"
+       style="display:inline-block;padding:10px 18px;background:#e67e22;color:white;text-decoration:none;border-radius:5px;">
+       View Received Bookings
+    </a>
+
+  </div>
+</body>
+</html>

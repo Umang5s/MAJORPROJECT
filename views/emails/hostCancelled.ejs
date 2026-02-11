@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<body style="font-family: Arial; background:#f4f4f4; padding:20px;">
+  <div style="max-width:600px; background:white; padding:20px; border-radius:8px;">
+
+    <h2 style="color:#e74c3c;">Booking Cancelled by Host</h2>
+
+    <p>Hello <b><%= userName %></b>,</p>
+
+    <p>Unfortunately, the host has cancelled your booking.</p>
+
+    <h3>Booking Details</h3>
+    <ul>
+      <li><b>Property:</b> <%= listingTitle %></li>
+      <li><b>Check-In:</b> <%= from %></li>
+      <li><b>Check-Out:</b> <%= to %></li>
+      <li><b>Booking ID:</b> <%= bookingId %></li>
+    </ul>
+
+    <p>Refund will be processed within 3-5 business days.</p>
+
+  </div>
+</body>
+</html>
