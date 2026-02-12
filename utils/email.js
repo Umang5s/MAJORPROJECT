@@ -9,7 +9,7 @@ const {
   EMAIL_PASS,
   EMAIL_HOST,
   EMAIL_PORT,
-  EMAIL_SECURE
+  EMAIL_SECURE,
 } = process.env;
 
 let transporter;
@@ -107,20 +107,25 @@ async function sendEmail({ templateName, to, subject, data = {} }) {
   try {
     const html = await renderTemplate(templateName, data);
 
-   // === If SMTP provider exists (Render production) ===
-if (EMAIL_PROVIDER === "smtp") {
-  const transport = await createTransporter();
+    // ===== PRODUCTION (Brevo API) =====
+    if (process.env.BREVO_API_KEY) {
+      const SibApiV3Sdk = require("sib-api-v3-sdk");
+      const client = SibApiV3Sdk.ApiClient.instance;
 
-  await transport.sendMail({
-    from: `"NightNest" <${EMAIL_USER}>`,
-    to,
-    subject,
-    html,
-  });
+      client.authentications["api-key"].apiKey = process.env.BREVO_API_KEY;
 
-  console.log("✅ Production email sent (SMTP) →", to);
-  return;
-}
+      const apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
+
+      await apiInstance.sendTransacEmail({
+        sender: { email: process.env.EMAIL_USER, name: "NightNest" },
+        to: [{ email: to }],
+        subject: subject,
+        htmlContent: html,
+      });
+
+      console.log("✅ Production email sent (Brevo API) →", to);
+      return;
+    }
 
     // === LOCAL / SMTP ===
     const transport = await createTransporter();
