@@ -11,7 +11,7 @@ const {
   EMAIL_HOST,
   EMAIL_PORT,
   EMAIL_SECURE,
-  RESEND_API_KEY
+  RESEND_API_KEY,
 } = process.env;
 
 let transporter;
@@ -114,9 +114,9 @@ async function sendEmail({ templateName, to, subject, data = {} }) {
       const resend = new Resend(RESEND_API_KEY);
 
       await resend.emails.send({
-        from: "NightNest <onboarding@resend.dev>", // IMPORTANT FIX
+        from: "NightNest <onboarding@resend.dev>",
         to,
-        subject,
+        subject: subject + " - " + Date.now(),
         html,
       });
 
