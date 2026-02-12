@@ -122,11 +122,6 @@ if (EMAIL_PROVIDER === "smtp") {
   return;
 }
 
-
-      console.log("✅ Production email sent (Resend) →", to);
-      return;
-    }
-
     // === LOCAL / SMTP ===
     const transport = await createTransporter();
     const info = await transport.sendMail({
