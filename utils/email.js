@@ -1,5 +1,4 @@
 const nodemailer = require("nodemailer");
-const { Resend } = require("resend");
 const ejs = require("ejs");
 const path = require("path");
 const fs = require("fs");
@@ -10,8 +9,7 @@ const {
   EMAIL_PASS,
   EMAIL_HOST,
   EMAIL_PORT,
-  EMAIL_SECURE,
-  RESEND_API_KEY,
+  EMAIL_SECURE
 } = process.env;
 
 let transporter;
@@ -109,16 +107,21 @@ async function sendEmail({ templateName, to, subject, data = {} }) {
   try {
     const html = await renderTemplate(templateName, data);
 
-    // === PRODUCTION via Resend API ===
-    if (RESEND_API_KEY) {
-      const resend = new Resend(RESEND_API_KEY);
+   // === If SMTP provider exists (Render production) ===
+if (EMAIL_PROVIDER === "smtp") {
+  const transport = await createTransporter();
 
-      await resend.emails.send({
-        from: "NightNest <onboarding@resend.dev>",
-        to,
-        subject: subject + " - " + Date.now(),
-        html,
-      });
+  await transport.sendMail({
+    from: `"NightNest" <${EMAIL_USER}>`,
+    to,
+    subject,
+    html,
+  });
+
+  console.log("✅ Production email sent (SMTP) →", to);
+  return;
+}
+
 
       console.log("✅ Production email sent (Resend) →", to);
       return;
