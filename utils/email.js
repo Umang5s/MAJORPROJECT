@@ -11,9 +11,7 @@ const {
   EMAIL_HOST,
   EMAIL_PORT,
   EMAIL_SECURE,
-  SITE_URL,
-  RESEND_API_KEY,
-  RESEND_FROM // optional: set a verified from address in Render env
+  RESEND_API_KEY
 } = process.env;
 
 let transporter;
@@ -56,14 +54,16 @@ async function createTransporter() {
     auth: { user: testAccount.user, pass: testAccount.pass },
   });
 
-  console.log("Ethereal account created. Check preview URLs from send function.");
+  console.log(
+    "Ethereal account created. Check preview URLs from send function.",
+  );
   return transporter;
 }
 
 async function renderTemplate(templateName, data) {
   // mapping to handle small filename differences
   const templateMap = {
-    bookingConfirmation: "bookingConfirmation", 
+    bookingConfirmation: "bookingConfirmation",
     bookingconformation: "bookingConfirmation",
     cancellation: "cancellation",
     hostCancelled: "hostCancelled",
@@ -75,7 +75,13 @@ async function renderTemplate(templateName, data) {
   };
 
   const mapped = templateMap[templateName] || templateName;
-  const filePath = path.join(__dirname, "..", "views", "emails", `${mapped}.ejs`);
+  const filePath = path.join(
+    __dirname,
+    "..",
+    "views",
+    "emails",
+    `${mapped}.ejs`,
+  );
 
   if (!fs.existsSync(filePath)) {
     throw new Error(`Email template not found: ${filePath}`);
@@ -93,20 +99,22 @@ async function renderTemplate(templateName, data) {
  */
 async function sendEmail({ templateName, to, subject, data = {} }) {
   if (!to) {
-    console.warn("sendEmail called without 'to' address - aborting send.", { templateName, data });
+    console.warn("sendEmail called without 'to' address - aborting send.", {
+      templateName,
+      data,
+    });
     return;
   }
 
   try {
     const html = await renderTemplate(templateName, data);
 
-    // === PRODUCTION via Resend API (preferred if API key provided) ===
+    // === PRODUCTION via Resend API ===
     if (RESEND_API_KEY) {
       const resend = new Resend(RESEND_API_KEY);
 
-      const fromAddress = RESEND_FROM || `NoReply <no-reply@${process.env.CLOUD_NAME || "example.com"}>`;
       await resend.emails.send({
-        from: fromAddress,
+        from: "NightNest <onboarding@resend.dev>", // IMPORTANT FIX
         to,
         subject,
         html,
