@@ -230,7 +230,7 @@ module.exports.cancelBooking = async (req, res) => {
         },
       });
 
-      req.flash("success", "Booking cancelled successfully.");
+      req.flash("success", "Booking cancelled successfully.(Email sent!)");
       return res.redirect("/bookings/my");
     }
 
