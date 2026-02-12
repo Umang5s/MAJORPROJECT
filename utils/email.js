@@ -2,7 +2,7 @@ const nodemailer = require("nodemailer");
 const { Resend } = require("resend");
 const ejs = require("ejs");
 const path = require("path");
-
+const fs = require("fs");
 
 const {
   EMAIL_PROVIDER,
@@ -11,7 +11,9 @@ const {
   EMAIL_HOST,
   EMAIL_PORT,
   EMAIL_SECURE,
-  SITE_URL
+  SITE_URL,
+  RESEND_API_KEY,
+  RESEND_FROM // optional: set a verified from address in Render env
 } = process.env;
 
 let transporter;
@@ -19,12 +21,12 @@ let transporter;
 async function createTransporter() {
   if (transporter) return transporter;
 
-  // If using explicit SMTP config
-  if (EMAIL_PROVIDER === 'smtp' && EMAIL_HOST) {
+  // If using explicit SMTP config (e.g., Brevo SMTP on Render)
+  if (EMAIL_PROVIDER === "smtp" && EMAIL_HOST) {
     transporter = nodemailer.createTransport({
       host: EMAIL_HOST,
       port: Number(EMAIL_PORT) || 587,
-      secure: EMAIL_SECURE === 'true',
+      secure: EMAIL_SECURE === "true",
       auth: {
         user: EMAIL_USER,
         pass: EMAIL_PASS,
@@ -33,65 +35,89 @@ async function createTransporter() {
     return transporter;
   }
 
-  // If using Gmail with App Password (EMAIL_PROVIDER=gmail)
-  if (EMAIL_PROVIDER === 'gmail' && EMAIL_USER && EMAIL_PASS) {
+  // Gmail with app password (local)
+  if (EMAIL_PROVIDER === "gmail" && EMAIL_USER && EMAIL_PASS) {
     transporter = nodemailer.createTransport({
-      service: 'gmail',
+      service: "gmail",
       auth: {
         user: EMAIL_USER,
-        pass: EMAIL_PASS
-      }
+        pass: EMAIL_PASS,
+      },
     });
     return transporter;
   }
 
-  // Fallback: Ethereal for development (auto-create test account)
+  // Fallback: Ethereal for development (auto-create)
   const testAccount = await nodemailer.createTestAccount();
   transporter = nodemailer.createTransport({
-    host: 'smtp.ethereal.email',
+    host: "smtp.ethereal.email",
     port: 587,
     secure: false,
-    auth: { user: testAccount.user, pass: testAccount.pass }
+    auth: { user: testAccount.user, pass: testAccount.pass },
   });
 
-  console.log('Ethereal account created. Check preview URLs from send function.');
+  console.log("Ethereal account created. Check preview URLs from send function.");
   return transporter;
 }
 
 async function renderTemplate(templateName, data) {
-  const filePath = path.join(__dirname, '..', 'views', 'emails', `${templateName}.ejs`);
+  // mapping to handle small filename differences
+  const templateMap = {
+    bookingConfirmation: "bookingconformation", // if your file is bookingconformation.ejs (typo)
+    bookingconformation: "bookingconformation",
+    cancellation: "cancellation",
+    hostCancelled: "hostcancelled",
+    hostcancelled: "hostcancelled",
+    ownerCancellation: "ownercancelled",
+    ownercancelled: "ownercancelled",
+    ownerNewBooking: "ownerNewBooking",
+    ownernewbooking: "ownerNewBooking",
+  };
+
+  const mapped = templateMap[templateName] || templateName;
+  const filePath = path.join(__dirname, "..", "views", "emails", `${mapped}.ejs`);
+
+  if (!fs.existsSync(filePath)) {
+    throw new Error(`Email template not found: ${filePath}`);
+  }
+
   return ejs.renderFile(filePath, data);
 }
 
 /**
- * sendEmail
- * - templateName: filename inside views/emails without extension
- * - to: recipient email
- * - subject: email subject
- * - data: object passed to ejs template
+ * sendEmail(args)
+ * - args.templateName: template filename (without .ejs)
+ * - args.to: recipient email
+ * - args.subject: subject
+ * - args.data: object passed to ejs template
  */
 async function sendEmail({ templateName, to, subject, data = {} }) {
+  if (!to) {
+    console.warn("sendEmail called without 'to' address - aborting send.", { templateName, data });
+    return;
+  }
+
   try {
     const html = await renderTemplate(templateName, data);
 
-    // ================= PRODUCTION (Render) =================
-    if (process.env.NODE_ENV === "production") {
-      const resend = new Resend(process.env.RESEND_API_KEY);
+    // === PRODUCTION via Resend API (preferred if API key provided) ===
+    if (RESEND_API_KEY) {
+      const resend = new Resend(RESEND_API_KEY);
 
+      const fromAddress = RESEND_FROM || `NoReply <no-reply@${process.env.CLOUD_NAME || "example.com"}>`;
       await resend.emails.send({
-        from: "NightNest <onboarding@resend.dev>",
+        from: fromAddress,
         to,
         subject,
         html,
       });
 
-      console.log("✅ Production email sent →", to);
+      console.log("✅ Production email sent (Resend) →", to);
       return;
     }
 
-    // ================= LOCAL DEVELOPMENT =================
+    // === LOCAL / SMTP ===
     const transport = await createTransporter();
-
     const info = await transport.sendMail({
       from: `"NightNest" <${process.env.EMAIL_USER || "no-reply@nightnest.com"}>`,
       to,
@@ -99,17 +125,18 @@ async function sendEmail({ templateName, to, subject, data = {} }) {
       html,
     });
 
-    const preview = nodemailer.getTestMessageUrl(info);
-    if (preview) console.log("Preview URL:", preview);
+    // If Ethereal preview available
+    if (nodemailer.getTestMessageUrl && info) {
+      const preview = nodemailer.getTestMessageUrl(info);
+      if (preview) console.log("Preview URL:", preview);
+    }
 
-    console.log("📧 Local email sent →", to);
-
+    console.log("📧 Local/SMPP email sent →", to);
     return info;
   } catch (err) {
     console.error("Error sending email:", err);
-    throw err;
+    throw err; // rethrow so controller can catch/log if needed
   }
 }
-
 
 module.exports = { sendEmail };

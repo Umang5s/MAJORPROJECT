@@ -1,6 +1,7 @@
 const Booking = require("../models/booking");
 const Listing = require("../models/listing");
 const { sendEmail } = require("../utils/email");
+const User = require("../models/user");
 
 const razorpay = require("../utils/razorpay");
 
@@ -16,7 +17,7 @@ module.exports.createBookingRequest = async (req, res) => {
     checkOutDate.setHours(0, 0, 0, 0);
     // calculate nights properly
     let totalNights = Math.ceil(
-      (checkOutDate - checkInDate) / (1000 * 60 * 60 * 24)
+      (checkOutDate - checkInDate) / (1000 * 60 * 60 * 24),
     );
 
     // safety: minimum 1 night
@@ -54,14 +55,14 @@ module.exports.confirmBookingAfterPayment = async (req, res) => {
     const listing = await Listing.findById(listing_id).populate("owner");
 
     const inDate = new Date(checkIn);
-const outDate = new Date(checkOut);
-inDate.setHours(0,0,0,0);
-outDate.setHours(0,0,0,0);
+    const outDate = new Date(checkOut);
+    inDate.setHours(0, 0, 0, 0);
+    outDate.setHours(0, 0, 0, 0);
 
-let nights = Math.ceil((outDate - inDate) / (1000*60*60*24));
-if (nights < 1) nights = 1;
+    let nights = Math.ceil((outDate - inDate) / (1000 * 60 * 60 * 24));
+    if (nights < 1) nights = 1;
 
-const finalPrice = nights * listing.price;
+    const finalPrice = nights * listing.price;
 
     const booking = new Booking({
       listing: listing._id,
@@ -69,44 +70,65 @@ const finalPrice = nights * listing.price;
       host: listing.owner._id,
       checkIn: new Date(checkIn),
       checkOut: new Date(checkOut),
-      price:finalPrice,
+      price: finalPrice,
       paymentId: payment_id,
       status: "booked",
     });
 
     await booking.save();
 
-    // SEND EMAIL TO GUEST
-    await sendEmail({
-      templateName: "bookingConfirmation",
-      to: req.user.email,
-      subject: "Your booking is confirmed!",
-      data: {
-        userName: req.user.username || req.user.email,
-        listingTitle: listing.title,
-        from: new Date(checkIn).toDateString(),
-        to: new Date(checkOut).toDateString(),
-        totalPrice: price,
-        bookingId: booking._id,
-        siteUrl: process.env.SITE_URL || "http://localhost:3000",
-      },
-    });
+    // reload booking with populated guest & host and listing (safe)
+    const populatedBooking = await Booking.findById(booking._id)
+      .populate({ path: "guest", select: "email username" })
+      .populate({ path: "host", select: "email username" })
+      .populate({ path: "listing", select: "title" });
+
+    const guestEmail = populatedBooking?.guest?.email;
+    const hostEmail = populatedBooking?.host?.email;
+
+    // Safety: if missing, log and skip sending to that recipient
+    if (!guestEmail)
+      console.warn("No guest email available for booking", booking._id);
+    if (!hostEmail)
+      console.warn("No host email available for booking", booking._id);
+
+    // SEND EMAIL TO GUEST (if exists)
+    if (guestEmail) {
+      await sendEmail({
+        templateName: "bookingConfirmation",
+        to: guestEmail,
+        subject: "Your booking is confirmed!",
+        data: {
+          userName:
+            populatedBooking.guest.username || populatedBooking.guest.email,
+          listingTitle: listing.title,
+          from: new Date(checkIn).toDateString(),
+          to: new Date(checkOut).toDateString(),
+          totalPrice: finalPrice,
+          bookingId: booking._id,
+          siteUrl: process.env.SITE_URL || "http://localhost:3000",
+        },
+      });
+    }
 
     // SEND EMAIL TO HOST (OWNER)
-    await sendEmail({
-      templateName: "ownerNewBooking",
-      to: listing.owner.email,
-      subject: "You received a new booking!",
-      data: {
-        ownerName: listing.owner.username || listing.owner.email,
-        listingTitle: listing.title,
-        from: new Date(checkIn).toDateString(),
-        to: new Date(checkOut).toDateString(),
-        totalPrice: price,
-        bookingId: booking._id,
-        siteUrl: process.env.SITE_URL || "http://localhost:3000",
-      },
-    });
+    if (hostEmail) {
+      await sendEmail({
+        templateName: "ownerNewBooking",
+        to: hostEmail,
+        subject: "You received a new booking!",
+        data: {
+          ownerName:
+            populatedBooking.host.username || populatedBooking.host.email,
+          listingTitle: listing.title,
+          from: new Date(checkIn).toDateString(),
+          to: new Date(checkOut).toDateString(),
+          totalPrice: finalPrice,
+          bookingId: booking._id,
+          siteUrl: process.env.SITE_URL || "http://localhost:3000",
+        },
+      });
+    }
 
     req.flash("success", "Booking confirmed! Email sent.");
     res.redirect("/bookings/my");
