@@ -63,15 +63,15 @@ async function createTransporter() {
 async function renderTemplate(templateName, data) {
   // mapping to handle small filename differences
   const templateMap = {
-    bookingConfirmation: "bookingconformation", // if your file is bookingconformation.ejs (typo)
-    bookingconformation: "bookingconformation",
-    cancellation: "cancellation",
-    hostCancelled: "hostcancelled",
-    hostcancelled: "hostcancelled",
-    ownerCancellation: "ownercancelled",
-    ownercancelled: "ownercancelled",
-    ownerNewBooking: "ownerNewBooking",
-    ownernewbooking: "ownerNewBooking",
+    bookingConfirmation: "bookingConformation.ejs", 
+    bookingconformation: "bookingConformation.ejs",
+    cancellation: "cancellation.ejs",
+    hostCancelled: "hostCancelled.ejs",
+    hostcancelled: "hostCancelled.ejs",
+    ownerCancellation: "ownercancelled.ejs",
+    ownerCancellation: "ownerCancellation.ejs",
+    ownerNewBooking: "ownerNewBooking.ejs",
+    ownernewbooking: "ownerNewBooking.ejs",
   };
 
   const mapped = templateMap[templateName] || templateName;
