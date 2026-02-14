@@ -1,9 +1,10 @@
 <%- layout("/layout/boilerplate") %>
 
 <div class="container d-flex justify-content-center align-items-center min-vh-100">
-  <div class="card shadow p-4 w-100" style="max-width: 500px;">
+  <div class="card shadow p-4 w-100" style="max-width: 600px;">
     <h2 class="text-center mb-4">Confirm Payment</h2>
 
+    <!-- Booking Summary -->
     <ul class="list-group mb-4">
       <li class="list-group-item d-flex justify-content-between">
         <strong>Listing:</strong> <span><%= listing.title %></span>
@@ -15,11 +16,50 @@
         <strong>Check-out:</strong> <span><%= checkOut %></span>
       </li>
       <li class="list-group-item d-flex justify-content-between">
+        <strong>Rooms:</strong> <span><%= typeof roomsBooked !== 'undefined' ? roomsBooked : 1 %></span>
+      </li>
+      <li class="list-group-item d-flex justify-content-between">
         <strong>Total:</strong> <span>₹<%= totalPrice %></span>
       </li>
     </ul>
 
-    <form action="/bookings/confirm" method="POST">
+    <!-- MAIN FORM (keeps the same Razorpay automatic button logic) -->
+    <form id="bookingForm" action="/bookings/confirm" method="POST">
+
+      <!-- ================= GUEST DETAILS (new fields) ================= -->
+      <h4 class="mb-3">Guest Details</h4>
+
+      <div class="mb-3">
+        <label class="form-label">Full Name</label>
+        <input type="text" class="form-control" name="guestDetails[name]" required>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Email</label>
+        <input type="email" class="form-control" name="guestDetails[email]" required>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Phone</label>
+        <input type="tel" class="form-control" name="guestDetails[phone]" required>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Number of Guests</label>
+        <input type="number" class="form-control" name="guestDetails[guestsCount]" min="1" value="1" required>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Arrival Time</label>
+        <input type="time" class="form-control" name="guestDetails[arrivalTime]">
+      </div>
+
+      <div class="mb-4">
+        <label class="form-label">Special Request</label>
+        <textarea class="form-control" name="guestDetails[specialRequest]" rows="3"></textarea>
+      </div>
+
+      <!-- ================= RAZORPAY (unchanged logic) ================= -->
       <script 
         src="https://checkout.razorpay.com/v1/checkout.js"
         data-key="<%= process.env.RAZORPAY_KEY_ID %>" 
@@ -30,17 +70,20 @@
         data-name="Hotel Booking"
         data-description="Payment for booking"
         data-theme.color="#0d6efd"
-        class="razorpay-payment-button btn btn-primary w-100"
-      >
+        class="razorpay-payment-button btn btn-primary w-100">
       </script>
 
-      <!-- Hidden Fields -->
+      <!-- Hidden Fields (sent to server) -->
       <input type="hidden" name="order_id" value="<%= order.id %>">
-      <input type="hidden" name="payment_id" id="payment_id">
+      <input type="hidden" name="razorpay_order_id" id="razorpay_order_id">
+      <input type="hidden" name="razorpay_payment_id" id="razorpay_payment_id">
+      <input type="hidden" name="razorpay_signature" id="razorpay_signature">
       <input type="hidden" name="listing_id" value="<%= listing._id %>">
       <input type="hidden" name="checkIn" value="<%= checkIn %>">
       <input type="hidden" name="checkOut" value="<%= checkOut %>">
       <input type="hidden" name="price" value="<%= totalPrice %>">
+      <input type="hidden" name="roomsBooked" value="<%= typeof roomsBooked !== 'undefined' ? roomsBooked : 1 %>">
+
     </form>
   </div>
 </div>

@@ -42,6 +42,12 @@
                                 value="<%= listing.country %>" required>
 
                         </div>
+                        <div class="mb-3">
+                            <label class="form-label">Total Rooms</label>
+                            <input type="number" name="listing[totalRooms]" class="form-control"
+                                value="<%= listing.totalRooms %>" min="1" required>
+                        </div>
+
                     </div>
                     <div class="mb-3">
                         <label for="location" class="form-label">Location:</label>
@@ -52,7 +58,7 @@
                         <label for="category" class="form-label">Category:</label>
                         <select name="listing[category]" class="form-select" required>
                             <option selected disabled value="">Choose a category</option>
-                            <option value="Trending">Trending</option> 
+                            <option value="Trending">Trending</option>
                             <option value="Rooms">Rooms</option>
                             <option value="Mountains">Mountains</option>
                             <option value="Castles">Castles</option>

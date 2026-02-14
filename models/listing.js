@@ -50,7 +50,13 @@ const Listing =
           required: true,
         },
       },
-    })
+      totalRooms: {
+        type: Number,
+        required: true,
+        default: 1,
+        min: 1,
+      },
+    }),
   );
 
 // Middleware remains the same

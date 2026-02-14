@@ -1,124 +1,157 @@
 <%- layout("/layout/boilerplate") %>
 
-<script>
-   const mapToken = "<%= process.env.MAP_TOKEN %>";
-   const listing = <%- JSON.stringify(listing) %>;
-</script>
+   <script>
+      const mapToken = "<%= process.env.MAP_TOKEN %>";
+      const listing = <%- JSON.stringify(listing) %>;
+   </script>
 
-<div class="row">
-   <div class="col-8 offset-3 mt-3">
-      <h3><%= listing.title %></h3>
-   </div>
-
-   <div class="card col-6 offset-3 show-card listing-card">
-      <img src="<%= listing.image.url %>" class="card-img-top show-img" alt="listing_image">
-      <div class="card-body">
-         <p class="card-text">Owned By: <i><%= listing.owner ? listing.owner.username : "Unknown" %></i></p>
-         <p class="card-text"><%= listing.description %></p>
-         <p class="card-text">&#8377; <%= listing.price.toLocaleString("en-IN") %></p>
-         <p class="card-text"><%= listing.location %></p>
+   <div class="row">
+      <div class="col-8 offset-3 mt-3">
+         <h3>
+            <%= listing.title %>
+         </h3>
       </div>
-   </div>
 
-   <% if (currUser && listing.owner && currUser._id.equals(listing.owner._id)) { %>
-      <div class="btns mt-2 mb-3">
-         <a href="/listings/<%= listing._id %>/edit" class="btn btn-dark col-1 offset-3">Edit</a>
-         <form action="/listings/<%= listing._id %>?_method=DELETE" method="post" class="d-inline">
-            <button class="btn btn-dark ms-2">Delete</button>
-         </form>
-      </div>
-   <% } %>
-
-   <div class="col-8 offset-3 mb-5">
-      <hr>
-      <% if (currUser) { %>
-         <h4>Leave a Review</h4>
-         <form action="/listings/<%= listing._id %>/reviews" method="POST" class="needs-validation" novalidate>
-            <div class="mb-3 mt-3">
-               <label for="rating" class="form-label">Rating</label>
-               <fieldset class="starability-slot">
-                  <% for (let i = 1; i <= 5; i++) { %>
-                     <input type="radio" id="rate-<%= i %>" name="review[rating]" value="<%= i %>" />
-                     <label for="rate-<%= i %>" title="<%= i %> stars"><%= i %> star<%= i > 1 ? 's' : '' %></label>
-                  <% } %>
-               </fieldset>
-            </div>
-            <div class="mb-3">
-               <label for="comment" class="form-label">Comment</label>
-               <textarea name="review[comment]" id="comment" class="form-control" rows="4" required></textarea>
-               <div class="invalid-feedback">Please provide a comment.</div>
-            </div>
-            <button type="submit" class="btn btn-outline-dark">Submit</button>
-         </form>
-      <% } %>
-
-      <% if (listing.reviews.length > 0) { %>
-         <hr>
-         <h5 class="mt-4">All Reviews</h5>
-         <div class="row">
-            <% for (let review of listing.reviews) { %>
-               <div class="card col-5 ms-3 mb-3">
-                  <div class="card-body">
-                     <h5 class="card-title">
-                        <%= review.author ? '@' + review.author.username : "Unknown" %>
-                     </h5>
-                     <p class="starability-result card-text" data-rating="<%= review.rating %>">
-                        Rated: <%= review.rating %> star<%= review.rating > 1 ? 's' : '' %>
-                     </p>
-                     <p class="card-text"><%= review.comment %></p>
-                  </div>
-                  <% if (currUser && review.author && currUser._id.equals(review.author)) { %>
-                     <form action="/listings/<%= listing._id %>/reviews/<%= review._id %>?_method=DELETE" method="POST" class="mb-3 mt-1">
-                        <button class="btn btn-sm btn-dark">Remove</button>
-                     </form>
-                  <% } %>
-               </div>
-            <% } %>
+      <div class="card col-6 offset-3 show-card listing-card">
+         <img src="<%= listing.image.url %>" class="card-img-top show-img" alt="listing_image">
+         <div class="card-body">
+            <p class="card-text">Owned By: <i>
+                  <%= listing.owner ? listing.owner.username : "Unknown" %>
+               </i></p>
+            <p class="card-text">
+               <%= listing.description %>
+            </p>
+            <p class="card-text">&#8377; <%= listing.price.toLocaleString("en-IN") %>
+            </p>
+            <p class="card-text">
+               <%= listing.location %>
+            </p>
          </div>
-      <% } %>
+      </div>
+
+      <% if (currUser && listing.owner && currUser._id.equals(listing.owner._id)) { %>
+         <div class="btns mt-2 mb-3">
+            <a href="/listings/<%= listing._id %>/edit" class="btn btn-dark col-1 offset-3">Edit</a>
+            <form action="/listings/<%= listing._id %>?_method=DELETE" method="post" class="d-inline">
+               <button class="btn btn-dark ms-2">Delete</button>
+            </form>
+         </div>
+         <% } %>
+
+            <div class="col-8 offset-3 mb-5">
+               <hr>
+               <% if (currUser) { %>
+                  <h4>Leave a Review</h4>
+                  <form action="/listings/<%= listing._id %>/reviews" method="POST" class="needs-validation" novalidate>
+                     <div class="mb-3 mt-3">
+                        <label for="rating" class="form-label">Rating</label>
+                        <fieldset class="starability-slot">
+                           <% for (let i=1; i <=5; i++) { %>
+                              <input type="radio" id="rate-<%= i %>" name="review[rating]" value="<%= i %>" />
+                              <label for="rate-<%= i %>" title="<%= i %> stars">
+                                 <%= i %> star<%= i> 1 ? 's' : '' %>
+                              </label>
+                              <% } %>
+                        </fieldset>
+                     </div>
+                     <div class="mb-3">
+                        <label for="comment" class="form-label">Comment</label>
+                        <textarea name="review[comment]" id="comment" class="form-control" rows="4" required></textarea>
+                        <div class="invalid-feedback">Please provide a comment.</div>
+                     </div>
+                     <button type="submit" class="btn btn-outline-dark">Submit</button>
+                  </form>
+                  <% } %>
+
+                     <% if (listing.reviews.length> 0) { %>
+                        <hr>
+                        <h5 class="mt-4">All Reviews</h5>
+                        <div class="row">
+                           <% for (let review of listing.reviews) { %>
+                              <div class="card col-5 ms-3 mb-3">
+                                 <div class="card-body">
+                                    <h5 class="card-title">
+                                       <%= review.author ? '@' + review.author.username : "Unknown" %>
+                                    </h5>
+                                    <p class="starability-result card-text" data-rating="<%= review.rating %>">
+                                       Rated: <%= review.rating %> star<%= review.rating> 1 ? 's' : '' %>
+                                    </p>
+                                    <p class="card-text">
+                                       <%= review.comment %>
+                                    </p>
+                                 </div>
+                                 <% if (currUser && review.author && currUser._id.equals(review.author)) { %>
+                                    <form action="/listings/<%= listing._id %>/reviews/<%= review._id %>?_method=DELETE"
+                                       method="POST" class="mb-3 mt-1">
+                                       <button class="btn btn-sm btn-dark">Remove</button>
+                                    </form>
+                                    <% } %>
+                              </div>
+                              <% } %>
+                        </div>
+                        <% } %>
+            </div>
+
+            <div class="col-8 offset-3 mb-3">
+               <h3>Where you'll be</h3>
+               <div id="map" style="height: 300px;"></div>
+            </div>
+
+            <% if (currUser && (!listing.owner || !currUser._id.equals(listing.owner._id))) { %>
+               <div class="card col-6 offset-3 mt-3 p-3 shadow">
+                  <h4>Book this Listing</h4>
+
+                  <form action="/bookings/start/<%= listing._id %>" method="POST">
+
+                     <!-- CHECK IN -->
+                     <div class="mb-3">
+                        <label class="form-label">Check-in Date</label>
+                        <input type="date" class="form-control" name="checkIn" id="checkIn" required>
+                     </div>
+
+                     <!-- CHECK OUT -->
+                     <div class="mb-3">
+                        <label class="form-label">Check-out Date</label>
+                        <input type="date" class="form-control" name="checkOut" id="checkOut" required>
+                     </div>
+
+                     <!-- ROOMS -->
+                     <div class="mb-3">
+                        <label class="form-label">Rooms</label>
+                        <input type="number" class="form-control" name="roomsBooked" value="1" min="1"
+                           max="<%= listing.totalRooms || 1 %>" required>
+                        <small class="text-muted">
+                           Total available rooms: <%= listing.totalRooms || 1 %>
+                        </small>
+                     </div>
+
+                     <button type="submit" class="btn btn-success w-100">
+                        Check Availability
+                     </button>
+
+                  </form>
+               </div>
+               <% } else if (!currUser) { %>
+                  <div class="col-6 offset-3 alert alert-info mt-3">
+                     <p><a href="/login">Login</a> to book this listing.</p>
+                  </div>
+                  <% } else { %>
+                     <div class="col-6 offset-3 alert alert-secondary mt-3">
+                        <p><em>This is your own listing. You cannot book it.</em></p>
+                     </div>
+                     <% } %>
    </div>
 
-   <div class="col-8 offset-3 mb-3">
-      <h3>Where you'll be</h3>
-      <div id="map" style="height: 300px;"></div>
-   </div>
+   <script>
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById("checkIn").setAttribute("min", today);
+      document.getElementById("checkOut").setAttribute("min", today);
 
-   <% if (currUser && (!listing.owner || !currUser._id.equals(listing.owner._id))) { %>
-      <div class="card col-6 offset-3 mt-3 p-3 shadow">
-         <h4>Book this Listing</h4>
-         <form action="/book/<%= listing._id %>" method="POST">
-            <div class="mb-3">
-               <label for="checkIn" class="form-label">Check-in Date</label>
-               <input type="date" class="form-control" name="checkIn" id="checkIn" min="" required>
-            </div>
-            <div class="mb-3">
-               <label for="checkOut" class="form-label">Check-out Date</label>
-               <input type="date" class="form-control" name="checkOut" id="checkOut" min="" required>
-            </div>
-            <button type="submit" class="btn btn-success">Confirm Booking</button>
-         </form>
-      </div>
-   <% } else if (!currUser) { %>
-      <div class="col-6 offset-3 alert alert-info mt-3">
-         <p><a href="/login">Login</a> to book this listing.</p>
-      </div>
-   <% } else { %>
-      <div class="col-6 offset-3 alert alert-secondary mt-3">
-         <p><em>This is your own listing. You cannot book it.</em></p>
-      </div>
-   <% } %>
-</div>
+      // Optional: auto-adjust checkOut date when checkIn is picked
+      document.getElementById("checkIn").addEventListener("change", function () {
+         const selectedDate = this.value;
+         document.getElementById("checkOut").setAttribute("min", selectedDate);
+      });
+   </script>
 
-<script>
-  const today = new Date().toISOString().split('T')[0];
-  document.getElementById("checkIn").setAttribute("min", today);
-  document.getElementById("checkOut").setAttribute("min", today);
-
-  // Optional: auto-adjust checkOut date when checkIn is picked
-  document.getElementById("checkIn").addEventListener("change", function () {
-    const selectedDate = this.value;
-    document.getElementById("checkOut").setAttribute("min", selectedDate);
-  });
-</script>
-
-<script src="/js/map.js"></script>
+   <script src="/js/map.js"></script>

@@ -1,0 +1,23 @@
+<%- layout("/layout/boilerplate") %>
+
+<div class="container mt-5">
+  <div class="card mx-auto" style="max-width:700px;">
+    <div class="card-body">
+      <h3 class="card-title text-danger">Confirm cancellation</h3>
+      <p>You're about to cancel this booking. Please confirm below.</p>
+
+      <ul class="list-group mb-3">
+        <li class="list-group-item"><strong>Hotel:</strong> <%= booking.listing.title %></li>
+        <li class="list-group-item"><strong>Check-in:</strong> <%= booking.checkIn.toDateString() %></li>
+        <li class="list-group-item"><strong>Check-out:</strong> <%= booking.checkOut.toDateString() %></li>
+        <li class="list-group-item"><strong>Booking ID:</strong> <%= booking._id %></li>
+      </ul>
+
+      <form action="/bookings/cancel/secure/<%= booking._id %>/<%= booking.cancelToken %>" method="POST" class="d-inline">
+        <button class="btn btn-danger">Yes, cancel booking</button>
+      </form>
+
+      <a href="<%= process.env.SITE_URL || '/listings' %>" class="btn btn-secondary ms-2">No, keep booking</a>
+    </div>
+  </div>
+</div>
