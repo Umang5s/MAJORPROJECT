@@ -38,108 +38,232 @@
          </div>
          <% } %>
 
+            <!-- ===== Reviews block (replace existing review section) ===== -->
             <div class="col-8 offset-3 mb-5">
                <hr>
-               <% if (currUser) { %>
+
+               <!-- Create form: only show when user is logged in, not owner, and hasn't reviewed yet -->
+               <% if (!listing.owner || !currUser || !currUser._id.equals(listing.owner._id)) { %>
                   <h4>Leave a Review</h4>
-                  <form action="/listings/<%= listing._id %>/reviews" method="POST" class="needs-validation" novalidate>
+                  <form action="/listings/<%= listing._id %>/reviews" method="POST" class="needs-validation" novalidate
+                     id="createReviewForm">
                      <div class="mb-3 mt-3">
                         <label for="rating" class="form-label">Rating</label>
                         <fieldset class="starability-slot">
                            <% for (let i=1; i <=5; i++) { %>
-                              <input type="radio" id="rate-<%= i %>" name="review[rating]" value="<%= i %>" />
+                              <input type="radio" id="rate-<%= i %>" name="review[rating]" value="<%= i %>" required />
                               <label for="rate-<%= i %>" title="<%= i %> stars">
-                                 <%= i %> star<%= i> 1 ? 's' : '' %>
+                                 <%= i %> star<%= (i> 1 ? 's' : '') %>
                               </label>
                               <% } %>
                         </fieldset>
                      </div>
+
                      <div class="mb-3">
                         <label for="comment" class="form-label">Comment</label>
                         <textarea name="review[comment]" id="comment" class="form-control" rows="4" required></textarea>
                         <div class="invalid-feedback">Please provide a comment.</div>
                      </div>
+
                      <button type="submit" class="btn btn-outline-dark">Submit</button>
                   </form>
-                  <% } %>
 
-                     <% if (listing.reviews.length> 0) { %>
-                        <hr>
-                        <h5 class="mt-4">All Reviews</h5>
-                        <div class="row">
-                           <% for (let review of listing.reviews) { %>
-                              <div class="card col-5 ms-3 mb-3">
-                                 <div class="card-body">
+
+                  <!-- All reviews list -->
+                  <% if (listing.reviews && listing.reviews.length> 0) { %>
+                     <hr>
+                     <h5 class="mt-4">All Reviews</h5>
+                     <div class="row" id="reviewsList">
+                        <% for (let review of listing.reviews) { %>
+                           <div class="card col-5 ms-3 mb-3 review-card" data-review-id="<%= review._id %>">
+                              <div class="card-body">
+
+                                 <!-- VIEW BLOCK (visible by default) -->
+                                 <div class="view-block">
                                     <h5 class="card-title">
                                        <%= review.author ? '@' + review.author.username : "Unknown" %>
                                     </h5>
                                     <p class="starability-result card-text" data-rating="<%= review.rating %>">
-                                       Rated: <%= review.rating %> star<%= review.rating> 1 ? 's' : '' %>
+                                       Rated: <%= review.rating %> star<%= (review.rating> 1 ? 's' : '') %>
+
                                     </p>
-                                    <p class="card-text">
+                                    <p class="card-text review-comment">
                                        <%= review.comment %>
                                     </p>
                                  </div>
-                                 <% if (currUser && review.author && currUser._id.equals(review.author)) { %>
-                                    <form action="/listings/<%= listing._id %>/reviews/<%= review._id %>?_method=DELETE"
-                                       method="POST" class="mb-3 mt-1">
-                                       <button class="btn btn-sm btn-dark">Remove</button>
-                                    </form>
-                                    <% } %>
+
+                                 <!-- EDIT FORM (hidden by default) -->
+                                 <form class="edit-form"
+                                    action="/listings/<%= listing._id %>/reviews/<%= review._id %>?_method=PUT"
+                                    method="POST" style="display:none;">
+                                    <div class="mb-2">
+                                       <label class="form-label">Rating</label>
+                                       <fieldset class="starability-slot">
+                                          <% for (let i=1; i <=5; i++) { %>
+                                             <input type="radio" id="rate-<%= review._id %>-<%= i %>"
+                                                name="review[rating]" value="<%= i %>" />
+                                             <label for="rate-<%= review._id %>-<%= i %>" title="<%= i %> stars">
+                                                <%= i %>
+                                             </label>
+                                             <% } %>
+                                       </fieldset>
+                                    </div>
+
+                                    <div class="mb-2">
+                                       <label class="form-label">Comment</label>
+                                       <textarea name="review[comment]" class="form-control edit-comment" rows="3"
+                                          required></textarea>
+                                    </div>
+
+                                    <button type="submit" class="btn btn-sm btn-warning">Update</button>
+                                    <button type="button" class="btn btn-sm btn-secondary cancel-edit">Cancel</button>
+                                 </form>
+
+
+                                 <!-- Controls: Edit/Delete if allowed -->
+                                 <div class="mt-2 controls">
+                                    <% const isAuthor=currUser && review.author &&
+                                       currUser._id.equals(review.author._id); const isOwner=currUser && listing.owner
+                                       && currUser._id.equals(listing.owner._id); %>
+
+                                       <% if (isAuthor) { %>
+                                          <button type="button" class="btn btn-sm btn-outline-primary edit-btn"
+                                             data-review-id="<%= review._id %>">Edit</button>
+                                          <form
+                                             action="/listings/<%= listing._id %>/reviews/<%= review._id %>?_method=DELETE"
+                                             method="POST" class="d-inline ms-1">
+                                             <button class="btn btn-sm btn-dark">Remove</button>
+                                          </form>
+                                          <% } else if (isOwner) { %>
+                                             <form
+                                                action="/listings/<%= listing._id %>/reviews/<%= review._id %>?_method=DELETE"
+                                                method="POST" class="d-inline">
+                                                <button class="btn btn-sm btn-dark">Remove (Owner)</button>
+                                             </form>
+                                             <% } %>
+                                 </div>
+
+                                 <!-- store raw data for JS to populate edit form (safe) -->
+                                 <div class="d-none review-meta" data-rating="<%= review.rating %>"
+                                    data-comment="<%= (review.comment || '') %>"></div>
+
                               </div>
-                              <% } %>
-                        </div>
+                           </div>
+                           <% } %>
+                     </div>
+                     <% } else { %>
+                        <p>No reviews yet.</p>
                         <% } %>
             </div>
 
-            <div class="col-8 offset-3 mb-3">
-               <h3>Where you'll be</h3>
-               <div id="map" style="height: 300px;"></div>
-            </div>
+            <% } %>
 
-            <% if (currUser && (!listing.owner || !currUser._id.equals(listing.owner._id))) { %>
-               <div class="card col-6 offset-3 mt-3 p-3 shadow">
-                  <h4>Book this Listing</h4>
+               <!-- Inline script to toggle edit form and populate fields -->
+               <script>
+                  (function () {
+                     // Helper: find closest parent with class
+                     function closest(el, selector) {
+                        while (el && el !== document) {
+                           if (el.matches && el.matches(selector)) return el;
+                           el = el.parentNode;
+                        }
+                        return null;
+                     }
 
-                  <form action="/bookings/start/<%= listing._id %>" method="POST">
+                     // When Edit is clicked: show edit form and populate values
+                     document.querySelectorAll(".edit-btn").forEach(btn => {
+                        btn.addEventListener("click", (e) => {
+                           const reviewCard = closest(e.target, ".review-card");
+                           if (!reviewCard) return;
+                           const meta = reviewCard.querySelector(".review-meta");
+                           const rating = meta ? Number(meta.dataset.rating) : null;
+                           const comment = meta ? meta.dataset.comment : "";
 
-                     <!-- CHECK IN -->
-                     <div class="mb-3">
-                        <label class="form-label">Check-in Date</label>
-                        <input type="date" class="form-control" name="checkIn" id="checkIn" required>
-                     </div>
+                           // hide view-block, show edit form
+                           reviewCard.querySelector(".view-block").style.display = "none";
+                           const editForm = reviewCard.querySelector(".edit-form");
+                           editForm.style.display = "block";
 
-                     <!-- CHECK OUT -->
-                     <div class="mb-3">
-                        <label class="form-label">Check-out Date</label>
-                        <input type="date" class="form-control" name="checkOut" id="checkOut" required>
-                     </div>
+                           // populate comment
+                           const commentEl = editForm.querySelector(".edit-comment");
+                           if (commentEl) commentEl.value = comment;
 
-                     <!-- ROOMS -->
-                     <div class="mb-3">
-                        <label class="form-label">Rooms</label>
-                        <input type="number" class="form-control" name="roomsBooked" value="1" min="1"
-                           max="<%= listing.totalRooms || 1 %>" required>
-                        <small class="text-muted">
-                           Total available rooms: <%= listing.totalRooms || 1 %>
-                        </small>
-                     </div>
+                           // set rating radio inside the edit form
+                           const radios = editForm.querySelectorAll('input[type="radio"][name="review[rating]"]');
+                           radios.forEach(r => r.checked = false);
+                           if (rating) {
+                              const sel = editForm.querySelector('input[type="radio"][name="review[rating]"][value="' + rating + '"]');
+                              if (sel) sel.checked = true;
+                           }
 
-                     <button type="submit" class="btn btn-success w-100">
-                        Check Availability
-                     </button>
+                           // scroll into view (optional nicer UX)
+                           reviewCard.scrollIntoView({ behavior: "smooth", block: "center" });
+                        });
+                     });
 
-                  </form>
+                     // Cancel edit
+                     document.querySelectorAll(".cancel-edit").forEach(btn => {
+                        btn.addEventListener("click", (e) => {
+                           const reviewCard = closest(e.target, ".review-card");
+                           if (!reviewCard) return;
+                           reviewCard.querySelector(".edit-form").style.display = "none";
+                           reviewCard.querySelector(".view-block").style.display = "block";
+                        });
+                     });
+
+                     // If multiple edit forms might be open, optional: close others when opening one
+                     // (left out for simplicity; can be added if you prefer single-open behaviour)
+                  })();
+               </script>
+
+
+               <div class="col-8 offset-3 mb-3">
+                  <h3>Where you'll be</h3>
+                  <div id="map" style="height: 300px;"></div>
                </div>
-               <% } else if (!currUser) { %>
-                  <div class="col-6 offset-3 alert alert-info mt-3">
-                     <p><a href="/login">Login</a> to book this listing.</p>
+
+               <% if (!listing.owner || !currUser || !currUser._id.equals(listing.owner._id)) { %>
+
+                  <div class="card col-6 offset-3 mt-3 p-3 shadow">
+                     <h4>Book this Listing</h4>
+
+                     <form action="/bookings/start/<%= listing._id %>" method="POST">
+
+                        <!-- CHECK IN -->
+                        <div class="mb-3">
+                           <label class="form-label">Check-in Date</label>
+                           <input type="date" class="form-control" name="checkIn" id="checkIn" required>
+                        </div>
+
+                        <!-- CHECK OUT -->
+                        <div class="mb-3">
+                           <label class="form-label">Check-out Date</label>
+                           <input type="date" class="form-control" name="checkOut" id="checkOut" required>
+                        </div>
+
+                        <!-- ROOMS -->
+                        <div class="mb-3">
+                           <label class="form-label">Rooms</label>
+                           <input type="number" class="form-control" name="roomsBooked" value="1" min="1"
+                              max="<%= listing.totalRooms || 1 %>" required>
+                           <small class="text-muted">
+                              Total available rooms: <%= listing.totalRooms || 1 %>
+                           </small>
+                        </div>
+
+                        <button type="submit" class="btn btn-success w-100">
+                           Check Availability
+                        </button>
+
+                     </form>
+                     <% } %>
                   </div>
-                  <% } else { %>
+                  <% if (currUser && listing.owner && currUser._id.equals(listing.owner._id)) { %>
                      <div class="col-6 offset-3 alert alert-secondary mt-3">
                         <p><em>This is your own listing. You cannot book it.</em></p>
                      </div>
                      <% } %>
+
    </div>
 
    <script>
@@ -152,6 +276,32 @@
          const selectedDate = this.value;
          document.getElementById("checkOut").setAttribute("min", selectedDate);
       });
+
+      (function () {
+
+         const isLoggedIn = <%= !!currUser %>;
+
+         if (isLoggedIn) return;
+
+         const returnTo = encodeURIComponent(window.location.pathname + window.location.search);
+
+         function redirectLogin(e) {
+            e.preventDefault();
+            window.location.href = "/login?returnTo=" + returnTo;
+         }
+
+         // review form
+         const reviewForm = document.getElementById("createReviewForm");
+         if (reviewForm) {
+            reviewForm.addEventListener("submit", redirectLogin);
+         }
+
+         // booking form
+         document.querySelectorAll('form[action^="/bookings/start"]').forEach(form => {
+            form.addEventListener("submit", redirectLogin);
+         });
+
+      })();
    </script>
 
    <script src="/js/map.js"></script>

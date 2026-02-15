@@ -15,7 +15,7 @@ async function calculateListingRatings(listings) {
     if (reviews.length > 0) {
       const totalRating = reviews.reduce(
         (sum, review) => sum + review.rating,
-        0
+        0,
       );
       listing.avgRating = Number((totalRating / reviews.length).toFixed(1)); // Ensure it's a Number
     } else {
@@ -28,21 +28,27 @@ async function calculateListingRatings(listings) {
 module.exports.index = async (req, res) => {
   const { category } = req.query;
   let filter = {};
-  if (category && category !== "All") {
+  if (category === "Trending") {
+    filter.category = "Trending";
+  } else if (category && category !== "All") {
     filter.$or = [
       { category },
-      { category: "Trending", originalCategory: category }, // Show trending listings also under original category
+      { originalCategory: category, category: "Trending" },
     ];
   }
-
-  const listings = await Listing.find(filter);
+  let listings = await Listing.find(filter);
   await calculateListingRatings(listings);
+
+  // HARD FILTER FOR TRENDING (real rating based)
+  if (category === "Trending") {
+    listings = listings.filter((l) => l.avgRating !== null && l.avgRating >= 4);
+  }
 
   let watchlistListingIds = [];
   if (req.user) {
     const watchlists = await Watchlist.find({ user: req.user._id });
     watchlistListingIds = watchlists.flatMap((wl) =>
-      wl.listings.map((id) => id.toString())
+      wl.listings.map((id) => id.toString()),
     );
   }
 
@@ -53,17 +59,10 @@ module.exports.index = async (req, res) => {
     if (reviews.length > 0) {
       const totalRating = reviews.reduce(
         (sum, review) => sum + review.rating,
-        0
+        0,
       );
       const avgRating = totalRating / reviews.length;
       listing.avgRating = avgRating.toFixed(1);
-
-      // Update category to 'Trending' if avgRating >= 4
-      if (avgRating >= 4 && listing.category !== "Trending") {
-        listing.originalCategory = listing.category;
-        listing.category = "Trending";
-        await listing.save();
-      }
     } else {
       listing.avgRating = null;
     }
@@ -83,7 +82,10 @@ module.exports.renderNewForm = (req, res) => {
 module.exports.showListings = async (req, res) => {
   const { id } = req.params;
   const listing = await Listing.findById(id)
-    .populate({ path: "reviews", populate: { path: "author" } })
+    .populate({
+      path: "reviews",
+      populate: { path: "author", select: "username _id" },
+    })
     .populate("owner");
 
   if (!listing) {
@@ -91,7 +93,16 @@ module.exports.showListings = async (req, res) => {
     return res.redirect("/listings");
   }
 
-  res.render("listings/show.ejs", { listing });
+  // find if the current user has already reviewed this listing
+  let userReview = null;
+  if (req.user) {
+    userReview = listing.reviews.find(
+      (r) => r.author && r.author._id && r.author._id.equals(req.user._id),
+    );
+  }
+
+  // pass userReview to the template
+  res.render("listings/show.ejs", { listing, userReview });
 };
 
 module.exports.createListing = async (req, res, next) => {
@@ -139,7 +150,7 @@ module.exports.renderEditForm = async (req, res) => {
 
   const originalImageUrl = listing.image.url.replace(
     "/upload",
-    "/upload/w_250"
+    "/upload/w_250",
   );
 
   res.render("listings/edit.ejs", { listing, originalImageUrl });
@@ -203,7 +214,7 @@ module.exports.searchListings = async (req, res) => {
   if (req.user) {
     const watchlists = await Watchlist.find({ user: req.user._id });
     watchlistListingIds = watchlists.flatMap((wl) =>
-      wl.listings.map((id) => id.toString())
+      wl.listings.map((id) => id.toString()),
     );
   }
 

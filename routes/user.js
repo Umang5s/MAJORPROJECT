@@ -25,7 +25,19 @@ router
   .get(userController.renderSignUpForm)
   .post(wrapAsync(userController.registeredNewUser));
 
-router.get("/login", userController.renderLoginForm);
+// GET /login — capture a safe returnTo path if present (prevent open redirect)
+router.get(
+  "/login",
+  (req, res, next) => {
+    const returnTo = req.query.returnTo;
+    // only accept local paths that start with '/'
+    if (returnTo && typeof returnTo === "string" && returnTo.startsWith("/")) {
+      req.session.returnTo = returnTo;
+    }
+    next();
+  },
+  userController.renderLoginForm,
+);
 
 router.post("/login", saveRedirectUrl, (req, res, next) => {
   passport.authenticate("local", (err, user, info) => {
@@ -40,7 +52,7 @@ router.post("/login", saveRedirectUrl, (req, res, next) => {
     if (user.googleId && !user.hash) {
       req.flash(
         "error",
-        "This account was created using Google. Please log in with Google."
+        "This account was created using Google. Please log in with Google.",
       );
       return res.redirect("/login");
     }
@@ -48,7 +60,8 @@ router.post("/login", saveRedirectUrl, (req, res, next) => {
     req.logIn(user, (err) => {
       if (err) return next(err);
       req.flash("success", "Welcome back to Wanderlust!");
-      const redirectUrl = res.locals.redirectUrl || "/listings";
+      const redirectUrl = req.query.returnTo || res.locals.redirectUrl || "/listings";
+      delete req.session.returnTo;
       res.redirect(redirectUrl);
     });
   })(req, res, next);
@@ -85,14 +98,14 @@ router.post(
   "/profile/edit",
   isLoggedIn,
   upload.single("photo"),
-  wrapAsync(userController.updateProfile)
+  wrapAsync(userController.updateProfile),
 );
 
 // In your user routes
 router.post(
   "/profile/delete-photo",
   isLoggedIn,
-  userController.deleteProfilePhoto
+  userController.deleteProfilePhoto,
 );
 
 // Logout
