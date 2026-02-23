@@ -1,0 +1,254 @@
+<% const user=typeof currUser !=='undefined' ? currUser : null; %>
+  <link rel="stylesheet" href="/css/navbar.css">
+
+  <nav class="nn-navbar" id="mainNavbar">
+
+    <!-- ================= FULL NAVBAR ================= -->
+    <div class="nn-navbar-full" id="fullNavbar">
+
+      <!-- Top Row -->
+      <div class="nn-top-row">
+        <div class="nn-container">
+          <div class="nn-categories">
+            <a href="/listings" class="category-link active">Homes</a>
+            <a href="/experiences" class="category-link">Experiences</a>
+            <a href="/services" class="category-link">Services</a>
+          </div>
+
+          <div class="nn-top-right">
+            <% if (user) { %>
+              <form id="nnSwitchForm" action="/mode/switch" method="POST" class="mode-switch-form">
+                <input type="hidden" name="mode" value="<%= mode === 'host' ? 'traveller' : 'host' %>">
+                <button type="submit" id="nnSwitchMode" class="nn-switch-top">
+                  <span class="switch-text">
+                    <%= mode==='host' ? 'Switch to travelling' : 'Switch to hosting' %>
+                  </span>
+                  <span class="switch-spinner" style="display: none;">
+                    <i class="fa-solid fa-spinner fa-spin"></i>
+                  </span>
+                </button>
+              </form>
+              <% } else { %>
+                <div class="nn-auth-links">
+                  <a href="/login" class="auth-link">Log in</a>
+                  <a href="/signup" class="auth-link signup">Sign up</a>
+                </div>
+                <% } %>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom Row -->
+      <div class="nn-bottom-row">
+        <div class="nn-container">
+
+          <!-- Left -->
+          <div class="nn-left">
+            <a href="/listings" class="nn-brand">
+              <i class="fa-solid fa-compass"></i>
+              <span class="nn-brand-text">NightNest</span>
+            </a>
+          </div>
+
+          <!-- Center Search -->
+          <div class="nn-center">
+            <form id="nnSearchForm" action="/listings/search" method="GET" role="search" class="nn-search-form">
+
+              <div class="nn-search-part" data-part="where">
+                <label>Where</label>
+                <input id="nnWhere" name="location" autocomplete="off" placeholder="Search destinations">
+                <div id="nnWhereSuggestions" class="nn-suggestions"></div>
+              </div>
+
+              <div class="nn-divider"></div>
+
+              <div class="nn-search-part" data-part="when">
+                <label>When</label>
+                <input id="dateRange" placeholder="Add dates" readonly>
+                <input type="hidden" name="checkIn" id="checkIn">
+                <input type="hidden" name="checkOut" id="checkOut">
+              </div>
+
+              <div class="nn-divider"></div>
+
+              <div class="nn-search-part" data-part="who">
+                <label>Who</label>
+                <button type="button" id="nnGuestBtn" class="nn-guest-btn">Add guests</button>
+                <input type="hidden" id="nnGuestsInput" name="guests" value="1">
+              </div>
+
+              <button class="nn-search-submit" type="submit" aria-label="Search">
+                <i class="fa-solid fa-magnifying-glass"></i>
+              </button>
+
+            </form>
+          </div>
+
+          <!-- Right -->
+          <div class="nn-right">
+            <% if (user) { %>
+              <div class="nn-user-menu">
+                <div class="nn-profile-container">
+
+                  <!-- PROFILE BUTTON WRAPPER -->
+                  <div class="nn-profile-btn">
+
+                    <!-- MENU ICON (DROPDOWN TRIGGER) -->
+                    <button type="button" class="nn-menu-trigger" id="nnMenuTrigger">
+                      <i class="fa-solid fa-bars"></i>
+                    </button>
+
+                    <!-- AVATAR (GO TO PROFILE PAGE) -->
+                    <a href="/profile" class="nn-avatar-link">
+                      <% if (user.localPhoto || user.avatar) { %>
+                        <img class="nn-profile-img" src="<%= user.localPhoto || user.avatar %>" alt="profile">
+                        <% } else { %>
+                          <div class="nn-profile-initial">
+                            <%= (user.name || user.username || 'U' )[0].toUpperCase() %>
+                          </div>
+                          <% } %>
+                    </a>
+
+                  </div>
+
+                  <!-- DROPDOWN MENU -->
+                  <div id="nnProfileDropdown" class="nn-dropdown">
+                    <a href="/watchlist">Wishlists</a>
+                    <a href="/bookings/my">Trips</a>
+                    <a href="#">Messages</a>
+                    <hr>
+                    <a href="/profile">Profile</a>
+                    <a href="/account-settings">Account settings</a>
+                    <hr>
+                    <a href="/logout" class="danger">Log out</a>
+                  </div>
+
+                </div>
+              </div>
+              <% } %>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ================= COMPACT NAVBAR ================= -->
+    <div class="nn-navbar-compact" id="compactNavbar">
+      <div class="nn-container">
+
+        <div class="nn-left">
+          <a href="/listings" class="nn-brand">
+            <i class="fa-solid fa-compass"></i>
+            <span class="nn-brand-text">NightNest</span>
+          </a>
+        </div>
+
+        <div class="nn-center">
+          <div class="compact-search" id="compactSearch">
+            <span class="compact-search-text">Anywhere</span>
+            <span class="compact-search-divider">·</span>
+            <span class="compact-search-text">Anytime</span>
+            <span class="compact-search-divider">·</span>
+            <span class="compact-search-text">Add guests</span>
+            <button class="compact-search-icon" id="compactSearchBtn">
+              <i class="fa-solid fa-magnifying-glass"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="nn-right">
+          <% if (user) { %>
+            <form id="nnSwitchFormCompact" action="/mode/switch" method="POST" class="mode-switch-form">
+              <input type="hidden" name="mode" value="<%= mode === 'host' ? 'traveller' : 'host' %>">
+              <button type="submit" id="nnSwitchModeCompact" class="nn-switch-compact">
+                <span class="switch-text">Switch to hosting</span>
+                <span class="switch-spinner" style="display: none;">
+                  <i class="fa-solid fa-spinner fa-spin"></i>
+                </span>
+              </button>
+            </form>
+
+            <div class="nn-user-menu">
+              <div class="nn-user-menu">
+                <div class="nn-profile-container">
+
+                  <div class="nn-profile-btn">
+
+                    <button type="button" class="nn-menu-trigger" id="nnMenuTriggerCompact">
+                      <i class="fa-solid fa-bars"></i>
+                    </button>
+
+                    <a href="/profile" class="nn-avatar-link">
+                      <% if (user.localPhoto || user.avatar) { %>
+                        <img class="nn-profile-img" src="<%= user.localPhoto || user.avatar %>" alt="profile">
+                        <% } else { %>
+                          <div class="nn-profile-initial">
+                            <%= (user.name || user.username || 'U' )[0].toUpperCase() %>
+                          </div>
+                          <% } %>
+                    </a>
+
+                  </div>
+
+                  <div id="nnProfileDropdownCompact" class="nn-dropdown">
+                    <a href="/watchlist">Wishlists</a>
+                    <a href="/bookings/my">Trips</a>
+                    <a href="/profile">Profile</a>
+                    <hr>
+                    <a href="/logout" class="danger">Log out</a>
+                  </div>
+
+                </div>
+              </div>
+            </div>
+            <% } %>
+        </div>
+
+      </div>
+    </div>
+
+  </nav>
+
+  <!-- Guest Popover (UNCHANGED) -->
+  <div id="nnGuestPopover" class="nn-popover">
+    <div class="nn-popover-row">
+      <div>
+        <div class="nn-popover-title">Adults</div>
+        <div class="nn-popover-sub">Ages 13 or above</div>
+      </div>
+      <div class="nn-counter">
+        <button class="nn-minus" data-type="adults">−</button>
+        <span class="nn-count" data-type="adults">1</span>
+        <button class="nn-plus" data-type="adults">+</button>
+      </div>
+    </div>
+    <div class="nn-popover-row">
+      <div>
+        <div class="nn-popover-title">Children</div>
+        <div class="nn-popover-sub">Ages 2–12</div>
+      </div>
+      <div class="nn-counter">
+        <button class="nn-minus" data-type="children">−</button>
+        <span class="nn-count" data-type="children">0</span>
+        <button class="nn-plus" data-type="children">+</button>
+      </div>
+    </div>
+    <div class="nn-popover-row">
+      <div>
+        <div class="nn-popover-title">Infants</div>
+        <div class="nn-popover-sub">Under 2</div>
+      </div>
+      <div class="nn-counter">
+        <button class="nn-minus" data-type="infants">−</button>
+        <span class="nn-count" data-type="infants">0</span>
+        <button class="nn-plus" data-type="infants">+</button>
+      </div>
+    </div>
+    <div class="nn-popover-actions">
+      <button id="nnGuestDone" class="btn-done">Done</button>
+    </div>
+  </div>
+
+  <script src="/js/search.js"></script>
+  <script src="/js/navbar.js" defer></script>

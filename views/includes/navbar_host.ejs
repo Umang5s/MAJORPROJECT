@@ -1,0 +1,133 @@
+<% const user = typeof currUser !== 'undefined' ? currUser : null; %>
+
+<link rel="stylesheet" href="/css/navbar.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<nav class="host-navbar">
+  <div class="host-nav-container">
+
+    <!-- LEFT -->
+    <div class="host-nav-left">
+      <a href="/host/today" class="host-logo">
+        <i class="fa-solid fa-compass"></i>
+        <span class="nn-brand-text">NightNest</span>
+      </a>
+
+      <div class="host-nav-links">
+        <a href="/host/today"
+           class="<%= (currentPath || '').includes('/host/today') ? 'active' : '' %>">
+          Today
+        </a>
+        <a href="/host/calendar"
+           class="<%= (currentPath || '').includes('/host/calendar') ? 'active' : '' %>">
+          Calendar
+        </a>
+        <a href="/host/listings"
+           class="<%= (currentPath || '').includes('/host/listings') ? 'active' : '' %>">
+          Listings
+        </a>
+        <a href="/host/messages"
+           class="<%= (currentPath || '').includes('/host/messages') ? 'active' : '' %>">
+          Messages
+        </a>
+      </div>
+    </div>
+
+    <!-- RIGHT -->
+    <div class="host-nav-right">
+
+      <% if (user) { %>
+
+        <!-- Mode Switch -->
+        <form action="/mode/switch" method="POST" class="mode-switch-form">
+          <input type="hidden" name="mode" value="traveller">
+          <button type="submit" class="host-switch-btn">
+            Switch to travelling
+          </button>
+        </form>
+
+        <!-- USER MENU -->
+        <div class="host-user-menu">
+
+          <!-- Profile Button -->
+          <div class="host-profile-btn" id="hostProfileBtn">
+
+            <!-- 3 LINE MENU -->
+            <i class="fa-solid fa-bars host-bars"></i>
+
+            <!-- AVATAR (GOES TO PROFILE PAGE) -->
+            <% if (user.localPhoto || user.avatar) { %>
+              <a href="/profile">
+                <img 
+                  src="<%= user.localPhoto || user.avatar %>" 
+                  class="host-profile-img"
+                  alt="Profile"
+                >
+              </a>
+            <% } else { %>
+              <a href="/profile" class="host-profile-initial">
+                <%= (user.name || user.username || 'U')[0].toUpperCase() %>
+              </a>
+            <% } %>
+
+          </div>
+
+          <!-- DROPDOWN -->
+          <div id="hostDropdown" class="host-dropdown">
+            <a href="/host/today">Today</a>
+            <a href="/host/calendar">Calendar</a>
+            <a href="/host/listings">Listings</a>
+            <a href="/host/messages">Messages</a>
+            <hr>
+            <a href="/listings/new">Create new listing</a>
+            <a href="/host/earnings">Earnings</a>
+            <a href="/host/settings">Settings</a>
+            <hr>
+            <a href="/logout" class="danger">Log out</a>
+          </div>
+
+        </div>
+
+      <% } %>
+
+    </div>
+  </div>
+</nav>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+  const profileBtn = document.getElementById("hostProfileBtn");
+  const dropdown = document.getElementById("hostDropdown");
+
+  if (profileBtn && dropdown) {
+
+    profileBtn.addEventListener("click", function (e) {
+
+      const clickedAvatar = e.target.closest(".host-profile-img, .host-profile-initial");
+
+      // If avatar clicked → allow normal link behavior
+      if (clickedAvatar) return;
+
+      // Otherwise toggle dropdown
+      e.preventDefault();
+      e.stopPropagation();
+      dropdown.classList.toggle("show");
+    });
+
+    // Close dropdown when clicking outside
+    document.addEventListener("click", function (e) {
+      if (!profileBtn.contains(e.target)) {
+        dropdown.classList.remove("show");
+      }
+    });
+
+    // Escape key closes dropdown
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape") {
+        dropdown.classList.remove("show");
+      }
+    });
+  }
+});
+</script>

@@ -24,7 +24,12 @@ const userRouter = require("./routes/user.js");
 const authRouter = require("./routes/auth.js");
 const watchlistRouter = require("./routes/watchlist.js");
 const bookingRoutes = require("./routes/booking");
-
+const apiRoutes = require('./routes/api');
+const searchRoutes = require("./routes/search");
+const modeRouter = require("./routes/mode");          // NEW: mode switch route
+const hostRouter = require("./routes/host");          // NEW: host dashboard routes
+const { setUserMode } = require("./middleware");
+const profileRoutes = require("./routes/profile.js");
 require("./passport");
 
 // MongoDB Connection
@@ -41,11 +46,22 @@ app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 app.use(express.static(path.join(__dirname, "public")));
 
+// Set default layout
+app.use((req, res, next) => {
+  res.locals.layout = "layouts/boilerplate";
+  next();
+});
+
 // Middleware
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(methodOverride("_method"));
 
+// Add this after your other app.use middleware
+app.use((req, res, next) => {
+  res.locals.currentPath = req.path;
+  next();
+});
 // Session store
 const store = MongoStore.create({
   mongoUrl: dbUrl,
@@ -78,21 +94,35 @@ passport.use(new LocalStrategy({ usernameField: "email" }, User.authenticate()))
 passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
 
-// Flash & user injection middleware
 app.use((req, res, next) => {
-  res.locals.currUser = req.user;
+  res.locals.currUser = req.user || null;
+  // Default to "traveller" if no mode is set in session
+  res.locals.mode = req.session.mode || "traveller";
+  res.locals.requestOriginal = req.originalUrl;
   res.locals.success = req.flash("success");
   res.locals.error = req.flash("error");
+  res.locals.currentPath = req.path;
   next();
 });
 
-// Routes
+app.use(setUserMode);
+
+// Mode switch route
+app.use("/mode", modeRouter);
+
+// Host routes
+app.use("/host", hostRouter);
+
+// Other routes (unchanged)
 app.use("/listings", listingRouter);
 app.use("/listings/:id/reviews", reviewRouter);
 app.use("/", userRouter); // signup, login, logout, set password
 app.use("/", authRouter); // Google OAuth
 app.use("/watchlist", watchlistRouter);
 app.use(bookingRoutes);
+app.use('/api', apiRoutes);
+app.use("/search", searchRoutes);
+app.use("/profile", profileRoutes);
 
 // Catch all
 app.all("*", (req, res, next) => {
@@ -113,5 +143,3 @@ const port = process.env.PORT || 3000;
 app.listen(port, () => {
   console.log(`Serving on port ${port}`);
 });
-
-

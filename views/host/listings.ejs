@@ -1,0 +1,282 @@
+<%
+  locals.currentPath = '/host/listings';
+%>
+
+<!-- Include the host navbar -->
+<%- include('../includes/navbar_host') %>
+
+<div class="host-listings-container">
+  <div class="host-listings-header">
+    <h1>Listings</h1>
+    <a href="/listings/new" class="create-listing-btn">
+      <i class="fa-solid fa-plus"></i>
+      Create new listing
+    </a>
+  </div>
+
+  <% if (listings.length === 0) { %>
+    <!-- Empty state for listings -->
+    <div class="empty-state">
+      <div class="empty-state-icon">
+        <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="presentation" focusable="false" style="display: block; fill: none; height: 48px; width: 48px; stroke: currentcolor; stroke-width: 2; overflow: visible;">
+          <g fill="none" fill-rule="evenodd">
+            <path d="m2 16h28v12c0 1.1045695-.8954305 2-2 2h-24c-1.1045695 0-2-.8954305-2-2z" stroke="#222"></path>
+            <path d="m2 10 14-8 14 8v6h-28z" stroke="#222"></path>
+          </g>
+        </svg>
+      </div>
+      <h2 class="empty-state-title">You don't have<br>any listings yet</h2>
+      <p class="empty-state-text">Start hosting by creating your first listing</p>
+      <a href="/listings/new" class="complete-listing-btn">Create your first listing</a>
+    </div>
+  <% } else { %>
+    <div class="listings-grid">
+      <% listings.forEach(listing => { %>
+        <div class="listing-card">
+          <div class="listing-image">
+            <% if (listing.image && listing.image.url) { %>
+              <img src="<%= listing.image.url %>" alt="<%= listing.title %>">
+            <% } else { %>
+              <img src="/images/default-listing.jpg" alt="Default">
+            <% } %>
+            <div class="listing-status <%= listing.isPublished ? 'published' : 'draft' %>">
+              <%= listing.isPublished ? 'Published' : 'Draft' %>
+            </div>
+          </div>
+          
+          <div class="listing-info">
+            <h3><%= listing.title %></h3>
+            <p class="listing-location"><%= listing.location %></p>
+            
+            <div class="listing-stats">
+              <span><i class="fa-regular fa-star"></i> <%= listing.avgRating || 'New' %></span>
+              <span><i class="fa-regular fa-eye"></i> <%= listing.views || 0 %></span>
+            </div>
+            
+            <div class="listing-price">
+              ₹<%= listing.price %> <span>night</span>
+            </div>
+            
+            <div class="listing-actions">
+              <a href="/listings/<%= listing._id %>" class="action-btn" target="_blank">Preview</a>
+              <a href="/listings/<%= listing._id %>/edit" class="action-btn">Edit</a>
+            </div>
+          </div>
+        </div>
+      <% }) %>
+    </div>
+  <% } %>
+</div>
+
+<style>
+.host-listings-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 48px 24px;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+.host-listings-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 40px;
+}
+
+.host-listings-header h1 {
+  font-size: 48px;
+  font-weight: 600;
+  color: #222;
+  margin: 0;
+  line-height: 1;
+}
+
+.create-listing-btn {
+  background: #222;
+  color: white;
+  text-decoration: none;
+  padding: 14px 24px;
+  border-radius: 40px;
+  font-size: 16px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: background 0.2s;
+}
+
+.create-listing-btn:hover {
+  background: #000;
+}
+
+.listings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 24px;
+}
+
+.listing-card {
+  background: white;
+  border: 1px solid #ebebeb;
+  border-radius: 16px;
+  overflow: hidden;
+  transition: box-shadow 0.2s;
+}
+
+.listing-card:hover {
+  box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+}
+
+.listing-image {
+  position: relative;
+  height: 200px;
+  overflow: hidden;
+}
+
+.listing-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.listing-status {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  background: white;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.listing-status.published {
+  background: #222;
+  color: white;
+}
+
+.listing-status.draft {
+  background: white;
+  color: #222;
+  border: 1px solid #ddd;
+}
+
+.listing-info {
+  padding: 16px;
+}
+
+.listing-info h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #222;
+  margin: 0 0 4px 0;
+}
+
+.listing-location {
+  font-size: 14px;
+  color: #717171;
+  margin: 0 0 12px 0;
+}
+
+.listing-stats {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 12px;
+  font-size: 14px;
+  color: #717171;
+}
+
+.listing-stats i {
+  margin-right: 4px;
+  color: #ff385c;
+}
+
+.listing-price {
+  font-size: 16px;
+  font-weight: 600;
+  color: #222;
+  margin-bottom: 16px;
+}
+
+.listing-price span {
+  font-weight: 400;
+  color: #717171;
+}
+
+.listing-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.action-btn {
+  flex: 1;
+  text-align: center;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  text-decoration: none;
+  color: #222;
+  font-size: 14px;
+  transition: background 0.2s;
+}
+
+.action-btn:hover {
+  background: #f7f7f7;
+}
+
+/* Reuse empty state styles from today.ejs */
+.empty-state {
+  text-align: center;
+  max-width: 500px;
+  margin: 80px auto;
+}
+
+.empty-state-icon {
+  margin-bottom: 24px;
+  color: #222;
+}
+
+.empty-state-title {
+  font-size: 32px;
+  font-weight: 600;
+  color: #222;
+  line-height: 1.2;
+  margin: 0 0 16px 0;
+}
+
+.empty-state-text {
+  font-size: 18px;
+  color: #717171;
+  line-height: 1.5;
+  margin: 0 0 32px 0;
+}
+
+.complete-listing-btn {
+  display: inline-block;
+  background: #222;
+  color: white;
+  font-size: 16px;
+  font-weight: 500;
+  padding: 14px 32px;
+  border-radius: 40px;
+  text-decoration: none;
+  transition: background 0.2s;
+}
+
+.complete-listing-btn:hover {
+  background: #000;
+}
+
+@media (max-width: 768px) {
+  .host-listings-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+  
+  .host-listings-header h1 {
+    font-size: 36px;
+  }
+}
+</style>

@@ -1,0 +1,274 @@
+<%
+  // Set current path for navbar active state
+  locals.currentPath = '/host/today';
+%>
+
+<!-- Include the host navbar -->
+<%- include('../includes/navbar_host') %>
+
+<div class="host-today-container">
+  <!-- Header with Today title and tabs -->
+  <div class="host-today-header">
+    <h1>Today</h1>
+    <div class="header-tabs">
+      <button class="tab-btn active">Upcoming</button>
+      <button class="tab-btn">Waiting for you</button>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="host-today-content">
+    <% if (todayCheckIns.length === 0 && todayCheckOuts.length === 0 && upcomingReservations.length === 0) { %>
+      <!-- Empty State - Exactly matching your screenshot -->
+      <div class="empty-state">
+        <div class="empty-state-icon">
+          <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="presentation" focusable="false" style="display: block; fill: none; height: 48px; width: 48px; stroke: currentcolor; stroke-width: 2; overflow: visible;">
+            <g fill="none" fill-rule="evenodd">
+              <path d="m2 16h28v12c0 1.1045695-.8954305 2-2 2h-24c-1.1045695 0-2-.8954305-2-2z" stroke="#222"></path>
+              <path d="m2 10 14-8 14 8v6h-28z" stroke="#222"></path>
+              <path d="m8 10v-4" stroke="#222"></path>
+              <path d="m24 10v-4" stroke="#222"></path>
+              <path d="m12 16v8" stroke="#222"></path>
+              <path d="m20 16v8" stroke="#222"></path>
+            </g>
+          </svg>
+        </div>
+        
+        <h2 class="empty-state-title">You don't have<br>any reservations</h2>
+        
+        <p class="empty-state-text">To get booked, you'll need to<br>complete and publish your listing.</p>
+        
+        <a href="/listings/new" class="complete-listing-btn">Complete your listing</a>
+      </div>
+    <% } else { %>
+      <!-- Content when there are reservations -->
+      <div class="reservations-grid">
+        <!-- Check-ins Today -->
+        <% if (todayCheckIns.length > 0) { %>
+          <div class="reservation-section">
+            <h3>Check-ins today</h3>
+            <% todayCheckIns.forEach(booking => { %>
+              <div class="reservation-card">
+                <div class="reservation-time">
+                  <%= new Date(booking.checkIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) %>
+                </div>
+                <div class="reservation-details">
+                  <h4><%= booking.listing.title %></h4>
+                  <p><%= booking.user.username %> · <%= booking.guests || 1 %> guests</p>
+                </div>
+              </div>
+            <% }) %>
+          </div>
+        <% } %>
+
+        <!-- Check-outs Today -->
+        <% if (todayCheckOuts.length > 0) { %>
+          <div class="reservation-section">
+            <h3>Check-outs today</h3>
+            <% todayCheckOuts.forEach(booking => { %>
+              <div class="reservation-card">
+                <div class="reservation-time">
+                  <%= new Date(booking.checkOut).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) %>
+                </div>
+                <div class="reservation-details">
+                  <h4><%= booking.listing.title %></h4>
+                  <p><%= booking.user.username %> · <%= booking.guests || 1 %> guests</p>
+                </div>
+              </div>
+            <% }) %>
+          </div>
+        <% } %>
+
+        <!-- Upcoming -->
+        <% if (upcomingReservations.length > 0) { %>
+          <div class="reservation-section">
+            <h3>Upcoming</h3>
+            <% upcomingReservations.forEach(booking => { %>
+              <div class="reservation-card">
+                <div class="reservation-date">
+                  <%= new Date(booking.checkIn).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) %> – 
+                  <%= new Date(booking.checkOut).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) %>
+                </div>
+                <div class="reservation-details">
+                  <h4><%= booking.listing.title %></h4>
+                  <p><%= booking.user.username %> · <%= booking.guests || 1 %> guests</p>
+                </div>
+              </div>
+            <% }) %>
+          </div>
+        <% } %>
+      </div>
+    <% } %>
+  </div>
+</div>
+
+<style>
+/* Host Today Page Specific Styles */
+.host-today-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 48px 24px;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+.host-today-header {
+  margin-bottom: 40px;
+}
+
+.host-today-header h1 {
+  font-size: 48px;
+  font-weight: 600;
+  color: #222;
+  margin: 0 0 24px 0;
+  line-height: 1;
+}
+
+.header-tabs {
+  display: flex;
+  gap: 24px;
+  border-bottom: 1px solid #ebebeb;
+  padding-bottom: 8px;
+}
+
+.tab-btn {
+  background: transparent;
+  border: none;
+  font-size: 18px;
+  font-weight: 500;
+  color: #717171;
+  cursor: pointer;
+  padding: 0 0 8px 0;
+  position: relative;
+}
+
+.tab-btn.active {
+  color: #222;
+}
+
+.tab-btn.active::after {
+  content: '';
+  position: absolute;
+  bottom: -9px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: #222;
+}
+
+/* Empty State - Exact match to screenshot */
+.empty-state {
+  text-align: center;
+  max-width: 500px;
+  margin: 80px auto;
+}
+
+.empty-state-icon {
+  margin-bottom: 24px;
+  color: #222;
+}
+
+.empty-state-title {
+  font-size: 32px;
+  font-weight: 600;
+  color: #222;
+  line-height: 1.2;
+  margin: 0 0 16px 0;
+}
+
+.empty-state-text {
+  font-size: 18px;
+  color: #717171;
+  line-height: 1.5;
+  margin: 0 0 32px 0;
+}
+
+.complete-listing-btn {
+  display: inline-block;
+  background: #222;
+  color: white;
+  font-size: 16px;
+  font-weight: 500;
+  padding: 14px 32px;
+  border-radius: 40px;
+  text-decoration: none;
+  transition: background 0.2s;
+}
+
+.complete-listing-btn:hover {
+  background: #000;
+}
+
+/* Reservations Grid */
+.reservations-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 48px;
+}
+
+.reservation-section h3 {
+  font-size: 22px;
+  font-weight: 600;
+  color: #222;
+  margin: 0 0 24px 0;
+}
+
+.reservation-card {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 16px;
+  background: white;
+  border: 1px solid #ebebeb;
+  border-radius: 12px;
+  margin-bottom: 12px;
+  transition: box-shadow 0.2s;
+}
+
+.reservation-card:hover {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.reservation-time,
+.reservation-date {
+  min-width: 100px;
+  font-weight: 500;
+  color: #222;
+}
+
+.reservation-details h4 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #222;
+  margin: 0 0 4px 0;
+}
+
+.reservation-details p {
+  font-size: 14px;
+  color: #717171;
+  margin: 0;
+}
+
+@media (max-width: 768px) {
+  .host-today-container {
+    padding: 24px 16px;
+  }
+  
+  .host-today-header h1 {
+    font-size: 36px;
+  }
+  
+  .empty-state-title {
+    font-size: 28px;
+  }
+  
+  .empty-state-text {
+    font-size: 16px;
+  }
+  
+  .reservation-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+}
+</style>

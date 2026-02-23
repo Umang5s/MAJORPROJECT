@@ -7,34 +7,37 @@ const multer = require("multer");
 const { storage } = require("../cloudConfig.js");
 const upload = multer({ storage });
 
+// Search route - searches ALL listings
 router.get("/search", wrapAsync(listingController.searchListings));
 
+// Index route - shows ALL listings (for traveller mode)
 router
   .route("/")
-  .get(wrapAsync(listingController.index)) //index route
+  .get(wrapAsync(listingController.index))
   .post(
     isLoggedIn,
     upload.single("listing[image]"),
     validateListing,
     wrapAsync(listingController.createListing)
-  ); //create route
+  );
 
-//New route
+// New route
 router.get("/new", isLoggedIn, listingController.renderNewForm);
 
+// Show, Edit, Delete routes
 router
   .route("/:id")
-  .get(wrapAsync(listingController.showListings)) //show route
+  .get(wrapAsync(listingController.showListings))
   .put(
     isLoggedIn,
     isOwner,
     upload.single("listing[image]"),
     validateListing,
     wrapAsync(listingController.editListing)
-  ) //Update route
-  .delete(isLoggedIn, isOwner, wrapAsync(listingController.destroyListing)); //delete route
+  )
+  .delete(isLoggedIn, isOwner, wrapAsync(listingController.destroyListing));
 
-//edit route
-router.get("/:id/edit", wrapAsync(listingController.renderEditForm));
+// Edit route
+router.get("/:id/edit", isLoggedIn, isOwner, wrapAsync(listingController.renderEditForm));
 
 module.exports = router;

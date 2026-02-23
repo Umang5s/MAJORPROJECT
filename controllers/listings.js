@@ -17,17 +17,19 @@ async function calculateListingRatings(listings) {
         (sum, review) => sum + review.rating,
         0,
       );
-      listing.avgRating = Number((totalRating / reviews.length).toFixed(1)); // Ensure it's a Number
+      listing.avgRating = Number((totalRating / reviews.length).toFixed(1));
     } else {
-      listing.avgRating = null; // Use null when no reviews exist
+      listing.avgRating = null;
     }
   }
   return listings;
 }
 
+// INDEX - Shows ALL listings (for traveller mode)
 module.exports.index = async (req, res) => {
   const { category } = req.query;
   let filter = {};
+  
   if (category === "Trending") {
     filter.category = "Trending";
   } else if (category && category !== "All") {
@@ -36,6 +38,8 @@ module.exports.index = async (req, res) => {
       { originalCategory: category, category: "Trending" },
     ];
   }
+  
+  // Get ALL listings (not filtered by owner)
   let listings = await Listing.find(filter);
   await calculateListingRatings(listings);
 
@@ -52,22 +56,6 @@ module.exports.index = async (req, res) => {
     );
   }
 
-  for (let listing of listings) {
-    const reviews = await Review.find({ listing: listing._id });
-    listing.reviewCount = reviews.length;
-
-    if (reviews.length > 0) {
-      const totalRating = reviews.reduce(
-        (sum, review) => sum + review.rating,
-        0,
-      );
-      const avgRating = totalRating / reviews.length;
-      listing.avgRating = avgRating.toFixed(1);
-    } else {
-      listing.avgRating = null;
-    }
-  }
-
   res.render("listings/index.ejs", {
     listings,
     watchlistListingIds,
@@ -75,10 +63,12 @@ module.exports.index = async (req, res) => {
   });
 };
 
+// RENDER NEW FORM
 module.exports.renderNewForm = (req, res) => {
   res.render("listings/new.ejs");
 };
 
+// SHOW LISTING - Anyone can view any listing
 module.exports.showListings = async (req, res) => {
   const { id } = req.params;
   const listing = await Listing.findById(id)
@@ -93,7 +83,6 @@ module.exports.showListings = async (req, res) => {
     return res.redirect("/listings");
   }
 
-  // find if the current user has already reviewed this listing
   let userReview = null;
   if (req.user) {
     userReview = listing.reviews.find(
@@ -101,26 +90,35 @@ module.exports.showListings = async (req, res) => {
     );
   }
 
-  // pass userReview to the template
   res.render("listings/show.ejs", { listing, userReview });
 };
 
+// CREATE LISTING - Associates listing with logged in user (owner)
 module.exports.createListing = async (req, res, next) => {
   try {
-    const geoResponse = await geocodingClient
-      .forwardGeocode({
-        query: req.body.listing.location,
-        limit: 1,
-      })
-      .send();
+    let geometry = {
+      type: "Point",
+      coordinates: [72.5714, 23.0225] // Default coordinates
+    };
+    
+    // Try geocoding
+    try {
+      const geoResponse = await geocodingClient
+        .forwardGeocode({
+          query: req.body.listing.location,
+          limit: 1,
+        })
+        .send();
 
-    if (!geoResponse.body.features.length) {
-      req.flash("error", "Location not found");
-      return res.redirect("/listings/new");
+      if (geoResponse.body.features.length) {
+        geometry = geoResponse.body.features[0].geometry;
+      }
+    } catch (geoError) {
+      console.error('Geocoding failed:', geoError.message);
     }
 
     const newListing = new Listing(req.body.listing);
-    newListing.owner = req.user._id;
+    newListing.owner = req.user._id; // Set the owner to current user
 
     if (req.file) {
       newListing.image = {
@@ -129,16 +127,19 @@ module.exports.createListing = async (req, res, next) => {
       };
     }
 
-    newListing.geometry = geoResponse.body.features[0].geometry;
+    newListing.geometry = geometry;
 
     await newListing.save();
     req.flash("success", "New listing created!");
     res.redirect("/listings");
   } catch (e) {
-    next(e); // pass error to your error handling middleware
+    console.error('ERROR in createListing:', e);
+    req.flash("error", "Failed to create listing");
+    res.redirect("/listings/new");
   }
 };
 
+// RENDER EDIT FORM - Only owner can access
 module.exports.renderEditForm = async (req, res) => {
   const { id } = req.params;
   const listing = await Listing.findById(id);
@@ -148,7 +149,7 @@ module.exports.renderEditForm = async (req, res) => {
     return res.redirect("/listings");
   }
 
-  const originalImageUrl = listing.image.url.replace(
+  const originalImageUrl = listing.image?.url?.replace(
     "/upload",
     "/upload/w_250",
   );
@@ -156,20 +157,25 @@ module.exports.renderEditForm = async (req, res) => {
   res.render("listings/edit.ejs", { listing, originalImageUrl });
 };
 
+// EDIT LISTING - Only owner can update
 module.exports.editListing = async (req, res) => {
   const { id } = req.params;
   const listing = await Listing.findByIdAndUpdate(id, { ...req.body.listing });
 
   if (req.body.listing.location) {
-    const geoResponse = await geocodingClient
-      .forwardGeocode({
-        query: req.body.listing.location,
-        limit: 1,
-      })
-      .send();
+    try {
+      const geoResponse = await geocodingClient
+        .forwardGeocode({
+          query: req.body.listing.location,
+          limit: 1,
+        })
+        .send();
 
-    if (geoResponse.body.features.length > 0) {
-      listing.geometry = geoResponse.body.features[0].geometry;
+      if (geoResponse.body.features.length > 0) {
+        listing.geometry = geoResponse.body.features[0].geometry;
+      }
+    } catch (geoError) {
+      console.error('Geocoding failed:', geoError.message);
     }
   }
 
@@ -185,6 +191,7 @@ module.exports.editListing = async (req, res) => {
   res.redirect(`/listings/${id}`);
 };
 
+// DELETE LISTING - Only owner can delete
 module.exports.destroyListing = async (req, res) => {
   const { id } = req.params;
   await Listing.findByIdAndDelete(id);
@@ -192,6 +199,7 @@ module.exports.destroyListing = async (req, res) => {
   res.redirect("/listings");
 };
 
+// SEARCH LISTINGS - Searches ALL listings
 module.exports.searchListings = async (req, res) => {
   const { q } = req.query;
 

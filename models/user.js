@@ -18,20 +18,12 @@ const userSchema = new mongoose.Schema({
     unique: true,
     sparse: true,
   },
-  name: {
-    type: String,
-    default: "", // optional but good to have default
-  },
-  avatar: {
-    type: String, // Google profile photo URL
-    default: "",
-  },
-  localPhoto: {
-    type: String, // Local uploaded profile photo path or URL
-    default: "",
-  },
   watchlists: [{ type: mongoose.Schema.Types.ObjectId, ref: "Watchlist" }],
   bookings: [{ type: mongoose.Schema.Types.ObjectId, ref: "Booking" }],
+  profile: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Profile",
+  },
 });
 
 // Plugin for passport-local-mongoose must come after schema definition

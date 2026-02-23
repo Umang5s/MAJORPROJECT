@@ -1,0 +1,264 @@
+<!-- Include the host navbar -->
+<%- include('../includes/navbar_host') %>
+
+<div class="host-calendar">
+    <div class="calendar-header">
+        <h1>Calendar</h1>
+        <div class="calendar-filters">
+            <select id="listingFilter" class="form-select">
+                <option value="all">All Listings</option>
+                <% listings.forEach(listing => { %>
+                    <option value="<%= listing._id %>"><%= listing.title %></option>
+                <% }) %>
+            </select>
+            <div class="view-toggle">
+                <button class="btn-view active" data-view="month">Month</button>
+                <button class="btn-view" data-view="week">Week</button>
+                <button class="btn-view" data-view="day">Day</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="calendar-container">
+        <div id="calendar"></div>
+    </div>
+
+    <div class="calendar-legend">
+        <div class="legend-item">
+            <span class="color-dot" style="background: #ff385c;"></span>
+            <span>Booked</span>
+        </div>
+        <div class="legend-item">
+            <span class="color-dot" style="background: #28a745;"></span>
+            <span>Available</span>
+        </div>
+        <div class="legend-item">
+            <span class="color-dot" style="background: #ffc107;"></span>
+            <span>Pending</span>
+        </div>
+        <div class="legend-item">
+            <span class="color-dot" style="background: #dc3545;"></span>
+            <span>Blocked</span>
+        </div>
+    </div>
+</div>
+
+<!-- Include FullCalendar -->
+<link href='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css' rel='stylesheet' />
+<script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js'></script>
+
+<style>
+.host-calendar {
+    padding: 2rem;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.calendar-header h1 {
+    margin: 0;
+    color: #333;
+}
+
+.calendar-filters {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.form-select {
+    padding: 0.5rem 2rem 0.5rem 1rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    background: white;
+    cursor: pointer;
+}
+
+.view-toggle {
+    display: flex;
+    gap: 0.5rem;
+    background: #f0f0f0;
+    padding: 0.25rem;
+    border-radius: 8px;
+}
+
+.btn-view {
+    padding: 0.5rem 1rem;
+    border: none;
+    background: transparent;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+}
+
+.btn-view.active {
+    background: white;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.calendar-container {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    min-height: 600px;
+}
+
+.calendar-legend {
+    display: flex;
+    gap: 2rem;
+    margin-top: 1.5rem;
+    padding: 1rem;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.color-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+}
+
+/* FullCalendar Customization */
+.fc {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+.fc-toolbar-title {
+    font-size: 1.5rem !important;
+    font-weight: 600;
+}
+
+.fc-button-primary {
+    background-color: #ff385c !important;
+    border-color: #ff385c !important;
+}
+
+.fc-button-primary:hover {
+    background-color: #e31c5f !important;
+    border-color: #e31c5f !important;
+}
+
+.fc-day-today {
+    background-color: rgba(255, 56, 92, 0.05) !important;
+}
+
+.fc-event {
+    border-radius: 4px;
+    padding: 2px 4px;
+    font-size: 0.85rem;
+    cursor: pointer;
+}
+
+.fc-event.booked {
+    background-color: #ff385c;
+    border-color: #ff385c;
+}
+
+.fc-event.pending {
+    background-color: #ffc107;
+    border-color: #ffc107;
+}
+
+.fc-event.blocked {
+    background-color: #dc3545;
+    border-color: #dc3545;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const calendarEl = document.getElementById('calendar');
+    
+    // Format bookings for calendar
+    const events = [
+        <% bookings.forEach(booking => { %>
+            {
+                title: '<%= booking.listing.title %> - <%= booking.user.username %>',
+                start: '<%= booking.checkIn.toISOString().split('T')[0] %>',
+                end: '<%= new Date(booking.checkOut.getTime() + 86400000).toISOString().split('T')[0] %>',
+                className: 'booked',
+                extendedProps: {
+                    bookingId: '<%= booking._id %>',
+                    guestName: '<%= booking.user.username %>',
+                    guests: <%= booking.guests || 1 %>
+                }
+            },
+        <% }) %>
+    ];
+    
+    const calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        headerToolbar: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,timeGridWeek,timeGridDay'
+        },
+        events: events,
+        eventClick: function(info) {
+            // Show booking details
+            alert(`
+                Booking Details:
+                Guest: ${info.event.extendedProps.guestName}
+                Listing: ${info.event.title}
+                Guests: ${info.event.extendedProps.guests}
+                Check-in: ${info.event.start.toLocaleDateString()}
+                Check-out: ${new Date(info.event.end - 86400000).toLocaleDateString()}
+            `);
+        },
+        dateClick: function(info) {
+            // Handle date click - e.g., block dates
+            if (confirm(`Block ${info.dateStr} for all listings?`)) {
+                // Implement blocking logic
+                console.log('Block date:', info.dateStr);
+            }
+        }
+    });
+    
+    calendar.render();
+    
+    // Filter by listing
+    document.getElementById('listingFilter').addEventListener('change', function(e) {
+        const listingId = e.target.value;
+        if (listingId === 'all') {
+            calendar.getEvents().forEach(event => event.setProp('display', 'auto'));
+        } else {
+            calendar.getEvents().forEach(event => {
+                if (event.title.includes(listingId)) {
+                    event.setProp('display', 'auto');
+                } else {
+                    event.setProp('display', 'none');
+                }
+            });
+        }
+    });
+    
+    // View toggle
+    document.querySelectorAll('.btn-view').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.btn-view').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            
+            const view = this.dataset.view;
+            if (view === 'month') calendar.changeView('dayGridMonth');
+            if (view === 'week') calendar.changeView('timeGridWeek');
+            if (view === 'day') calendar.changeView('timeGridDay');
+        });
+    });
+});
+</script>

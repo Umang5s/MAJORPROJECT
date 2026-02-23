@@ -67,48 +67,59 @@ router.post("/login", saveRedirectUrl, (req, res, next) => {
   })(req, res, next);
 });
 
-router.get("/allow-change-password", isLoggedIn, (req, res) => {
-  req.session.allowPasswordChange = true;
-  res.redirect("/set-password");
-});
+// router.get("/allow-change-password", isLoggedIn, (req, res) => {
+//   req.session.allowPasswordChange = true;
+//   res.redirect("/set-password");
+// });
 
-// GET: Show set/change password form
-router.get("/set-password", isLoggedIn, (req, res) => {
-  const user = req.user;
+// // GET: Show set/change password form
+// router.get("/set-password", isLoggedIn, (req, res) => {
+//   const user = req.user;
 
-  if (user.hash && !req.session.allowPasswordChange) {
-    req.flash("info", "You already have a password.");
-    return res.redirect("/listings");
-  }
+//   if (user.hash && !req.session.allowPasswordChange) {
+//     req.flash("info", "You already have a password.");
+//     return res.redirect("/listings");
+//   }
 
-  const isFirstTimeGoogleUser = !user.hash;
-  res.render("users/set-password", { isFirstTimeGoogleUser });
-});
+//   const isFirstTimeGoogleUser = !user.hash;
+//   res.render("users/set-password", { isFirstTimeGoogleUser });
+// });
 
-// POST: Handle setting or changing password
-router.post("/set-password", isLoggedIn, async (req, res, next) => {
-  if (!req.user.hash) {
-    return userController.setPassword(req, res, next);
-  } else {
-    return userController.changePassword(req, res, next);
-  }
-});
+// // POST: Handle setting or changing password
+// router.post("/set-password", isLoggedIn, async (req, res, next) => {
+//   if (!req.user.hash) {
+//     return userController.setPassword(req, res, next);
+//   } else {
+//     return userController.changePassword(req, res, next);
+//   }
+// });
 
-router.post(
-  "/profile/edit",
-  isLoggedIn,
-  upload.single("photo"),
-  wrapAsync(userController.updateProfile),
-);
+// router.post(
+//   "/profile/edit",
+//   isLoggedIn,
+//   upload.single("photo"),
+//   wrapAsync(userController.updateProfile),
+// );
 
 // In your user routes
-router.post(
-  "/profile/delete-photo",
-  isLoggedIn,
-  userController.deleteProfilePhoto,
-);
+// router.post(
+//   "/profile/delete-photo",
+//   isLoggedIn,
+//   userController.deleteProfilePhoto,
+// );
 
 // Logout
 router.get("/logout", userController.logOutUser);
+
+router.post("/logout", userController.logOutUser);
+
+router.get("/profile", (req, res) => {
+  const mode = req.session.mode || "traveller";
+
+  res.render("users/profile", {
+    currUser: req.user,
+    mode,
+  });
+});
 
 module.exports = router;

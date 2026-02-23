@@ -38,12 +38,12 @@
          </div>
          <% } %>
 
-            <!-- ===== Reviews block (replace existing review section) ===== -->
+            <!-- ===== Reviews block ===== -->
             <div class="col-8 offset-3 mb-5">
                <hr>
 
-               <!-- Create form: only show when user is logged in, not owner, and hasn't reviewed yet -->
-               <% if (!listing.owner || !currUser || !currUser._id.equals(listing.owner._id)) { %>
+               <!-- Create form: only show when user is logged in and not owner -->
+               <% if (currUser && (!listing.owner || !currUser._id.equals(listing.owner._id))) { %>
                   <h4>Leave a Review</h4>
                   <form action="/listings/<%= listing._id %>/reviews" method="POST" class="needs-validation" novalidate
                      id="createReviewForm">
@@ -67,240 +67,296 @@
 
                      <button type="submit" class="btn btn-outline-dark">Submit</button>
                   </form>
+                  <% } %>
 
-
-                  <!-- All reviews list -->
-                  <% if (listing.reviews && listing.reviews.length> 0) { %>
-                     <hr>
-                     <h5 class="mt-4">All Reviews</h5>
-                     <div class="row" id="reviewsList">
-                        <% for (let review of listing.reviews) { %>
-                           <div class="card col-5 ms-3 mb-3 review-card" data-review-id="<%= review._id %>">
-                              <div class="card-body">
-
-                                 <!-- VIEW BLOCK (visible by default) -->
-                                 <div class="view-block">
-                                    <h5 class="card-title">
-                                       <%= review.author ? '@' + review.author.username : "Unknown" %>
-                                    </h5>
-                                    <p class="starability-result card-text" data-rating="<%= review.rating %>">
-                                       Rated: <%= review.rating %> star<%= (review.rating> 1 ? 's' : '') %>
-
-                                    </p>
-                                    <p class="card-text review-comment">
-                                       <%= review.comment %>
-                                    </p>
-                                 </div>
-
-                                 <!-- EDIT FORM (hidden by default) -->
-                                 <form class="edit-form"
-                                    action="/listings/<%= listing._id %>/reviews/<%= review._id %>?_method=PUT"
-                                    method="POST" style="display:none;">
-                                    <div class="mb-2">
-                                       <label class="form-label">Rating</label>
-                                       <fieldset class="starability-slot">
-                                          <% for (let i=1; i <=5; i++) { %>
-                                             <input type="radio" id="rate-<%= review._id %>-<%= i %>"
-                                                name="review[rating]" value="<%= i %>" />
-                                             <label for="rate-<%= review._id %>-<%= i %>" title="<%= i %> stars">
-                                                <%= i %>
-                                             </label>
-                                             <% } %>
-                                       </fieldset>
+                     <!-- All reviews list -->
+                     <% if (listing.reviews && listing.reviews.length> 0) { %>
+                        <hr>
+                        <h5 class="mt-4">All Reviews</h5>
+                        <div class="row" id="reviewsList">
+                           <% for (let review of listing.reviews) { %>
+                              <div class="card col-5 ms-3 mb-3 review-card" data-review-id="<%= review._id %>">
+                                 <div class="card-body">
+                                    <!-- VIEW BLOCK (visible by default) -->
+                                    <div class="view-block">
+                                       <h5 class="card-title">
+                                          <%= review.author ? '@' + review.author.username : "Unknown" %>
+                                       </h5>
+                                       <p class="starability-result card-text" data-rating="<%= review.rating %>">
+                                          Rated: <%= review.rating %> star<%= (review.rating> 1 ? 's' : '') %>
+                                       </p>
+                                       <p class="card-text review-comment">
+                                          <%= review.comment %>
+                                       </p>
                                     </div>
 
-                                    <div class="mb-2">
-                                       <label class="form-label">Comment</label>
-                                       <textarea name="review[comment]" class="form-control edit-comment" rows="3"
-                                          required></textarea>
+                                    <!-- EDIT FORM (hidden by default) -->
+                                    <form class="edit-form"
+                                       action="/listings/<%= listing._id %>/reviews/<%= review._id %>?_method=PUT"
+                                       method="POST" style="display:none;">
+                                       <div class="mb-2">
+                                          <label class="form-label">Rating</label>
+                                          <fieldset class="starability-slot">
+                                             <% for (let i=1; i <=5; i++) { %>
+                                                <input type="radio" id="rate-<%= review._id %>-<%= i %>"
+                                                   name="review[rating]" value="<%= i %>" />
+                                                <label for="rate-<%= review._id %>-<%= i %>" title="<%= i %> stars">
+                                                   <%= i %>
+                                                </label>
+                                                <% } %>
+                                          </fieldset>
+                                       </div>
+
+                                       <div class="mb-2">
+                                          <label class="form-label">Comment</label>
+                                          <textarea name="review[comment]" class="form-control edit-comment" rows="3"
+                                             required></textarea>
+                                       </div>
+
+                                       <button type="submit" class="btn btn-sm btn-warning">Update</button>
+                                       <button type="button"
+                                          class="btn btn-sm btn-secondary cancel-edit">Cancel</button>
+                                    </form>
+
+                                    <!-- Controls: Edit/Delete if allowed -->
+                                    <div class="mt-2 controls">
+                                       <% const isAuthor=currUser && review.author &&
+                                          currUser._id.equals(review.author._id); %>
+                                          <% const isOwner=currUser && listing.owner &&
+                                             currUser._id.equals(listing.owner._id); %>
+
+                                             <% if (isAuthor) { %>
+                                                <button type="button" class="btn btn-sm btn-outline-primary edit-btn"
+                                                   data-review-id="<%= review._id %>">Edit</button>
+                                                <form
+                                                   action="/listings/<%= listing._id %>/reviews/<%= review._id %>?_method=DELETE"
+                                                   method="POST" class="d-inline ms-1">
+                                                   <button class="btn btn-sm btn-dark">Remove</button>
+                                                </form>
+                                                <% } else if (isOwner) { %>
+                                                   <form
+                                                      action="/listings/<%= listing._id %>/reviews/<%= review._id %>?_method=DELETE"
+                                                      method="POST" class="d-inline">
+                                                      <button class="btn btn-sm btn-dark">Remove (Owner)</button>
+                                                   </form>
+                                                   <% } %>
                                     </div>
 
-                                    <button type="submit" class="btn btn-sm btn-warning">Update</button>
-                                    <button type="button" class="btn btn-sm btn-secondary cancel-edit">Cancel</button>
-                                 </form>
-
-
-                                 <!-- Controls: Edit/Delete if allowed -->
-                                 <div class="mt-2 controls">
-                                    <% const isAuthor=currUser && review.author &&
-                                       currUser._id.equals(review.author._id); const isOwner=currUser && listing.owner
-                                       && currUser._id.equals(listing.owner._id); %>
-
-                                       <% if (isAuthor) { %>
-                                          <button type="button" class="btn btn-sm btn-outline-primary edit-btn"
-                                             data-review-id="<%= review._id %>">Edit</button>
-                                          <form
-                                             action="/listings/<%= listing._id %>/reviews/<%= review._id %>?_method=DELETE"
-                                             method="POST" class="d-inline ms-1">
-                                             <button class="btn btn-sm btn-dark">Remove</button>
-                                          </form>
-                                          <% } else if (isOwner) { %>
-                                             <form
-                                                action="/listings/<%= listing._id %>/reviews/<%= review._id %>?_method=DELETE"
-                                                method="POST" class="d-inline">
-                                                <button class="btn btn-sm btn-dark">Remove (Owner)</button>
-                                             </form>
-                                             <% } %>
+                                    <!-- store raw data for JS to populate edit form (safe) -->
+                                    <div class="d-none review-meta" data-rating="<%= review.rating %>"
+                                       data-comment="<%= (review.comment || '') %>"></div>
                                  </div>
-
-                                 <!-- store raw data for JS to populate edit form (safe) -->
-                                 <div class="d-none review-meta" data-rating="<%= review.rating %>"
-                                    data-comment="<%= (review.comment || '') %>"></div>
-
                               </div>
-                           </div>
+                              <% } %>
+                        </div>
+                        <% } else { %>
+                           <p>No reviews yet.</p>
                            <% } %>
-                     </div>
-                     <% } else { %>
-                        <p>No reviews yet.</p>
-                        <% } %>
             </div>
 
-            <% } %>
-
-               <!-- Inline script to toggle edit form and populate fields -->
-               <script>
-                  (function () {
-                     // Helper: find closest parent with class
-                     function closest(el, selector) {
-                        while (el && el !== document) {
-                           if (el.matches && el.matches(selector)) return el;
-                           el = el.parentNode;
-                        }
-                        return null;
+            <!-- Inline script to toggle edit form and populate fields -->
+            <script>
+               (function () {
+                  // Helper: find closest parent with class
+                  function closest(el, selector) {
+                     while (el && el !== document) {
+                        if (el.matches && el.matches(selector)) return el;
+                        el = el.parentNode;
                      }
+                     return null;
+                  }
 
-                     // When Edit is clicked: show edit form and populate values
-                     document.querySelectorAll(".edit-btn").forEach(btn => {
-                        btn.addEventListener("click", (e) => {
-                           const reviewCard = closest(e.target, ".review-card");
-                           if (!reviewCard) return;
-                           const meta = reviewCard.querySelector(".review-meta");
-                           const rating = meta ? Number(meta.dataset.rating) : null;
-                           const comment = meta ? meta.dataset.comment : "";
+                  // When Edit is clicked: show edit form and populate values
+                  document.querySelectorAll(".edit-btn").forEach(btn => {
+                     btn.addEventListener("click", (e) => {
+                        const reviewCard = closest(e.target, ".review-card");
+                        if (!reviewCard) return;
+                        const meta = reviewCard.querySelector(".review-meta");
+                        const rating = meta ? Number(meta.dataset.rating) : null;
+                        const comment = meta ? meta.dataset.comment : "";
 
-                           // hide view-block, show edit form
-                           reviewCard.querySelector(".view-block").style.display = "none";
-                           const editForm = reviewCard.querySelector(".edit-form");
-                           editForm.style.display = "block";
+                        // hide view-block, show edit form
+                        reviewCard.querySelector(".view-block").style.display = "none";
+                        const editForm = reviewCard.querySelector(".edit-form");
+                        editForm.style.display = "block";
 
-                           // populate comment
-                           const commentEl = editForm.querySelector(".edit-comment");
-                           if (commentEl) commentEl.value = comment;
+                        // populate comment
+                        const commentEl = editForm.querySelector(".edit-comment");
+                        if (commentEl) commentEl.value = comment;
 
-                           // set rating radio inside the edit form
-                           const radios = editForm.querySelectorAll('input[type="radio"][name="review[rating]"]');
-                           radios.forEach(r => r.checked = false);
-                           if (rating) {
-                              const sel = editForm.querySelector('input[type="radio"][name="review[rating]"][value="' + rating + '"]');
-                              if (sel) sel.checked = true;
-                           }
+                        // set rating radio inside the edit form
+                        const radios = editForm.querySelectorAll('input[type="radio"][name="review[rating]"]');
+                        radios.forEach(r => r.checked = false);
+                        if (rating) {
+                           const sel = editForm.querySelector('input[type="radio"][name="review[rating]"][value="' + rating + '"]');
+                           if (sel) sel.checked = true;
+                        }
 
-                           // scroll into view (optional nicer UX)
-                           reviewCard.scrollIntoView({ behavior: "smooth", block: "center" });
-                        });
+                        // scroll into view (optional nicer UX)
+                        reviewCard.scrollIntoView({ behavior: "smooth", block: "center" });
                      });
+                  });
 
-                     // Cancel edit
-                     document.querySelectorAll(".cancel-edit").forEach(btn => {
-                        btn.addEventListener("click", (e) => {
-                           const reviewCard = closest(e.target, ".review-card");
-                           if (!reviewCard) return;
-                           reviewCard.querySelector(".edit-form").style.display = "none";
-                           reviewCard.querySelector(".view-block").style.display = "block";
-                        });
+                  // Cancel edit
+                  document.querySelectorAll(".cancel-edit").forEach(btn => {
+                     btn.addEventListener("click", (e) => {
+                        const reviewCard = closest(e.target, ".review-card");
+                        if (!reviewCard) return;
+                        reviewCard.querySelector(".edit-form").style.display = "none";
+                        reviewCard.querySelector(".view-block").style.display = "block";
                      });
+                  });
+               })();
+            </script>
 
-                     // If multiple edit forms might be open, optional: close others when opening one
-                     // (left out for simplicity; can be added if you prefer single-open behaviour)
-                  })();
-               </script>
+            <div class="col-8 offset-3 mb-3">
+               <h3>Where you'll be</h3>
+               <div id="map" style="height: 300px;"></div>
+            </div>
 
+            <% if (!listing.owner || !currUser || !currUser._id.equals(listing.owner._id)) { %>
+               <div class="card col-6 offset-3 mt-3 p-3 shadow">
+                  <h4>Book this Listing</h4>
 
-               <div class="col-8 offset-3 mb-3">
-                  <h3>Where you'll be</h3>
-                  <div id="map" style="height: 300px;"></div>
+                  <form action="/bookings/start/<%= listing._id %>" method="POST" id="bookingForm">
+                     <!-- DATE RANGE PICKER -->
+                     <div class="mb-3">
+                        <label class="form-label">Select Stay Dates</label>
+                        <input type="text" id="bookingRange" class="form-control"
+                           placeholder="Select check-in → check-out" readonly>
+                        <input type="hidden" name="checkIn" id="bookingCheckIn">
+                        <input type="hidden" name="checkOut" id="bookingCheckOut">
+                        <small class="text-muted">You cannot select past dates</small>
+                     </div>
+
+                     <!-- ROOMS -->
+                     <div class="mb-3">
+                        <label class="form-label">Rooms</label>
+                        <input type="number" class="form-control" name="roomsBooked" value="1" min="1"
+                           max="<%= listing.totalRooms || 1 %>" required>
+                        <small class="text-muted">
+                           Total available rooms: <%= listing.totalRooms || 1 %>
+                        </small>
+                     </div>
+
+                     <button type="submit" class="btn btn-success w-100">
+                        Check Availability
+                     </button>
+                  </form>
                </div>
+               <% } %>
 
-               <% if (!listing.owner || !currUser || !currUser._id.equals(listing.owner._id)) { %>
-
-                  <div class="card col-6 offset-3 mt-3 p-3 shadow">
-                     <h4>Book this Listing</h4>
-
-                     <form action="/bookings/start/<%= listing._id %>" method="POST">
-
-                        <!-- CHECK IN -->
-                        <div class="mb-3">
-                           <label class="form-label">Check-in Date</label>
-                           <input type="date" class="form-control" name="checkIn" id="checkIn" required>
-                        </div>
-
-                        <!-- CHECK OUT -->
-                        <div class="mb-3">
-                           <label class="form-label">Check-out Date</label>
-                           <input type="date" class="form-control" name="checkOut" id="checkOut" required>
-                        </div>
-
-                        <!-- ROOMS -->
-                        <div class="mb-3">
-                           <label class="form-label">Rooms</label>
-                           <input type="number" class="form-control" name="roomsBooked" value="1" min="1"
-                              max="<%= listing.totalRooms || 1 %>" required>
-                           <small class="text-muted">
-                              Total available rooms: <%= listing.totalRooms || 1 %>
-                           </small>
-                        </div>
-
-                        <button type="submit" class="btn btn-success w-100">
-                           Check Availability
-                        </button>
-
-                     </form>
-                     <% } %>
-                  </div>
                   <% if (currUser && listing.owner && currUser._id.equals(listing.owner._id)) { %>
                      <div class="col-6 offset-3 alert alert-secondary mt-3">
                         <p><em>This is your own listing. You cannot book it.</em></p>
                      </div>
                      <% } %>
-
    </div>
 
    <script>
-      const today = new Date().toISOString().split('T')[0];
-      document.getElementById("checkIn").setAttribute("min", today);
-      document.getElementById("checkOut").setAttribute("min", today);
-
-      // Optional: auto-adjust checkOut date when checkIn is picked
-      document.getElementById("checkIn").addEventListener("change", function () {
-         const selectedDate = this.value;
-         document.getElementById("checkOut").setAttribute("min", selectedDate);
-      });
-
       (function () {
+         // This ensures the booking form datepicker works independently
+         document.addEventListener('DOMContentLoaded', function () {
+            const bookingRange = document.getElementById('bookingRange');
+            const bookingCheckIn = document.getElementById('bookingCheckIn');
+            const bookingCheckOut = document.getElementById('bookingCheckOut');
+            const bookingForm = document.getElementById('bookingForm');
 
-         const isLoggedIn = <%= !!currUser %>;
+            if (!bookingRange || !bookingCheckIn || !bookingCheckOut || !bookingForm) {
+               console.log("Booking form elements not found");
+               return;
+            }
 
-         if (isLoggedIn) return;
+            console.log("Initializing booking datepicker");
 
-         const returnTo = encodeURIComponent(window.location.pathname + window.location.search);
+            // Initialize Flatpickr for booking
+            const picker = flatpickr(bookingRange, {
+               mode: "range",
+               minDate: "today",
+               dateFormat: "Y-m-d",
+               disableMobile: true,
+               showMonths: 2,
+               onChange: function (selectedDates, dateStr, instance) {
+                  if (selectedDates.length === 2) {
+                     // Format dates properly
+                     const checkInDate = instance.formatDate(selectedDates[0], "Y-m-d");
+                     const checkOutDate = instance.formatDate(selectedDates[1], "Y-m-d");
 
-         function redirectLogin(e) {
-            e.preventDefault();
-            window.location.href = "/login?returnTo=" + returnTo;
-         }
+                     // Set the hidden inputs
+                     bookingCheckIn.value = checkInDate;
+                     bookingCheckOut.value = checkOutDate;
 
-         // review form
-         const reviewForm = document.getElementById("createReviewForm");
-         if (reviewForm) {
-            reviewForm.addEventListener("submit", redirectLogin);
-         }
+                     console.log("Dates set:", checkInDate, checkOutDate);
+                  } else {
+                     bookingCheckIn.value = "";
+                     bookingCheckOut.value = "";
+                  }
+               }
+            });
 
-         // booking form
-         document.querySelectorAll('form[action^="/bookings/start"]').forEach(form => {
-            form.addEventListener("submit", redirectLogin);
+            // Restore dates from URL if present
+            const params = new URLSearchParams(window.location.search);
+            const urlCheckIn = params.get("checkIn");
+            const urlCheckOut = params.get("checkOut");
+            const rooms = params.get("rooms");
+
+            if (urlCheckIn && urlCheckOut) {
+               console.log("Restoring dates from URL:", urlCheckIn, urlCheckOut);
+               bookingCheckIn.value = urlCheckIn;
+               bookingCheckOut.value = urlCheckOut;
+               picker.setDate([urlCheckIn, urlCheckOut], true);
+
+               const roomInput = document.querySelector('[name="roomsBooked"]');
+               if (rooms && roomInput) roomInput.value = rooms;
+            }
+
+            // Validate form before submit
+            bookingForm.addEventListener('submit', function (e) {
+               console.log("Booking form submitting...");
+               console.log("CheckIn value:", bookingCheckIn.value);
+               console.log("CheckOut value:", bookingCheckOut.value);
+
+               if (!bookingCheckIn.value || !bookingCheckOut.value) {
+                  e.preventDefault();
+                  alert("Please select both check-in and check-out dates.");
+                  return false;
+               }
+
+               // Additional validation
+               const checkInDate = new Date(bookingCheckIn.value);
+               const checkOutDate = new Date(bookingCheckOut.value);
+               const today = new Date();
+               today.setHours(0, 0, 0, 0);
+
+               if (checkInDate < today) {
+                  e.preventDefault();
+                  alert("Check-in date cannot be in the past.");
+                  return false;
+               }
+
+               if (checkOutDate <= checkInDate) {
+                  e.preventDefault();
+                  alert("Check-out date must be after check-in date.");
+                  return false;
+               }
+
+               // Check if user is logged in
+               const isLoggedIn = <%- currUser ? 'true' : 'false' %>;
+
+               if (!isLoggedIn) {
+                  e.preventDefault();
+                  const rooms = document.querySelector('[name="roomsBooked"]').value;
+                  const returnTo = encodeURIComponent(
+                     `/listings/<%= listing._id %>?checkIn=${bookingCheckIn.value}&checkOut=${bookingCheckOut.value}&rooms=${rooms}`
+                  );
+                  window.location.href = "/login?returnTo=" + returnTo;
+                  return false;
+               }
+
+               console.log("Form validation passed, submitting with dates:", bookingCheckIn.value, bookingCheckOut.value);
+               return true;
+            });
          });
-
       })();
    </script>
 

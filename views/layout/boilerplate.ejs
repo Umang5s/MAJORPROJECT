@@ -18,9 +18,11 @@
     <link rel="stylesheet" href="/css/rating.css">
     <link href="https://api.mapbox.com/mapbox-gl-js/v3.4.0/mapbox-gl.css" rel="stylesheet">
     <script src="https://api.mapbox.com/mapbox-gl-js/v3.4.0/mapbox-gl.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
-        integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A=="
-        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
 </head>
 
 <body>
@@ -47,17 +49,26 @@
         });
     </script>
 
-    <%- include("../includes/navbar.ejs") %>
-        <div class="container">
-            <%- include("../includes/flash.ejs") %>
-                <%- body %>
-        </div>
+    <% /* Defensive default: ensure `mode` is always defined to avoid ReferenceError in EJS. If your server already sets
+        res.locals.mode, this line will keep that value. Otherwise it defaults to "traveller" . */ if (typeof
+        mode==='undefined' ) { if (typeof locals !=='undefined' && typeof locals.mode !=='undefined' ) {
+        mode=locals.mode; } else { mode='traveller' ; } } %>
+        <% if(mode==="host" ){ %>
+            <%- include("../includes/navbar_host.ejs") %>
+                <% } else { %>
+                    <%- include("../includes/navbar_traveller.ejs") %>
+                        <% } %>
+                            <div class="container">
+                                <%- include("../includes/flash.ejs") %>
+                                    <%- body %>
+                            </div>
 
-        <%- include("../includes/footer.ejs") %>
-            <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
-                integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
-                crossorigin="anonymous"></script>
-            <script src="/js/script.js"></script>
+                            <%- include("../includes/footer.ejs") %>
+                                <script
+                                    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+                                    integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+                                    crossorigin="anonymous"></script>
+                                <script src="/js/script.js"></script>
 
 
 

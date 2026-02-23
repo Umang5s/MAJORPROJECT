@@ -5,27 +5,31 @@ const User = require("../models/user");
 const checkAvailability = require("../utils/checkAvailability");
 const crypto = require("crypto");
 const razorpay = require("../utils/razorpay");
+const utcDate = require('../utils/utcDate');  
 
 module.exports.createBookingRequest = async (req, res) => {
+  if (!req.session.bookingData) {
+    req.flash("error", "Booking session expired. Please select dates again.");
+    return res.redirect(`/listings/${req.params.id}`);
+  }
+
   try {
     const listing = await Listing.findById(req.params.id).populate("owner");
     const { checkIn, checkOut, roomsBooked } = req.session.bookingData;
 
-    const checkInDate = new Date(checkIn);
-    const checkOutDate = new Date(checkOut);
-    // remove time portion (VERY IMPORTANT)
-    checkInDate.setHours(0, 0, 0, 0);
-    checkOutDate.setHours(0, 0, 0, 0);
+    // ✅ FIX: Use UTC dates consistently
+    const checkInDate = utcDate(checkIn);
+    const checkOutDate = utcDate(checkOut);
+    
     // calculate nights properly
     let totalNights = Math.ceil(
-      (checkOutDate - checkInDate) / (1000 * 60 * 60 * 24),
+      (checkOutDate - checkInDate) / (1000 * 60 * 60 * 24)
     );
 
     // safety: minimum 1 night
     if (totalNights < 1) totalNights = 1;
 
-    const totalPrice =
-      totalNights * listing.price * (parseInt(roomsBooked, 10) || 1);
+    const totalPrice = totalNights * listing.price * (parseInt(roomsBooked, 10) || 1);
 
     // Create Razorpay Order
     const options = {
@@ -35,7 +39,7 @@ module.exports.createBookingRequest = async (req, res) => {
     };
     const order = await razorpay.orders.create(options);
 
-    // pass roomsBooked to view as well
+    // pass data to view
     res.render("bookings/checkout", {
       order,
       listing,
@@ -51,178 +55,6 @@ module.exports.createBookingRequest = async (req, res) => {
   }
 };
 
-// module.exports.confirmBookingAfterPayment = async (req, res) => {
-//   try {
-//     // prefer razorpay fields (handler from popup) but accept legacy names too
-//     const {
-//       order_id,
-//       payment_id, // legacy (if present)
-//       // razorpay fields the popup returns
-//       razorpay_order_id,
-//       razorpay_payment_id,
-//       razorpay_signature,
-//       listing_id,
-//       checkIn,
-//       checkOut,
-//       price,
-//       guestDetails = {},
-//       roomsBooked: roomsBookedFromBody,
-//     } = req.body;
-
-//     // fetch booking session (your flow stores bookingData in session)
-//     const bookingSession = req.session.bookingData || {};
-//     const sessionRooms = bookingSession.roomsBooked;
-
-//     // determine roomsBooked (session preferred)
-//     const roomsBooked = parseInt(sessionRooms || roomsBookedFromBody || 1, 10);
-
-//     const listing = await Listing.findById(listing_id).populate("owner");
-//     if (!listing) {
-//       req.flash("error", "Listing not found.");
-//       return res.redirect("/listings");
-//     }
-
-//     const inDate = new Date(checkIn);
-//     const outDate = new Date(checkOut);
-//     inDate.setHours(0, 0, 0, 0);
-//     outDate.setHours(0, 0, 0, 0);
-
-//     let nights = Math.ceil((outDate - inDate) / (1000 * 60 * 60 * 24));
-//     if (nights < 1) nights = 1;
-
-//     // multiply by roomsBooked
-//     const finalPrice = nights * listing.price * roomsBooked;
-
-//     // determine actual payment id (prefer razorpay field)
-//     // Razorpay sometimes sends array -> normalize to string
-//     let actualPaymentId =
-//       razorpay_payment_id ||
-//       payment_id ||
-//       req.body.payment_id ||
-//       req.body.razorpay_payment_id;
-
-//     // if array take last value
-//     if (Array.isArray(actualPaymentId)) {
-//       actualPaymentId = actualPaymentId.filter(Boolean).pop();
-//     }
-
-//     // OPTIONAL: signature verification (recommended)
-//     // if (razorpay_order_id && razorpay_payment_id && razorpay_signature) {
-//     //   const generated = crypto
-//     //     .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
-//     //     .update(razorpay_order_id + "|" + razorpay_payment_id)
-//     //     .digest("hex");
-//     //   if (generated !== razorpay_signature) {
-//     //     req.flash("error", "Payment verification failed");
-//     //     return res.redirect("/listings");
-//     //   }
-//     // }
-
-//     // Create booking document (include roomsBooked)
-//     const booking = new Booking({
-//       listing: listing._id,
-//       guest: req.user._id,
-//       host: listing.owner._id,
-//       checkIn: new Date(checkIn),
-//       checkOut: new Date(checkOut),
-//       roomsBooked: roomsBooked,
-//       price: finalPrice,
-//       paymentId: actualPaymentId,
-//       status: "booked",
-
-//       guestDetails: {
-//         name: guestDetails?.name,
-//         email: guestDetails?.email,
-//         phone: guestDetails?.phone,
-//         guestsCount: guestDetails?.guestsCount,
-//         arrivalTime: guestDetails?.arrivalTime,
-//         specialRequest: guestDetails?.specialRequest,
-//       },
-//     });
-
-//     const token = crypto.randomBytes(24).toString("hex");
-//     const expiresAt = Date.now() + 1000 * 60 * 60 * 48;
-
-//     booking.cancelToken = token;
-//     booking.cancelTokenExpires = new Date(expiresAt);
-
-//     await booking.save();
-
-//     const baseUrl =
-//       process.env.SITE_URL || `${req.protocol}://${req.get("host")}`;
-
-//     let cancelUrl = null;
-//     if (booking.cancelToken) {
-//       cancelUrl = `${baseUrl}/bookings/cancel/secure/${booking._id}/${booking.cancelToken}`;
-//     }
-//     // reload booking with populated guest & host and listing (safe)
-//     const populatedBooking = await Booking.findById(booking._id)
-//       .populate({ path: "guest", select: "email username" })
-//       .populate({ path: "host", select: "email username" })
-//       .populate({ path: "listing", select: "title" });
-
-//     const guestEmail =
-//       populatedBooking?.guestDetails?.email || populatedBooking?.guest?.email;
-//     const hostEmail = populatedBooking?.host?.email;
-
-//     // Safety: if missing, log and skip sending to that recipient
-//     if (!guestEmail)
-//       console.warn("No guest email available for booking", booking._id);
-//     if (!hostEmail)
-//       console.warn("No host email available for booking", booking._id);
-
-//     // SEND EMAIL TO GUEST (if exists)
-//     if (guestEmail) {
-//       await sendEmail({
-//         templateName: "bookingConfirmation",
-//         to: guestEmail,
-//         subject: "Your booking is confirmed!",
-//         data: {
-//           userName:
-//             populatedBooking?.guestDetails?.name ||
-//             populatedBooking?.guest?.username ||
-//             populatedBooking?.guest?.email,
-
-//           listingTitle: listing.title,
-//           from: new Date(checkIn).toDateString(),
-//           to: new Date(checkOut).toDateString(),
-//           totalPrice: finalPrice,
-//           roomsBooked: booking.roomsBooked,
-//           bookingId: booking._id,
-//           cancelUrl,
-//           siteUrl: process.env.SITE_URL || "http://localhost:3000",
-//         },
-//       });
-//     }
-
-//     // SEND EMAIL TO HOST (OWNER)
-//     if (hostEmail) {
-//       await sendEmail({
-//         templateName: "ownerNewBooking",
-//         to: hostEmail,
-//         subject: "You received a new booking!",
-//         data: {
-//           ownerName:
-//             populatedBooking.host.username || populatedBooking.host.email,
-//           listingTitle: listing.title,
-//           from: new Date(checkIn).toDateString(),
-//           to: new Date(checkOut).toDateString(),
-//           totalPrice: finalPrice,
-//           roomsBooked: booking.roomsBooked,
-//           bookingId: booking._id,
-//           siteUrl: process.env.SITE_URL || "http://localhost:3000",
-//         },
-//       });
-//     }
-
-//     req.flash("success", "Booking confirmed! Email sent.");
-//     res.redirect("/bookings/my");
-//   } catch (err) {
-//     console.error(err);
-//     req.flash("error", "Something went wrong saving your booking.");
-//     res.redirect("/listings");
-//   }
-// };
 module.exports.confirmBookingAfterPayment = async (req, res) => {
   try {
     // accept legacy & razorpay fields
@@ -301,6 +133,19 @@ module.exports.confirmBookingAfterPayment = async (req, res) => {
     } catch (tokenErr) {
       console.error("Error generating cancel token:", tokenErr);
       // continue, booking will be saved without cancel token (email won't have link)
+    }
+
+    // RECHECK AVAILABILITY BEFORE FINAL SAVE
+    const availability = await checkAvailability(
+      listing._id,
+      checkIn,
+      checkOut,
+      roomsBooked,
+    );
+
+    if (!availability.available) {
+      req.flash("error", "Rooms just got booked by someone else.");
+      return res.redirect(`/listings/${listing._id}`);
     }
 
     // save once
@@ -529,33 +374,91 @@ module.exports.cancelBooking = async (req, res) => {
 };
 
 module.exports.startBooking = async (req, res) => {
-  const { checkIn, checkOut, roomsBooked } = req.body;
-  const listingId = req.params.id;
+  try {
+    const { checkIn, checkOut, roomsBooked } = req.body;
+    const listingId = req.params.id;
 
-  const result = await checkAvailability(
-    listingId,
-    checkIn,
-    checkOut,
-    parseInt(roomsBooked),
-  );
+    console.log("Booking attempt:", { checkIn, checkOut, roomsBooked, listingId });
 
-  if (!result.available) {
-    req.flash(
-      "error",
-      `Only ${result.availableRooms} rooms available for selected dates`,
-    );
-    return res.redirect(`/listings/${listingId}`);
+    // ===== 1. BASIC VALIDATION =====
+    if (!checkIn || !checkOut) {
+      req.flash("error", "Please select check-in and check-out dates.");
+      return res.redirect(`/listings/${listingId}`);
+    }
+
+    // ===== 2. CONVERT TO UTC DATES =====
+    const inDate = utcDate(checkIn);
+    const outDate = utcDate(checkOut);
+
+    // Validate dates are real
+    if (!inDate || !outDate || isNaN(inDate.getTime()) || isNaN(outDate.getTime())) {
+      req.flash("error", "Invalid date format received.");
+      return res.redirect(`/listings/${listingId}`);
+    }
+
+    // ===== 3. BASIC RULES =====
+    const today = utcDate(new Date().toISOString().split('T')[0]);
+    
+    // Check for past dates
+    if (inDate < today) {
+      req.flash("error", "You cannot book past dates.");
+      return res.redirect(`/listings/${listingId}`);
+    }
+
+    // Calculate nights
+    const nights = Math.ceil((outDate - inDate) / (1000 * 60 * 60 * 24));
+    if (nights < 1) {
+      req.flash("error", "Check-out date must be after check-in date.");
+      return res.redirect(`/listings/${listingId}`);
+    }
+
+    // ===== 4. ROOM VALIDATION =====
+    const rooms = parseInt(roomsBooked, 10);
+    if (!rooms || rooms < 1) {
+      req.flash("error", "Please enter a valid number of rooms (minimum 1).");
+      return res.redirect(`/listings/${listingId}`);
+    }
+
+    // Get listing to check max rooms
+    const listing = await Listing.findById(listingId);
+    if (!listing) {
+      req.flash("error", "Listing not found.");
+      return res.redirect("/listings");
+    }
+
+    const maxRooms = listing.totalRooms || 1;
+    if (rooms > maxRooms) {
+      req.flash("error", `Maximum ${maxRooms} rooms available for this property.`);
+      return res.redirect(`/listings/${listingId}`);
+    }
+
+    // ===== 5. AVAILABILITY CHECK =====
+    const result = await checkAvailability(listingId, checkIn, checkOut, rooms);
+
+    if (!result.available) {
+      req.flash(
+        "error",
+        `Only ${result.availableRooms} room${result.availableRooms !== 1 ? 's' : ''} available for selected dates. You requested ${rooms}.`
+      );
+      return res.redirect(`/listings/${listingId}`);
+    }
+
+    // ===== 6. STORE IN SESSION =====
+    req.session.bookingData = {
+      listingId,
+      checkIn,      // Keep original string format
+      checkOut,
+      roomsBooked: rooms,
+    };
+
+    console.log("Booking data stored in session:", req.session.bookingData);
+
+    res.redirect(`/bookings/checkout/${listingId}`);
+  } catch (err) {
+    console.error("startBooking error:", err);
+    req.flash("error", "Something went wrong while checking booking. Please try again.");
+    res.redirect("/listings");
   }
-
-  // store in session
-  req.session.bookingData = {
-    listingId,
-    checkIn,
-    checkOut,
-    roomsBooked,
-  };
-
-  res.redirect(`/bookings/checkout/${listingId}`);
 };
 
 module.exports.secureCancelConfirmPage = async (req, res) => {

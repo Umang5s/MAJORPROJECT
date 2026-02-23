@@ -1,0 +1,112 @@
+.profile-wrapper {
+  display: grid;
+  grid-template-columns: 250px 1fr 300px;
+  gap: 40px;
+  padding: 40px 80px;
+}
+
+/* Sidebar */
+.profile-sidebar h2 {
+  font-size: 28px;
+  margin-bottom: 20px;
+}
+
+.profile-sidebar ul {
+  list-style: none;
+  padding: 0;
+}
+
+.profile-sidebar li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.profile-sidebar li.active,
+.profile-sidebar li:hover {
+  background: #f3f3f3;
+}
+
+.circle {
+  width: 36px;
+  height: 36px;
+  background: black;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Content */
+.profile-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.profile-card {
+  background: #f7f7f7;
+  padding: 40px;
+  border-radius: 20px;
+  text-align: center;
+  margin-top: 20px;
+}
+
+.avatar-large {
+  width: 120px;
+  height: 120px;
+  background: black;
+  color: white;
+  border-radius: 50%;
+  font-size: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: auto;
+}
+
+.role-text {
+  color: gray;
+  margin-top: 8px;
+}
+
+.review-section {
+  margin-top: 40px;
+  font-size: 16px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+/* Right panel */
+.profile-right {
+  padding: 20px;
+}
+
+.profile-right h3 {
+  font-size: 22px;
+}
+
+.primary-btn {
+  margin-top: 20px;
+  background: linear-gradient(90deg, #ff385c, #d70466);
+  color: white;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+/* Edit Button */
+.edit-btn {
+  background: #eee;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+}

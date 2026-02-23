@@ -65,3 +65,33 @@ module.exports.isReviewAuthor = async (req,res,next)=>{
     }
     next();
 }
+
+module.exports.setUserMode = (req, res, next) => {
+    // Default to "traveller" if no mode is set
+    if (!req.session.mode) {
+        req.session.mode = "traveller";
+    }
+
+    res.locals.mode = req.session.mode;
+    res.locals.isHost = req.session.mode === "host";
+
+    next();
+};
+
+// Require host mode middleware
+module.exports.requireHost = (req, res, next) => {
+    // First check if user is logged in
+    if (!req.isAuthenticated()) {
+        req.session.returnTo = req.originalUrl;
+        req.flash("error", "Please login first to access host dashboard!");
+        return res.redirect("/login");
+    }
+    
+    // Then check if user is in host mode
+    if (req.session.mode !== "host") {
+        req.flash("error", "You need to switch to host mode to access this page!");
+        return res.redirect("/listings");
+    }
+    
+    next();
+};

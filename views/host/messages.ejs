@@ -1,0 +1,225 @@
+<!-- Include the host navbar -->
+<%- include('../includes/navbar_host') %>
+
+<div class="host-messages">
+    <h1>Messages</h1>
+    
+    <% if (conversations.length === 0) { %>
+        <div class="empty-state">
+            <div class="empty-state-icon">
+                <i class="fa-regular fa-message"></i>
+            </div>
+            <h2>No messages yet</h2>
+            <p>When guests message you about your listings, they'll appear here</p>
+        </div>
+    <% } else { %>
+        <div class="messages-container">
+            <div class="conversations-list">
+                <% conversations.forEach(conversation => { %>
+                    <div class="conversation-item <%= conversation.unread ? 'unread' : '' %>" 
+                         onclick="loadConversation('<%= conversation._id %>')">
+                        <div class="conversation-avatar">
+                            <% if (conversation.user.avatar) { %>
+                                <img src="<%= conversation.user.avatar %>" alt="<%= conversation.user.username %>">
+                            <% } else { %>
+                                <div class="avatar-placeholder">
+                                    <%= conversation.user.username[0].toUpperCase() %>
+                                </div>
+                            <% } %>
+                        </div>
+                        <div class="conversation-details">
+                            <div class="conversation-header">
+                                <h4><%= conversation.user.username %></h4>
+                                <span class="conversation-time">
+                                    <%= new Date(conversation.lastMessage).toLocaleDateString() %>
+                                </span>
+                            </div>
+                            <p class="conversation-preview">
+                                <strong><%= conversation.listing.title %>:</strong> 
+                                <%= conversation.lastMessageContent || 'New conversation' %>
+                            </p>
+                            <% if (conversation.unread) { %>
+                                <span class="unread-badge">New</span>
+                            <% } %>
+                        </div>
+                    </div>
+                <% }) %>
+            </div>
+            
+            <div class="message-thread" id="messageThread">
+                <div class="select-conversation">
+                    <i class="fa-regular fa-message"></i>
+                    <p>Select a conversation to start messaging</p>
+                </div>
+            </div>
+        </div>
+    <% } %>
+</div>
+
+<style>
+.host-messages {
+    padding: 2rem;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.host-messages h1 {
+    margin-bottom: 2rem;
+    color: #333;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.empty-state-icon {
+    font-size: 4rem;
+    color: #ff385c;
+    margin-bottom: 1rem;
+}
+
+.empty-state h2 {
+    margin-bottom: 1rem;
+    color: #333;
+}
+
+.empty-state p {
+    color: #666;
+}
+
+.messages-container {
+    display: grid;
+    grid-template-columns: 350px 1fr;
+    gap: 1.5rem;
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    height: calc(100vh - 200px);
+}
+
+.conversations-list {
+    border-right: 1px solid #eee;
+    overflow-y: auto;
+    background: #f9f9f9;
+}
+
+.conversation-item {
+    display: flex;
+    gap: 1rem;
+    padding: 1rem;
+    border-bottom: 1px solid #eee;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.conversation-item:hover {
+    background: #f0f0f0;
+}
+
+.conversation-item.unread {
+    background: rgba(255, 56, 92, 0.05);
+}
+
+.conversation-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.conversation-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.avatar-placeholder {
+    width: 100%;
+    height: 100%;
+    background: #ff385c;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+
+.conversation-details {
+    flex: 1;
+    min-width: 0;
+}
+
+.conversation-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.25rem;
+}
+
+.conversation-header h4 {
+    margin: 0;
+    font-size: 1rem;
+    color: #333;
+}
+
+.conversation-time {
+    font-size: 0.8rem;
+    color: #999;
+}
+
+.conversation-preview {
+    margin: 0;
+    font-size: 0.9rem;
+    color: #666;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.unread-badge {
+    display: inline-block;
+    background: #ff385c;
+    color: white;
+    font-size: 0.7rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: 10px;
+    margin-top: 0.25rem;
+}
+
+.message-thread {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: white;
+}
+
+.select-conversation {
+    text-align: center;
+    color: #999;
+}
+
+.select-conversation i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    color: #ddd;
+}
+
+.select-conversation p {
+    margin: 0;
+    font-size: 1rem;
+}
+</style>
+
+<script>
+function loadConversation(conversationId) {
+    // Implement conversation loading
+    window.location.href = `/host/messages/${conversationId}`;
+}
+</script>

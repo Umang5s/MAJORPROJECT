@@ -1,0 +1,75 @@
+<%- layout("/layout/boilerplate") %>
+
+  <link rel="stylesheet" href="/css/profile.css">
+
+  <div class="profile-wrapper">
+
+    <!-- LEFT SIDEBAR -->
+    <div class="profile-sidebar">
+      <h2>Profile</h2>
+
+      <ul>
+        <li class="active">
+          <div class="circle">
+            <%= (currUser?.name || currUser?.username || "U" )[0].toUpperCase() %>
+          </div>
+          About me
+        </li>
+
+        <li>
+          <i class="fa-solid fa-suitcase"></i>
+          Past trips
+        </li>
+
+        <li>
+          <i class="fa-solid fa-user-group"></i>
+          Connections
+        </li>
+      </ul>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="profile-content">
+
+      <div class="profile-header">
+        <h1>About me</h1>
+        <button type="button" class="edit-btn" onclick="window.location='/profile/edit'">
+          Edit
+        </button>
+      </div>
+
+      <div class="profile-card">
+        <div class="avatar-large">
+          <%= (currUser?.name || currUser?.username || "U" )[0].toUpperCase() %>
+        </div>
+
+        <h2>
+          <%= currUser?.name || currUser?.username %>
+        </h2>
+
+        <p class="role-text">
+          <%= mode==="host" ? "Host" : "Guest" %>
+        </p>
+      </div>
+
+      <div class="review-section">
+        <i class="fa-regular fa-comment"></i>
+        Reviews I've written
+      </div>
+
+    </div>
+
+    <div class="profile-right">
+      <% if (!currUser.profile||currUser.profile.profileCompleted) { %>
+
+        <h3>Complete your profile</h3>
+        <p>Your NightNest profile is important.</p>
+
+        <a href="/profile/edit" class="primary-btn">
+          Get Started
+        </a>
+
+        <% } %>
+    </div>
+
+  </div>
