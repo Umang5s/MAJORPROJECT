@@ -15,6 +15,19 @@ const ALL_INTERESTS = [
   "Swimming", "Films", "Wine", "Water sports", "Local culture"
 ];
 
+// profile.js – modify the main GET route
+router.get("/", isLoggedIn, async (req, res) => {
+  const user = await User.findById(req.user._id).populate("profile");
+  // For now, use empty arrays – replace with actual queries when you have trips/connections models
+  const pastTrips = [];          // e.g. await Booking.find({ user: user._id, status: 'completed' })
+  const connections = [];        // e.g. await Connection.find({ user: user._id })
+  res.render("users/profile", {
+    currUser: user,
+    pastTrips,
+    connections
+  });
+});
+
 router.get("/edit", isLoggedIn, async (req, res) => {
   const user = await User.findById(req.user._id).populate("profile");
   res.render("users/profile_edit", {

@@ -94,14 +94,22 @@ passport.use(new LocalStrategy({ usernameField: "email" }, User.authenticate()))
 passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
 
-app.use((req, res, next) => {
-  res.locals.currUser = req.user || null;
-  // Default to "traveller" if no mode is set in session
+app.use(async (req, res, next) => {
+  if (req.user) {
+    const fullUser = await User.findById(req.user._id)
+      .populate("profile");
+
+    res.locals.currUser = fullUser;
+  } else {
+    res.locals.currUser = null;
+  }
+
   res.locals.mode = req.session.mode || "traveller";
   res.locals.requestOriginal = req.originalUrl;
   res.locals.success = req.flash("success");
   res.locals.error = req.flash("error");
   res.locals.currentPath = req.path;
+
   next();
 });
 

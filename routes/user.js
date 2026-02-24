@@ -113,13 +113,4 @@ router.get("/logout", userController.logOutUser);
 
 router.post("/logout", userController.logOutUser);
 
-router.get("/profile", (req, res) => {
-  const mode = req.session.mode || "traveller";
-
-  res.render("users/profile", {
-    currUser: req.user,
-    mode,
-  });
-});
-
 module.exports = router;

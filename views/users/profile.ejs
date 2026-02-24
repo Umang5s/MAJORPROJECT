@@ -1,36 +1,112 @@
 <%- layout("/layout/boilerplate") %>
 
-  <link rel="stylesheet" href="/css/profile.css">
+<link rel="stylesheet" href="/css/profile.css">
 
-  <div class="profile-wrapper">
+<style>
+  /* Force footer to be full viewport width - no scrollbar */
+  .f-info {
+    position: relative !important;
+    width: 100% !important;
+    background-color: #ebebeb !important;
+  }
 
-    <!-- LEFT SIDEBAR -->
-    <div class="profile-sidebar">
-      <h2>Profile</h2>
+  .f-info::before {
+    content: '' !important;
+    position: absolute !important;
+    top: 0 !important;
+    bottom: 0 !important;
+    left: 50% !important;
+    width: 100vw !important;
+    transform: translateX(-50%) !important;
+    background-color: #ebebeb !important;
+    z-index: -1 !important;
+  }
 
-      <ul>
-        <li class="active">
-          <div class="circle">
-            <%= (currUser?.name || currUser?.username || "U" )[0].toUpperCase() %>
-          </div>
-          About me
-        </li>
+  body {
+    overflow-x: hidden !important;
+  }
 
-        <li>
-          <i class="fa-solid fa-suitcase"></i>
-          Past trips
-        </li>
+  /* Hide scrollbar */
+  .profile-content::-webkit-scrollbar {
+    display: none;
+  }
 
-        <li>
-          <i class="fa-solid fa-user-group"></i>
-          Connections
-        </li>
-      </ul>
-    </div>
+  .profile-content {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
 
-    <!-- MAIN CONTENT -->
-    <div class="profile-content">
+  /* Tab content toggling */
+  .tab-content {
+    display: none;
+  }
+  .tab-content.active {
+    display: block;
+  }
 
+  /* Empty state styles */
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    background: #f7f7f7;
+    border-radius: 20px;
+    margin-top: 20px;
+  }
+  .empty-state p {
+    color: #717171;
+    margin-bottom: 24px;
+    max-width: 400px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .book-btn {
+    background: #222222;
+    color: white;
+    padding: 14px 24px;
+    border: none;
+    border-radius: 40px;
+    font-weight: 500;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+    transition: background 0.2s;
+  }
+  .book-btn:hover {
+    background: #000000;
+  }
+  .learn-more {
+    color: #222222;
+    text-decoration: underline;
+    margin-left: 8px;
+  }
+</style>
+
+<div class="profile-wrapper" id="profileWrapper">
+  <!-- LEFT SIDEBAR (sticky) -->
+  <div class="profile-sidebar">
+    <h2>Profile</h2>
+    <ul>
+      <li class="active" data-tab="about">
+        <div class="circle">
+          <%= (currUser?.name || currUser?.username || "U")[0].toUpperCase() %>
+        </div>
+        About me
+      </li>
+      <li data-tab="past-trips">
+        <i class="fa-solid fa-suitcase"></i>
+        Past trips
+      </li>
+      <li data-tab="connections">
+        <i class="fa-solid fa-user-group"></i>
+        Connections
+      </li>
+    </ul>
+  </div>
+
+  <!-- MAIN CONTENT (scrollable) -->
+  <div class="profile-content">
+    <!-- ABOUT ME TAB CONTENT -->
+    <div id="about-content" class="tab-content active">
       <div class="profile-header">
         <h1>About me</h1>
         <button type="button" class="edit-btn" onclick="window.location='/profile/edit'">
@@ -38,38 +114,233 @@
         </button>
       </div>
 
+      <!-- Profile Card with Avatar -->
       <div class="profile-card">
         <div class="avatar-large">
-          <%= (currUser?.name || currUser?.username || "U" )[0].toUpperCase() %>
+          <% if (currUser?.profile?.avatar?.url) { %>
+            <img src="<%= currUser.profile.avatar.url %>" alt="avatar" class="avatar-img">
+          <% } else { %>
+            <%= (currUser?.name || currUser?.username || "U")[0].toUpperCase() %>
+          <% } %>
         </div>
-
-        <h2>
-          <%= currUser?.name || currUser?.username %>
-        </h2>
-
-        <p class="role-text">
-          <%= mode==="host" ? "Host" : "Guest" %>
-        </p>
+        <h2><%= currUser?.name || currUser?.username %></h2>
+        <p class="role-text"><%= (currUser?.host ? "Host" : "Guest") %></p>
       </div>
 
-      <div class="review-section">
-        <i class="fa-regular fa-comment"></i>
-        Reviews I've written
-      </div>
+      <!-- Profile Details Section -->
+      <div class="profile-details">
+        <div class="details-grid">
+          <!-- All possible fields – only shown if they have a value -->
+          <% if (currUser?.profile?.wanted_to_go) { %>
+            <div class="detail-item">
+              <span class="detail-label">Where I’ve always wanted to go</span>
+              <span class="detail-value"><%= currUser.profile.wanted_to_go || 'not set' %></span>
+            </div>
+          <% } %>
 
+          <% if (currUser?.profile?.work) { %>
+            <div class="detail-item">
+              <span class="detail-label">My work</span>
+              <span class="detail-value"><%= currUser.profile.work %></span>
+            </div>
+          <% } %>
+
+          <% if (currUser?.profile?.fun_fact) { %>
+            <div class="detail-item">
+              <span class="detail-label">Fun fact</span>
+              <span class="detail-value"><%= currUser.profile.fun_fact %></span>
+            </div>
+          <% } %>
+
+          <% if (currUser?.profile?.pets) { %>
+            <div class="detail-item">
+              <span class="detail-label">Pets</span>
+              <span class="detail-value"><%= currUser.profile.pets %></span>
+            </div>
+          <% } %>
+
+          <% if (currUser?.profile?.decade_born) { %>
+            <div class="detail-item">
+              <span class="detail-label">Decade I was born</span>
+              <span class="detail-value"><%= currUser.profile.decade_born %></span>
+            </div>
+          <% } %>
+
+          <% if (currUser?.profile?.school) { %>
+            <div class="detail-item">
+              <span class="detail-label">Where I went to school</span>
+              <span class="detail-value"><%= currUser.profile.school %></span>
+            </div>
+          <% } %>
+
+          <% if (currUser?.profile?.favourite_song) { %>
+            <div class="detail-item">
+              <span class="detail-label">My favourite song in secondary school</span>
+              <span class="detail-value"><%= currUser.profile.favourite_song %></span>
+            </div>
+          <% } %>
+
+          <% if (currUser?.profile?.spend_time) { %>
+            <div class="detail-item">
+              <span class="detail-label">I spend too much time</span>
+              <span class="detail-value"><%= currUser.profile.spend_time %></span>
+            </div>
+          <% } %>
+
+          <% if (currUser?.profile?.useless_skill) { %>
+            <div class="detail-item">
+              <span class="detail-label">My most useless skill</span>
+              <span class="detail-value"><%= currUser.profile.useless_skill %></span>
+            </div>
+          <% } %>
+
+          <% if (currUser?.profile?.languages) { %>
+            <div class="detail-item">
+              <span class="detail-label">Languages I speak</span>
+              <span class="detail-value"><%= currUser.profile.languages %></span>
+            </div>
+          <% } %>
+
+          <% if (currUser?.profile?.obsessed) { %>
+            <div class="detail-item">
+              <span class="detail-label">I’m obsessed with</span>
+              <span class="detail-value"><%= currUser.profile.obsessed %></span>
+            </div>
+          <% } %>
+
+          <% if (currUser?.profile?.bio_title) { %>
+            <div class="detail-item">
+              <span class="detail-label">My biography title would be</span>
+              <span class="detail-value"><%= currUser.profile.bio_title %></span>
+            </div>
+          <% } %>
+
+          <% if (currUser?.profile?.location) { %>
+            <div class="detail-item">
+              <span class="detail-label">Where I live</span>
+              <span class="detail-value"><%= currUser.profile.location %></span>
+            </div>
+          <% } %>
+
+          <% if (currUser?.profile?.about) { %>
+            <div class="detail-item full-width">
+              <span class="detail-label">About me</span>
+              <span class="detail-value"><%= currUser.profile.about %></span>
+            </div>
+          <% } %>
+
+          <!-- Travel Stamps (if any) -->
+          <% if (currUser?.profile?.stamps?.length) { %>
+            <div class="stamps-section" style="grid-column: span 2; margin-top: 20px;">
+              <h3>Where I’ve been</h3>
+              <div class="stamps-grid">
+                <% currUser.profile.stamps.forEach(stamp => { %>
+                  <div class="stamp-item"><%= stamp.destination %></div>
+                <% }) %>
+              </div>
+            </div>
+          <% } %>
+
+          <!-- Interests (predefined + custom) -->
+          <% const allInterests = (currUser?.profile?.interests || []).concat(currUser?.profile?.custom_interests || []); %>
+          <% if (allInterests.length) { %>
+            <div class="interests-section" style="grid-column: span 2; margin-top: 20px;">
+              <h3>My interests</h3>
+              <div class="interests-tags">
+                <% allInterests.forEach(interest => { %>
+                  <span class="interest-tag"><%= interest %></span>
+                <% }) %>
+              </div>
+            </div>
+          <% } %>
+
+          <!-- Reviews section -->
+          <div class="review-section" style="grid-column: span 2; margin-top: 20px;">
+            <i class="fa-regular fa-comment"></i>
+            Reviews I’ve written
+          </div>
+        </div>
+      </div>
+    </div> <!-- end about-content -->
+
+    <!-- PAST TRIPS TAB CONTENT -->
+    <div id="past-trips-content" class="tab-content">
+      <div class="profile-header">
+        <h1>Past trips</h1>
+      </div>
+      <% if (pastTrips && pastTrips.length > 0) { %>
+        <!-- real trips list goes here -->
+      <% } else { %>
+        <div class="empty-state">
+          <p>You’ll find your past reservations here after you’ve taken your first trip on NightNest.</p>
+          <a href="/listings" class="book-btn">Book a trip</a>
+        </div>
+      <% } %>
     </div>
 
-    <div class="profile-right">
-      <% if (!currUser.profile||currUser.profile.profileCompleted) { %>
+    <!-- CONNECTIONS TAB CONTENT -->
+    <div id="connections-content" class="tab-content">
+      <div class="profile-header">
+        <h1>Connections</h1>
+      </div>
+      <% if (connections && connections.length > 0) { %>
+        <!-- real connections list goes here -->
+      <% } else { %>
+        <div class="empty-state">
+          <p>When you join an experience or invite someone on a trip, you’ll find the profiles of other guests here.
+            <a href="#" class="learn-more">Learn more</a>
+          </p>
+          <a href="/listings" class="book-btn">Book a trip</a>
+        </div>
+      <% } %>
+    </div>
+  </div>
 
+  <!-- RIGHT COLUMN (only if profile incomplete) -->
+  <% if (!currUser?.profile || !currUser.profile.profileCompleted) { %>
+    <div class="profile-right">
+      <div class="complete-profile-card">
         <h3>Complete your profile</h3>
         <p>Your NightNest profile is important.</p>
-
-        <a href="/profile/edit" class="primary-btn">
-          Get Started
-        </a>
-
-        <% } %>
+        <a href="/profile/edit" class="primary-btn">Get Started</a>
+      </div>
     </div>
+  <% } %>
+</div>
 
-  </div>
+<!-- Tab switching script -->
+<script>
+  (function () {
+    // Adjust wrapper class if right column is missing
+    const wrapper = document.getElementById('profileWrapper');
+    const rightColumn = document.querySelector('.profile-right');
+    if (!rightColumn) wrapper.classList.add('no-right-column');
+
+    // Tab click handling
+    const tabs = document.querySelectorAll('.profile-sidebar li');
+    const contents = {
+      about: document.getElementById('about-content'),
+      'past-trips': document.getElementById('past-trips-content'),
+      connections: document.getElementById('connections-content')
+    };
+
+    tabs.forEach(tab => {
+      tab.addEventListener('click', function () {
+        // Remove active class from all tabs
+        tabs.forEach(t => t.classList.remove('active'));
+        this.classList.add('active');
+
+        // Hide all content sections
+        Object.values(contents).forEach(section => {
+          if (section) section.classList.remove('active');
+        });
+
+        // Show the selected content
+        const tabName = this.dataset.tab;
+        if (contents[tabName]) {
+          contents[tabName].classList.add('active');
+        }
+      });
+    });
+  })();
+</script>

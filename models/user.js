@@ -22,8 +22,8 @@ const userSchema = new mongoose.Schema({
   bookings: [{ type: mongoose.Schema.Types.ObjectId, ref: "Booking" }],
   profile: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "Profile",
-  },
+    ref: "Profile" 
+  }
 });
 
 // Plugin for passport-local-mongoose must come after schema definition
