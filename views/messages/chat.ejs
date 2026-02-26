@@ -1,0 +1,34 @@
+<%- layout("/layout/boilerplate") %>
+<div class="chat-container" style="max-width: 600px; margin: 40px auto;">
+  <h1>Chat with <%= otherUser.name || otherUser.username %></h1>
+  <div class="messages-box" id="messagesBox" style="height: 400px; overflow-y: scroll; border: 1px solid #ddd; padding: 20px;">
+    <% messages.forEach(msg => { %>
+      <div class="message <%= msg.sender.equals(currUser._id) ? 'sent' : 'received' %>">
+        <div class="bubble">
+          <%= msg.content %>
+        </div>
+        <span class="time"><%= new Date(msg.createdAt).toLocaleTimeString() %></span>
+      </div>
+    <% }) %>
+  </div>
+  <form action="/messages/with/<%= otherUser._id %>" method="POST" class="message-form">
+    <textarea name="content" rows="2" placeholder="Type your message..." required></textarea>
+    <button type="submit">Send</button>
+  </form>
+</div>
+
+<style>
+  .message { margin-bottom: 15px; }
+  .sent { text-align: right; }
+  .received { text-align: left; }
+  .bubble { display: inline-block; padding: 10px 15px; border-radius: 20px; background: #f1f1f1; max-width: 70%; }
+  .sent .bubble { background: #0084ff; color: white; }
+  .message-form { margin-top: 20px; display: flex; gap: 10px; }
+  .message-form textarea { flex: 1; padding: 10px; border-radius: 20px; border: 1px solid #ccc; resize: none; }
+  .message-form button { padding: 10px 20px; border-radius: 20px; background: #ff385c; color: white; border: none; cursor: pointer; }
+</style>
+<script>
+  // Auto-scroll to bottom
+  const box = document.getElementById('messagesBox');
+  box.scrollTop = box.scrollHeight;
+</script>

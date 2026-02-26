@@ -1,0 +1,251 @@
+<%- layout("/layout/boilerplate") %>
+    <style>
+        .requests-container {
+            max-width: 600px;
+            margin: 40px auto;
+            padding: 40px 20px;
+        }
+
+        h1 {
+            font-size: 32px;
+            margin-bottom: 20px;
+        }
+
+        .requests-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ebebeb;
+        }
+
+        .tab-btn {
+            padding: 10px 20px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .tab-btn.active {
+            border-bottom: 2px solid #ff385c;
+            color: #ff385c;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .request-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px;
+            border: 1px solid #ebebeb;
+            border-radius: 12px;
+            margin-bottom: 10px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .mutual-info,
+        .pending-info {
+            font-size: 12px;
+            color: #717171;
+            margin: 2px 0 0;
+        }
+
+        .actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .accept-btn {
+            padding: 8px 16px;
+            background: #ff385c;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+        }
+
+        .decline-btn {
+            padding: 8px 16px;
+            background: #f7f7f7;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            cursor: pointer;
+        }
+
+        .pending-badge {
+            padding: 8px 16px;
+            background: #fff3e0;
+            color: #f57c00;
+            border-radius: 20px;
+            font-size: 14px;
+        }
+
+        .cancel-btn {
+            padding: 8px 16px;
+            background: #f7f7f7;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            cursor: pointer;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            background: #f7f7f7;
+            border-radius: 20px;
+        }
+
+        .book-btn {
+            display: inline-block;
+            padding: 14px 24px;
+            background: #222;
+            color: white;
+            border-radius: 40px;
+            text-decoration: none;
+        }
+    </style>
+
+    <div class="requests-container">
+        <h1>Friend Requests</h1>
+
+        <!-- Tabs -->
+        <div class="requests-tabs">
+            <button class="tab-btn active" data-tab="received">Received (<%= receivedCount %>)</button>
+            <button class="tab-btn" data-tab="sent">Sent (<%= sentCount %>)</button>
+        </div>
+
+        <!-- Received Requests Tab -->
+        <div id="received-tab" class="tab-content active">
+            <% if (received.length===0) { %>
+                <div class="empty-state">
+                    <p>No pending friend requests.</p>
+                    <a href="/users/list" class="book-btn">Find Travelers</a>
+                </div>
+                <% } else { %>
+                    <% received.forEach(req=> { %>
+                        <div class="request-item" data-request-id="<%= req._id %>">
+                            <div class="user-info">
+                                <a href="/users/<%= req.requester._id %>" class="user-link">
+                                    <div class="avatar">
+                                        <% if (req.requester.profile?.avatar?.url) { %>
+                                            <img src="<%= req.requester.profile.avatar.url %>" alt="">
+                                            <% } else { %>
+                                                <%= (req.requester.name || req.requester.username || 'U'
+                                                    )[0].toUpperCase() %>
+                                                    <% } %>
+                                    </div>
+                                    <div>
+                                        <strong>
+                                            <%= req.requester.name || req.requester.username %>
+                                        </strong>
+                                        <p class="mutual-info">
+                                            <% if (req.mutualConnections> 0) { %>
+                                                <%= req.mutualConnections %> mutual connection(s)
+                                                    <% } %>
+                                        </p>
+                                    </div>
+                                </a>
+                            </div>
+                            <div class="actions">
+                                <form action="/connections/<%= req._id %>/accept" method="POST" class="ajax-form">
+                                    <button type="submit" class="accept-btn">Accept</button>
+                                </form>
+                                <form action="/connections/<%= req._id %>/decline" method="POST" class="ajax-form">
+                                    <button type="submit" class="decline-btn">Decline</button>
+                                </form>
+                            </div>
+                        </div>
+                        <% }) %>
+                            <% } %>
+        </div>
+
+        <!-- Sent Requests Tab -->
+        <div id="sent-tab" class="tab-content">
+            <% if (sent.length===0) { %>
+                <div class="empty-state">
+                    <p>No sent requests.</p>
+                    <a href="/users/list" class="book-btn">Find Travelers</a>
+                </div>
+                <% } else { %>
+                    <% sent.forEach(req=> { %>
+                        <div class="request-item">
+                            <div class="user-info">
+                                <a href="/users/<%= req.recipient._id %>" class="user-link">
+                                    <div class="avatar">
+                                        <% if (req.recipient.profile?.avatar?.url) { %>
+                                            <img src="<%= req.recipient.profile.avatar.url %>" alt="">
+                                            <% } else { %>
+                                                <%= (req.recipient.name || req.recipient.username || 'U'
+                                                    )[0].toUpperCase() %>
+                                                    <% } %>
+                                    </div>
+                                    <div>
+                                        <strong>
+                                            <%= req.recipient.name || req.recipient.username %>
+                                        </strong>
+                                        <p class="pending-info">Sent <%= new Date(req.createdAt).toLocaleDateString() %>
+                                        </p>
+                                    </div>
+                                </a>
+                            </div>
+                            <div class="actions">
+                                <span class="pending-badge">Pending</span>
+                                <form action="/connections/<%= req._id %>/cancel" method="POST">
+                                    <button type="submit" class="cancel-btn">Cancel</button>
+                                </form>
+                            </div>
+                        </div>
+                        <% }) %>
+                            <% } %>
+        </div>
+    </div>
+
+    <!-- Tab switching script -->
+    <script>
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', function () {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+
+                document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+                document.getElementById(this.dataset.tab + '-tab').classList.add('active');
+            });
+        });
+    </script>

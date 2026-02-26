@@ -1,0 +1,25 @@
+<%- layout("/layout/boilerplate") %>
+<div class="container" style="max-width: 600px; margin: 40px auto;">
+  <h1>Mutual connections with <%= targetUser.name || targetUser.username %></h1>
+  <% if (mutual.length === 0) { %>
+    <p>No mutual connections.</p>
+  <% } else { %>
+    <div class="connections-grid">
+      <% mutual.forEach(user => { %>
+        <div class="connection-card">
+          <div class="connection-avatar">
+            <% if (user.profile?.avatar?.url) { %>
+              <img src="<%= user.profile.avatar.url %>" alt="">
+            <% } else { %>
+              <%= (user.name || user.username)[0].toUpperCase() %>
+            <% } %>
+          </div>
+          <div class="connection-info">
+            <h4><%= user.name || user.username %></h4>
+            <p><%= user.profile?.location || 'Location not set' %></p>
+          </div>
+        </div>
+      <% }) %>
+    </div>
+  <% } %>
+</div>

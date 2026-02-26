@@ -8,10 +8,10 @@
 <div class="host-listings-container">
   <div class="host-listings-header">
     <h1>Listings</h1>
-    <a href="/listings/new" class="create-listing-btn">
+    <button class="create-listing-btn" id="openListingModalBtn">
       <i class="fa-solid fa-plus"></i>
       Create new listing
-    </a>
+    </button>
   </div>
 
   <% if (listings.length === 0) { %>
@@ -27,7 +27,10 @@
       </div>
       <h2 class="empty-state-title">You don't have<br>any listings yet</h2>
       <p class="empty-state-text">Start hosting by creating your first listing</p>
-      <a href="/listings/new" class="complete-listing-btn">Create your first listing</a>
+      <button class="complete-listing-btn" id="openListingModalBtnEmpty">
+        <i class="fa-solid fa-plus"></i>
+        Create your first listing
+      </button>
     </div>
   <% } else { %>
     <div class="listings-grid">
@@ -68,7 +71,316 @@
   <% } %>
 </div>
 
+<!-- Listing Type Modal -->
+<div id="listingTypeModal" class="listing-modal">
+  <div class="modal-overlay"></div>
+  <div class="modal-container">
+    <div class="modal-header">
+      <h2 class="modal-title">What would you like to host?</h2>
+      <button class="modal-close-btn" id="closeListingModal">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+    
+    <div class="modal-content">
+      <div class="listing-options">
+        <!-- Home Option -->
+        <a href="/listings/new?type=home" class="listing-option">
+          <div class="option-icon">
+            <i class="fa-solid fa-house"></i>
+          </div>
+          <div class="option-info">
+            <h3>Home</h3>
+            <p>List your entire place, private room, or shared room</p>
+          </div>
+          <div class="option-arrow">
+            <i class="fa-solid fa-chevron-right"></i>
+          </div>
+        </a>
+        
+        <!-- Experience Option -->
+        <a href="/listings/new?type=experience" class="listing-option">
+          <div class="option-icon">
+            <i class="fa-solid fa-compass"></i>
+          </div>
+          <div class="option-info">
+            <h3>Experience</h3>
+            <p>Share an activity, tour, or class with travelers</p>
+          </div>
+          <div class="option-arrow">
+            <i class="fa-solid fa-chevron-right"></i>
+          </div>
+        </a>
+        
+        <!-- Service Option -->
+        <a href="/listings/new?type=service" class="listing-option">
+          <div class="option-icon">
+            <i class="fa-solid fa-bell-concierge"></i>
+          </div>
+          <div class="option-info">
+            <h3>Service</h3>
+            <p>Offer a professional service like photography or cooking</p>
+          </div>
+          <div class="option-arrow">
+            <i class="fa-solid fa-chevron-right"></i>
+          </div>
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
 <style>
+/* Modal Styles */
+.listing-modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 10000;
+  align-items: center;
+  justify-content: center;
+}
+
+.listing-modal.show {
+  display: flex;
+}
+
+.modal-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+}
+
+.modal-container {
+  position: relative;
+  width: 90%;
+  max-width: 600px;
+  background: white;
+  border-radius: 24px;
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.2);
+  z-index: 10001;
+  animation: modalSlideIn 0.3s ease;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px 24px 16px;
+  border-bottom: 1px solid #ebebeb;
+}
+
+.modal-title {
+  font-size: 28px;
+  font-weight: 600;
+  color: #222;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.modal-close-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  background: #f7f7f7;
+  color: #222;
+  font-size: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.modal-close-btn:hover {
+  background: #ebebeb;
+  transform: rotate(90deg);
+}
+
+.modal-content {
+  padding: 24px;
+}
+
+.listing-options {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.listing-option {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 20px;
+  border: 2px solid #ebebeb;
+  border-radius: 20px;
+  text-decoration: none;
+  color: inherit;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.listing-option:hover {
+  border-color: #ff385c;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(255, 56, 92, 0.12);
+  background: #fff9f9;
+}
+
+.listing-option::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: #ff385c;
+  transform: scaleY(0);
+  transition: transform 0.2s ease;
+}
+
+.listing-option:hover::before {
+  transform: scaleY(1);
+}
+
+.option-icon {
+  width: 60px;
+  height: 60px;
+  background: #f7f7f7;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  color: #ff385c;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.listing-option:hover .option-icon {
+  background: #ff385c;
+  color: white;
+  transform: scale(1.05);
+}
+
+.option-info {
+  flex: 1;
+}
+
+.option-info h3 {
+  font-size: 20px;
+  font-weight: 600;
+  color: #222;
+  margin: 0 0 4px 0;
+}
+
+.option-info p {
+  font-size: 15px;
+  color: #717171;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.option-arrow {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #f7f7f7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #222;
+  font-size: 16px;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.listing-option:hover .option-arrow {
+  background: #ff385c;
+  color: white;
+  transform: translateX(4px);
+}
+
+/* Responsive Modal */
+@media (max-width: 768px) {
+  .modal-container {
+    width: 95%;
+  }
+  
+  .modal-title {
+    font-size: 24px;
+  }
+  
+  .listing-option {
+    padding: 16px;
+    gap: 16px;
+  }
+  
+  .option-icon {
+    width: 50px;
+    height: 50px;
+    font-size: 24px;
+  }
+  
+  .option-info h3 {
+    font-size: 18px;
+  }
+  
+  .option-info p {
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .modal-header {
+    padding: 20px 16px;
+  }
+  
+  .modal-content {
+    padding: 16px;
+  }
+  
+  .modal-title {
+    font-size: 22px;
+  }
+  
+  .listing-option {
+    flex-wrap: wrap;
+  }
+  
+  .option-icon {
+    width: 44px;
+    height: 44px;
+    font-size: 22px;
+  }
+  
+  .option-arrow {
+    width: 36px;
+    height: 36px;
+  }
+}
+
+/* Existing styles remain the same */
 .host-listings-container {
   max-width: 1200px;
   margin: 0 auto;
@@ -103,6 +415,8 @@
   align-items: center;
   gap: 8px;
   transition: background 0.2s;
+  border: none;
+  cursor: pointer;
 }
 
 .create-listing-btn:hover {
@@ -225,7 +539,7 @@
   background: #f7f7f7;
 }
 
-/* Reuse empty state styles from today.ejs */
+/* Empty state styles */
 .empty-state {
   text-align: center;
   max-width: 500px;
@@ -262,6 +576,11 @@
   border-radius: 40px;
   text-decoration: none;
   transition: background 0.2s;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .complete-listing-btn:hover {
@@ -280,3 +599,72 @@
   }
 }
 </style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const modal = document.getElementById('listingTypeModal');
+  const openModalBtn = document.getElementById('openListingModalBtn');
+  const openModalBtnEmpty = document.getElementById('openListingModalBtnEmpty');
+  const closeModalBtn = document.getElementById('closeListingModal');
+  const modalOverlay = document.querySelector('.modal-overlay');
+
+  // Function to open modal
+  function openModal() {
+    modal.classList.add('show');
+    document.body.style.overflow = 'hidden'; // Prevent background scrolling
+  }
+
+  // Function to close modal
+  function closeModal() {
+    modal.classList.remove('show');
+    document.body.style.overflow = ''; // Restore scrolling
+  }
+
+  // Open modal when button is clicked
+  if (openModalBtn) {
+    openModalBtn.addEventListener('click', openModal);
+  }
+
+  if (openModalBtnEmpty) {
+    openModalBtnEmpty.addEventListener('click', openModal);
+  }
+
+  // Close modal when X is clicked
+  if (closeModalBtn) {
+    closeModalBtn.addEventListener('click', closeModal);
+  }
+
+  // Close modal when overlay is clicked
+  if (modalOverlay) {
+    modalOverlay.addEventListener('click', closeModal);
+  }
+
+  // Close modal when Escape key is pressed
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && modal.classList.contains('show')) {
+      closeModal();
+    }
+  });
+
+  // Prevent modal from closing when clicking inside the modal container
+  const modalContainer = document.querySelector('.modal-container');
+  if (modalContainer) {
+    modalContainer.addEventListener('click', function(e) {
+      e.stopPropagation();
+    });
+  }
+
+  // Add touch support for mobile
+  if ('ontouchstart' in window) {
+    const options = document.querySelectorAll('.listing-option');
+    options.forEach(option => {
+      option.addEventListener('touchstart', function() {
+        this.style.transform = 'scale(0.98)';
+      });
+      option.addEventListener('touchend', function() {
+        this.style.transform = '';
+      });
+    });
+  }
+});
+</script>

@@ -16,13 +16,31 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="/css/rating.css">
-    <link href="https://api.mapbox.com/mapbox-gl-js/v3.4.0/mapbox-gl.css" rel="stylesheet">
-    <script src="https://api.mapbox.com/mapbox-gl-js/v3.4.0/mapbox-gl.js"></script>
-    
+    <!-- Mapbox CSS and JS -->
+    <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
+    <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet" />
+
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
 
+    <style>
+        /* Ensure map container has height */
+        .location-map {
+            width: 100%;
+            height: 100%;
+            min-height: 400px;
+            border-radius: 16px;
+            overflow: hidden;
+        }
+        .map-column {
+            height: 450px;
+        }
+        .mapboxgl-map {
+            border-radius: 16px;
+        }
+    </style>
 </head>
 
 <body>
@@ -34,6 +52,7 @@
             <span class="visually-hidden">Loading...</span>
         </div>
     </div>
+    
     <script>
         // Wait for page to load
         document.addEventListener("DOMContentLoaded", () => {
@@ -47,12 +66,20 @@
                 });
             }
         });
-    </script>
 
+        // Set global Mapbox token from environment - FIXED: using MAP_TOKEN
+        window.MAP_TOKEN = '<%= process.env.MAP_TOKEN %>';
+        console.log('Mapbox token loaded:', window.MAP_TOKEN ? 'Token exists (length: ' + window.MAP_TOKEN.length + ')' : 'No token found');
+        
+        // Also set as MAPBOX_TOKEN for compatibility
+        window.MAPBOX_TOKEN = window.MAP_TOKEN;
+    </script>
+    
     <% /* Defensive default: ensure `mode` is always defined to avoid ReferenceError in EJS. If your server already sets
         res.locals.mode, this line will keep that value. Otherwise it defaults to "traveller" . */ if (typeof
         mode==='undefined' ) { if (typeof locals !=='undefined' && typeof locals.mode !=='undefined' ) {
         mode=locals.mode; } else { mode='traveller' ; } } %>
+        
         <% if(mode==="host" ){ %>
             <%- include("../includes/navbar_host.ejs") %>
                 <% } else { %>
@@ -69,8 +96,6 @@
                                     integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
                                     crossorigin="anonymous"></script>
                                 <script src="/js/script.js"></script>
-
-
 
 </body>
 

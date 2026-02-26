@@ -1,0 +1,32 @@
+<%- layout("/layout/boilerplate") %>
+<div class="container" style="max-width: 800px; margin: 40px auto;">
+  <h1>Messages</h1>
+  <a href="/messages/conversations" class="active">Conversations</a>
+  <% if (conversations.length === 0) { %>
+    <p>You have no conversations yet. Find someone to message!</p>
+  <% } else { %>
+    <ul class="conversation-list">
+      <% conversations.forEach(conv => { %>
+        <%
+          const other = conv.participants.find(p => !p._id.equals(currUser._id));
+        %>
+        <li class="conversation-item">
+          <a href="/messages/with/<%= other._id %>">
+            <div class="avatar">
+              <% if (other.profile?.avatar?.url) { %>
+                <img src="<%= other.profile.avatar.url %>" alt="">
+              <% } else { %>
+                <%= (other.name || other.username)[0].toUpperCase() %>
+              <% } %>
+            </div>
+            <div class="details">
+              <strong><%= other.name || other.username %></strong>
+              <p><%= conv.lastMessage ? conv.lastMessage.content.substring(0, 30) + '…' : 'No messages yet' %></p>
+            </div>
+            <span class="time"><%= conv.updatedAt.toLocaleDateString() %></span>
+          </a>
+        </li>
+      <% }) %>
+    </ul>
+  <% } %>
+</div>

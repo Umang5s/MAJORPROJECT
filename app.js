@@ -24,13 +24,18 @@ const userRouter = require("./routes/user.js");
 const authRouter = require("./routes/auth.js");
 const watchlistRouter = require("./routes/watchlist.js");
 const bookingRoutes = require("./routes/booking");
-const apiRoutes = require('./routes/api');
+const apiRoutes = require("./routes/api");
 const searchRoutes = require("./routes/search");
-const modeRouter = require("./routes/mode");          // NEW: mode switch route
-const hostRouter = require("./routes/host");          // NEW: host dashboard routes
+const modeRouter = require("./routes/mode"); // NEW: mode switch route
+const hostRouter = require("./routes/host"); // NEW: host dashboard routes
 const { setUserMode } = require("./middleware");
 const profileRoutes = require("./routes/profile.js");
+const connectionRoutes = require("./routes/connections");
+const messageRoutes = require("./routes/messages");
+const travelBuddyRoutes = require("./routes/travelBuddies");
 require("./passport");
+
+const Connection = require("./models/connection.js");
 
 // MongoDB Connection
 const dbUrl = process.env.ATLAS_URL;
@@ -90,20 +95,27 @@ app.use(flash());
 app.use(passport.initialize());
 app.use(passport.session());
 
-passport.use(new LocalStrategy({ usernameField: "email" }, User.authenticate()));
+passport.use(
+  new LocalStrategy({ usernameField: "email" }, User.authenticate()),
+);
 passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
 
 app.use(async (req, res, next) => {
   if (req.user) {
-    const fullUser = await User.findById(req.user._id)
-      .populate("profile");
+    const fullUser = await User.findById(req.user._id).populate("profile");
 
     res.locals.currUser = fullUser;
   } else {
     res.locals.currUser = null;
   }
-
+  if (req.user) {
+    const pendingCount = await Connection.countDocuments({
+      recipient: req.user._id,
+      status: "pending",
+    });
+    res.locals.pendingRequestCount = pendingCount;
+  }
   res.locals.mode = req.session.mode || "traveller";
   res.locals.requestOriginal = req.originalUrl;
   res.locals.success = req.flash("success");
@@ -124,13 +136,19 @@ app.use("/host", hostRouter);
 // Other routes (unchanged)
 app.use("/listings", listingRouter);
 app.use("/listings/:id/reviews", reviewRouter);
-app.use("/", userRouter); // signup, login, logout, set password
-app.use("/", authRouter); // Google OAuth
+// Specific routes first
+app.use("/profile", profileRoutes);
 app.use("/watchlist", watchlistRouter);
 app.use(bookingRoutes);
-app.use('/api', apiRoutes);
+app.use("/api", apiRoutes);
 app.use("/search", searchRoutes);
-app.use("/profile", profileRoutes);
+app.use("/connections", connectionRoutes);
+app.use("/messages", messageRoutes);
+app.use("/travel-buddies", travelBuddyRoutes);
+
+// Root-level routes (signup, login, logout, and :id) – these are less specific
+app.use("/users", userRouter);
+app.use("/", authRouter); // includes /auth/google etc.
 
 // Catch all
 app.all("*", (req, res, next) => {

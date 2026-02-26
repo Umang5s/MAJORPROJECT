@@ -21,8 +21,11 @@ router
     wrapAsync(listingController.createListing)
   );
 
-// New route
-router.get("/new", isLoggedIn, listingController.renderNewForm);
+// New listing page (multi-step form)
+router.get("/new", isLoggedIn, wrapAsync(listingController.renderNewListingForm));
+
+// Copy from existing listing
+router.get("/copy/:id", isLoggedIn, wrapAsync(listingController.copyListing));
 
 // Show, Edit, Delete routes
 router
@@ -39,5 +42,6 @@ router
 
 // Edit route
 router.get("/:id/edit", isLoggedIn, isOwner, wrapAsync(listingController.renderEditForm));
+
 
 module.exports = router;

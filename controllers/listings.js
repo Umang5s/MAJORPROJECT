@@ -63,9 +63,32 @@ module.exports.index = async (req, res) => {
   });
 };
 
-// RENDER NEW FORM
-module.exports.renderNewForm = (req, res) => {
-  res.render("listings/new.ejs");
+// Render the new listing multi-step form
+module.exports.renderNewListingForm = async (req, res) => {
+  try {
+    const { type } = req.query;
+    
+    // Get user's existing listings for the "copy from existing" feature
+    const userListings = await Listing.find({ owner: req.user._id })
+      .select('title location image category')
+      .limit(20);
+    
+    // Check if user has any draft listings
+    const existingDraft = await Listing.findOne({ 
+      owner: req.user._id,
+      status: 'draft'
+    }).sort({ updatedAt: -1 });
+    
+    res.render('listings/new', {
+      type: type || 'home',
+      userListings,
+      existingDraft
+    });
+  } catch (err) {
+    console.error(err);
+    req.flash('error', 'Something went wrong');
+    res.redirect('/host/listings');
+  }
 };
 
 // SHOW LISTING - Anyone can view any listing
@@ -101,25 +124,70 @@ module.exports.createListing = async (req, res, next) => {
       coordinates: [72.5714, 23.0225] // Default coordinates
     };
     
-    // Try geocoding
-    try {
-      const geoResponse = await geocodingClient
-        .forwardGeocode({
-          query: req.body.listing.location,
-          limit: 1,
-        })
-        .send();
+    // Try geocoding using the full address
+    const fullAddress = req.body.listing.location || 
+      `${req.body.listing.addressLine1}, ${req.body.listing.city}, ${req.body.listing.state}, ${req.body.listing.country}`;
+    
+    if (fullAddress) {
+      try {
+        const geoResponse = await geocodingClient
+          .forwardGeocode({
+            query: fullAddress,
+            limit: 1,
+          })
+          .send();
 
-      if (geoResponse.body.features.length) {
-        geometry = geoResponse.body.features[0].geometry;
+        if (geoResponse.body.features.length) {
+          geometry = geoResponse.body.features[0].geometry;
+        }
+      } catch (geoError) {
+        console.error('Geocoding failed:', geoError.message);
       }
-    } catch (geoError) {
-      console.error('Geocoding failed:', geoError.message);
     }
 
-    const newListing = new Listing(req.body.listing);
-    newListing.owner = req.user._id; // Set the owner to current user
+    // Create new listing with all form data
+    const listingData = {
+      ...req.body.listing,
+      owner: req.user._id,
+      geometry,
+      status: 'published', // Set to published after completion
+      
+      // Handle multi-step form fields
+      propertyType: req.body.listing.propertyType,
+      guestAccess: req.body.listing.guestAccess,
+      detailedPropertyType: req.body.listing.detailedPropertyType,
+      placeType: req.body.listing.placeType,
+      addressLine1: req.body.listing.addressLine1,
+      addressLine2: req.body.listing.addressLine2,
+      city: req.body.listing.city,
+      state: req.body.listing.state,
+      postalCode: req.body.listing.postalCode,
+      instructions: req.body.listing.instructions,
+      guests: req.body.listing.guests || 4,
+      bedrooms: req.body.listing.bedrooms || 1,
+      beds: req.body.listing.beds || 1,
+      bathrooms: req.body.listing.bathrooms || 1,
+      amenities: req.body.listing.amenities ? req.body.listing.amenities.split(',') : [],
+      highlights: req.body.listing.highlights ? req.body.listing.highlights.split(',') : [],
+      bookingType: req.body.listing.bookingType || 'approve',
+      weekendPrice: req.body.listing.weekendPrice,
+      discounts: req.body.listing.discounts ? req.body.listing.discounts.split(',') : [],
+      safetyItems: req.body.listing.safetyItems ? req.body.listing.safetyItems.split(',') : [],
+      isBusiness: req.body.listing.isBusiness === 'true' || req.body.listing.isBusiness === true
+    };
 
+    // Parse residential address if provided as JSON string
+    if (req.body.listing.residentialAddress) {
+      try {
+        listingData.residentialAddress = JSON.parse(req.body.listing.residentialAddress);
+      } catch (e) {
+        console.error('Error parsing residential address:', e);
+      }
+    }
+
+    const newListing = new Listing(listingData);
+
+    // Handle main image
     if (req.file) {
       newListing.image = {
         url: req.file.path,
@@ -127,14 +195,12 @@ module.exports.createListing = async (req, res, next) => {
       };
     }
 
-    newListing.geometry = geometry;
-
     await newListing.save();
-    req.flash("success", "New listing created!");
-    res.redirect("/listings");
+    req.flash("success", "New listing created successfully!");
+    res.redirect(`/listings/${newListing._id}`);
   } catch (e) {
     console.error('ERROR in createListing:', e);
-    req.flash("error", "Failed to create listing");
+    req.flash("error", "Failed to create listing: " + e.message);
     res.redirect("/listings/new");
   }
 };
@@ -160,8 +226,17 @@ module.exports.renderEditForm = async (req, res) => {
 // EDIT LISTING - Only owner can update
 module.exports.editListing = async (req, res) => {
   const { id } = req.params;
-  const listing = await Listing.findByIdAndUpdate(id, { ...req.body.listing });
+  const listing = await Listing.findById(id);
 
+  if (!listing) {
+    req.flash("error", "Listing not found!");
+    return res.redirect("/listings");
+  }
+
+  // Update fields from request body
+  Object.assign(listing, req.body.listing);
+
+  // Handle location/geocoding
   if (req.body.listing.location) {
     try {
       const geoResponse = await geocodingClient
@@ -179,11 +254,35 @@ module.exports.editListing = async (req, res) => {
     }
   }
 
+  // Handle image upload
   if (req.file) {
     listing.image = {
       url: req.file.path,
       filename: req.file.filename,
     };
+  }
+
+  // Handle array fields
+  if (req.body.listing.amenities) {
+    listing.amenities = req.body.listing.amenities.split(',').filter(Boolean);
+  }
+  if (req.body.listing.highlights) {
+    listing.highlights = req.body.listing.highlights.split(',').filter(Boolean);
+  }
+  if (req.body.listing.discounts) {
+    listing.discounts = req.body.listing.discounts.split(',').filter(Boolean);
+  }
+  if (req.body.listing.safetyItems) {
+    listing.safetyItems = req.body.listing.safetyItems.split(',').filter(Boolean);
+  }
+
+  // Handle residential address
+  if (req.body.listing.residentialAddress) {
+    try {
+      listing.residentialAddress = JSON.parse(req.body.listing.residentialAddress);
+    } catch (e) {
+      console.error('Error parsing residential address:', e);
+    }
   }
 
   await listing.save();
@@ -208,6 +307,8 @@ module.exports.searchListings = async (req, res) => {
       { title: { $regex: q, $options: "i" } },
       { location: { $regex: q, $options: "i" } },
       { country: { $regex: q, $options: "i" } },
+      { city: { $regex: q, $options: "i" } },
+      { state: { $regex: q, $options: "i" } }
     ],
   });
 
@@ -227,4 +328,38 @@ module.exports.searchListings = async (req, res) => {
   }
 
   res.render("listings/index.ejs", { listings, watchlistListingIds });
+};
+
+// Handle copy from existing listing
+module.exports.copyListing = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { type } = req.query;
+    
+    const sourceListing = await Listing.findById(id);
+    if (!sourceListing || !sourceListing.owner.equals(req.user._id)) {
+      req.flash('error', 'Listing not found');
+      return res.redirect('/host/listings');
+    }
+    
+    // Create a new listing with copied data
+    const newListing = new Listing({
+      ...sourceListing.toObject(),
+      _id: undefined,
+      title: `${sourceListing.title} (Copy)`,
+      owner: req.user._id,
+      status: 'draft',
+      reviews: [],
+      createdAt: new Date(),
+      updatedAt: new Date()
+    });
+    
+    await newListing.save();
+    req.flash('success', 'Listing created from template');
+    res.redirect(`/listings/${newListing._id}/edit`);
+  } catch (err) {
+    console.error(err);
+    req.flash('error', 'Could not create listing');
+    res.redirect('/host/listings');
+  }
 };

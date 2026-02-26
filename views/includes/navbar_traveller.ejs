@@ -30,8 +30,8 @@
               </form>
               <% } else { %>
                 <div class="nn-auth-links">
-                  <a href="/login" class="auth-link">Log in</a>
-                  <a href="/signup" class="auth-link signup">Sign up</a>
+                  <a href="/users/login" class="auth-link">Log in</a>
+                  <a href="/users/signup" class="auth-link signup">Sign up</a>
                 </div>
                 <% } %>
           </div>
@@ -88,8 +88,8 @@
           <div class="nn-right">
             <% if (user) { %>
               <div class="nn-user-menu">
-                <div class="nn-profile-container">
 
+                <div class="nn-profile-container">
                   <!-- PROFILE BUTTON WRAPPER -->
                   <div class="nn-profile-btn">
 
@@ -108,7 +108,14 @@
                           </div>
                           <% } %>
                     </a>
-
+                    <a href="/connections/requests" class="notification-icon">
+                      <i class="fa-regular fa-bell"></i>
+                      <% if (pendingRequestCount> 0) { %>
+                        <span class="notification-badge">
+                          <%= pendingRequestCount %>
+                        </span>
+                        <% } %>
+                    </a>
                   </div>
 
                   <!-- DROPDOWN MENU -->
@@ -118,9 +125,10 @@
                     <a href="#">Messages</a>
                     <hr>
                     <a href="/profile">Profile</a>
+                    <a href="/users/list">Find Travelers</a>
                     <a href="/account-settings">Account settings</a>
                     <hr>
-                    <a href="/logout" class="danger">Log out</a>
+                    <a href="/users/logout" class="danger">Log out</a>
                   </div>
 
                 </div>
@@ -171,6 +179,7 @@
 
             <div class="nn-user-menu">
               <div class="nn-user-menu">
+
                 <div class="nn-profile-container">
 
                   <div class="nn-profile-btn">
@@ -188,21 +197,34 @@
                           </div>
                           <% } %>
                     </a>
-
+                    <a href="/connections/requests" class="notification-icon">
+                      <i class="fa-regular fa-bell"></i>
+                      <% if (pendingRequestCount> 0) { %>
+                        <span class="notification-badge">
+                          <%= pendingRequestCount %>
+                        </span>
+                        <% } %>
+                    </a>
                   </div>
 
                   <div id="nnProfileDropdownCompact" class="nn-dropdown">
+                    <a href="/users/list">Find Travelers</a>
                     <a href="/watchlist">Wishlists</a>
                     <a href="/bookings/my">Trips</a>
                     <a href="/profile">Profile</a>
                     <hr>
-                    <a href="/logout" class="danger">Log out</a>
+                    <a href="/users/logout" class="danger">Log out</a>
                   </div>
 
                 </div>
               </div>
             </div>
-            <% } %>
+            <% } else{ %>
+              <div class="nn-auth-links">
+                <a href="/users/login" class="auth-link">Log in</a>
+                <a href="/users/signup" class="auth-link signup">Sign up</a>
+              </div>
+              <% } %>
         </div>
 
       </div>

@@ -83,6 +83,12 @@ module.exports.confirmBookingAfterPayment = async (req, res) => {
       return res.redirect("/listings");
     }
 
+    // ✅ FIX: Ensure listing has an owner
+    if (!listing.owner) {
+      req.flash("error", "Listing owner information is missing. Please contact support.");
+      return res.redirect("/listings");
+    }
+
     const inDate = new Date(checkIn);
     const outDate = new Date(checkOut);
     inDate.setHours(0, 0, 0, 0);
@@ -108,7 +114,7 @@ module.exports.confirmBookingAfterPayment = async (req, res) => {
     const booking = new Booking({
       listing: listing._id,
       guest: req.user._id,
-      host: listing.owner._id,
+      host: listing.owner._id,          // now safe because we checked owner exists
       checkIn: new Date(checkIn),
       checkOut: new Date(checkOut),
       roomsBooked: roomsBooked,
@@ -125,7 +131,7 @@ module.exports.confirmBookingAfterPayment = async (req, res) => {
       },
     });
 
-    // --- generate cancel token BEFORE save so email always has it ---
+    // generate cancel token
     try {
       const token = crypto.randomBytes(24).toString("hex");
       booking.cancelToken = token;
@@ -151,7 +157,7 @@ module.exports.confirmBookingAfterPayment = async (req, res) => {
     // save once
     await booking.save();
 
-    // clear session bookingData (avoid duplicates)
+    // clear session bookingData
     req.session.bookingData = null;
 
     // reload booking for sending emails
@@ -201,7 +207,7 @@ module.exports.confirmBookingAfterPayment = async (req, res) => {
       });
     }
 
-    // SEND EMAIL TO HOST (OWNER)
+    // SEND EMAIL TO HOST
     if (hostEmail) {
       await sendEmail({
         templateName: "ownerNewBooking",

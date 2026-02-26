@@ -6,34 +6,89 @@ const upload = multer({ storage });
 
 const Profile = require("../models/profile");
 const User = require("../models/user");
+const Booking = require("../models/booking");
+const Connection = require("../models/connection"); // new model
+const Review = require("../models/review"); // import your Review model
 const { isLoggedIn } = require("../middleware");
 
 const ALL_INTERESTS = [
-  "Travel", "Music", "Coding", "Food", "Photography", "Fitness", "Art",
-  "Movies", "Nature", "Books", "Live sports", "Outdoors", "Food scenes",
-  "Live music", "Coffee", "Nightlife", "Cooking", "Animals", "Shopping",
-  "Swimming", "Films", "Wine", "Water sports", "Local culture"
+  "Travel",
+  "Music",
+  "Coding",
+  "Food",
+  "Photography",
+  "Fitness",
+  "Art",
+  "Movies",
+  "Nature",
+  "Books",
+  "Live sports",
+  "Outdoors",
+  "Food scenes",
+  "Live music",
+  "Coffee",
+  "Nightlife",
+  "Cooking",
+  "Animals",
+  "Shopping",
+  "Swimming",
+  "Films",
+  "Wine",
+  "Water sports",
+  "Local culture",
 ];
 
-// profile.js – modify the main GET route
+// profile.js – modified main route with logging
 router.get("/", isLoggedIn, async (req, res) => {
-  const user = await User.findById(req.user._id).populate("profile");
-  // For now, use empty arrays – replace with actual queries when you have trips/connections models
-  const pastTrips = [];          // e.g. await Booking.find({ user: user._id, status: 'completed' })
-  const connections = [];        // e.g. await Connection.find({ user: user._id })
-  res.render("users/profile", {
-    currUser: user,
-    pastTrips,
-    connections
-  });
+  try {
+    console.log("Profile route hit for user:", req.user._id);
+
+    const user = await User.findById(req.user._id).populate("profile");
+    console.log("User found:", user ? user._id : "null");
+
+    const now = new Date();
+    const pastTrips = await Booking.find({
+      guest: req.user._id,
+      status: 'booked',
+      checkOut: { $lt: now }
+    }).populate('listing').sort({ checkOut: -1 });
+    console.log("Past trips count:", pastTrips.length);
+
+    const connections = await Connection.find({
+      $or: [
+        { requester: req.user._id, status: 'accepted' },
+        { recipient: req.user._id, status: 'accepted' }
+      ]
+    }).populate('requester recipient', 'name username profile');
+    console.log("Connections count:", connections.length);
+
+    const connectedUsers = connections.map(conn => {
+      if (conn.requester._id.toString() === req.user._id.toString()) {
+        return conn.recipient;
+      } else {
+        return conn.requester;
+      }
+    });
+
+    res.render("users/profile", {
+      currUser: user,
+      pastTrips,
+      connections: connectedUsers
+    });
+  } catch (err) {
+    console.error("Error in profile route:", err);
+    req.flash("error", "Something went wrong loading your profile.");
+    res.redirect("/listings");
+  }
 });
 
+// Other routes (edit, delete-photo) remain unchanged
 router.get("/edit", isLoggedIn, async (req, res) => {
   const user = await User.findById(req.user._id).populate("profile");
   res.render("users/profile_edit", {
     currUser: user,
     profile: user.profile,
-    allInterests: ALL_INTERESTS
+    allInterests: ALL_INTERESTS,
   });
 });
 
@@ -60,7 +115,9 @@ router.post("/edit", isLoggedIn, upload.single("avatar"), async (req, res) => {
 
   // Step 3
   profile.about = req.body.about;
-  profile.stamps = req.body.stamps ? req.body.stamps.map(s => ({ destination: s.destination })) : [];
+  profile.stamps = req.body.stamps
+    ? req.body.stamps.map((s) => ({ destination: s.destination }))
+    : [];
 
   // Step 4
   profile.interests = [].concat(req.body.interests || []);
@@ -68,7 +125,8 @@ router.post("/edit", isLoggedIn, upload.single("avatar"), async (req, res) => {
 
   // Avatar
   if (req.file) {
-    if (profile.avatar?.filename) await cloudinary.uploader.destroy(profile.avatar.filename);
+    if (profile.avatar?.filename)
+      await cloudinary.uploader.destroy(profile.avatar.filename);
     profile.avatar = { url: req.file.path, filename: req.file.filename };
   }
 
@@ -83,7 +141,8 @@ router.post("/edit", isLoggedIn, upload.single("avatar"), async (req, res) => {
 router.post("/delete-photo", isLoggedIn, async (req, res) => {
   try {
     const profile = await Profile.findOne({ user: req.user._id });
-    if (!profile?.avatar?.filename) return res.status(404).json({ success: false });
+    if (!profile?.avatar?.filename)
+      return res.status(404).json({ success: false });
 
     await cloudinary.uploader.destroy(profile.avatar.filename);
     profile.avatar = null;

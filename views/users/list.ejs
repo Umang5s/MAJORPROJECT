@@ -1,0 +1,294 @@
+<%- layout("/layout/boilerplate") %>
+<style>
+  .travelers-header {
+    padding: 40px 40px 20px;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  .travelers-header h1 {
+    font-size: 42px;
+    font-weight: 600;
+    color: #222;
+    margin-bottom: 8px;
+    letter-spacing: -0.5px;
+  }
+
+  .travelers-header p {
+    color: #717171;
+    font-size: 16px;
+    margin: 0;
+  }
+
+  .users-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 24px;
+    padding: 20px 40px 60px;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  .user-card {
+    background: white;
+    border: 1px solid #ebebeb;
+    border-radius: 20px;
+    padding: 28px 20px;
+    text-align: center;
+    transition: all 0.25s ease;
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+  }
+
+  .user-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+    border-color: transparent;
+  }
+
+  .user-card::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #ff385c, #d70466);
+    transform: scaleX(0);
+    transition: transform 0.25s ease;
+  }
+
+  .user-card:hover::after {
+    transform: scaleX(1);
+  }
+
+  .user-avatar {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    margin: 0 auto 16px;
+    background: linear-gradient(135deg, #f7f7f7, #ebebeb);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 40px;
+    font-weight: 600;
+    color: #222;
+    overflow: hidden;
+    border: 3px solid white;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    transition: transform 0.25s ease;
+  }
+
+  .user-card:hover .user-avatar {
+    transform: scale(1.05);
+  }
+
+  .user-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .user-card h3 {
+    font-size: 20px;
+    font-weight: 600;
+    color: #222;
+    margin: 0 0 6px;
+    line-height: 1.3;
+  }
+
+  .user-card .user-location {
+    font-size: 14px;
+    color: #717171;
+    margin: 0 0 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+  }
+
+  .user-card .user-location i {
+    font-size: 12px;
+    color: #ff385c;
+  }
+
+  .view-profile-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 8px;
+    padding: 10px 24px;
+    background: #222;
+    color: white;
+    text-decoration: none;
+    border-radius: 40px;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    border: 1px solid #222;
+  }
+
+  .view-profile-btn:hover {
+    background: #000;
+    border-color: #000;
+    transform: scale(1.02);
+  }
+
+  .view-profile-btn i {
+    font-size: 12px;
+    transition: transform 0.2s ease;
+  }
+
+  .view-profile-btn:hover i {
+    transform: translateX(4px);
+  }
+
+  /* Empty state styling */
+  .empty-state {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 80px 20px;
+    background: #f7f7f7;
+    border-radius: 20px;
+    margin: 40px 0;
+  }
+
+  .empty-state i {
+    font-size: 48px;
+    color: #ff385c;
+    margin-bottom: 16px;
+  }
+
+  .empty-state h3 {
+    font-size: 24px;
+    font-weight: 600;
+    color: #222;
+    margin-bottom: 8px;
+  }
+
+  .empty-state p {
+    color: #717171;
+    margin-bottom: 24px;
+  }
+
+  /* Responsive adjustments */
+  @media (max-width: 1024px) {
+    .travelers-header h1 {
+      font-size: 36px;
+    }
+    
+    .users-grid {
+      padding: 20px 30px 50px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .travelers-header {
+      padding: 30px 30px 15px;
+    }
+    
+    .travelers-header h1 {
+      font-size: 32px;
+    }
+    
+    .users-grid {
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 16px;
+      padding: 15px 20px 40px;
+    }
+    
+    .user-card {
+      padding: 20px 15px;
+    }
+    
+    .user-avatar {
+      width: 80px;
+      height: 80px;
+      font-size: 32px;
+    }
+    
+    .user-card h3 {
+      font-size: 18px;
+    }
+    
+    .view-profile-btn {
+      padding: 8px 20px;
+      font-size: 13px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .travelers-header h1 {
+      font-size: 28px;
+    }
+    
+    .users-grid {
+      grid-template-columns: 1fr;
+      padding: 10px 16px 30px;
+    }
+    
+    .user-card {
+      max-width: 300px;
+      margin: 0 auto;
+      width: 100%;
+    }
+  }
+
+  /* Loading animation */
+  .users-grid.loading {
+    opacity: 0.7;
+    pointer-events: none;
+  }
+
+  /* Add Font Awesome icons if not already included */
+  @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css');
+</style>
+
+<div class="travelers-header">
+  <h1>🌍 Travelers</h1>
+  <p>Connect with fellow explorers around the world</p>
+</div>
+
+<div class="users-grid">
+  <% if (users && users.length > 0) { %>
+    <% users.forEach(user => { %>
+      <div class="user-card" onclick="window.location='/users/<%= user._id %>'">
+        <div class="user-avatar">
+          <% if (user.profile?.avatar?.url) { %>
+            <img src="<%= user.profile.avatar.url %>" alt="<%= user.name || user.username %>">
+          <% } else { %>
+            <%= (user.name || user.username || 'U')[0].toUpperCase() %>
+          <% } %>
+        </div>
+        <h3><%= user.name || user.username %></h3>
+        <p class="user-location">
+          <i class="fa-solid fa-location-dot"></i>
+          <%= user.profile?.location || 'Location not set' %>
+        </p>
+        <a href="/users/<%= user._id %>" class="view-profile-btn">
+          View Profile <i class="fa-solid fa-arrow-right"></i>
+        </a>
+      </div>
+    <% }) %>
+  <% } else { %>
+    <div class="empty-state">
+      <i class="fa-solid fa-users"></i>
+      <h3>No travelers found</h3>
+      <p>Check back later for more explorers to connect with!</p>
+      <a href="/listings" class="view-profile-btn">Browse Listings</a>
+    </div>
+  <% } %>
+</div>
+
+<script>
+  // Optional: Add loading state if needed
+  document.addEventListener('DOMContentLoaded', function() {
+    const grid = document.querySelector('.users-grid');
+    if (grid) {
+      grid.classList.remove('loading');
+    }
+  });
+</script>

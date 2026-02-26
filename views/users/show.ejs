@@ -1,0 +1,156 @@
+<%- layout("/layout/boilerplate") %>
+
+<link rel="stylesheet" href="/css/profile.css">
+
+<style>
+  /* Additional styles for the public profile page */
+  .profile-wrapper {
+    grid-template-columns: 1fr !important;
+    padding: 40px 80px;
+  }
+  .profile-content {
+    max-width: 800px;
+    margin: 0 auto;
+  }
+  .connection-actions {
+    margin-top: 20px;
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+  }
+  .connect-btn, .message-btn, .pending-btn {
+    padding: 10px 20px;
+    border-radius: 40px;
+    border: none;
+    font-weight: 500;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+  }
+  .connect-btn {
+    background: #ff385c;
+    color: white;
+  }
+  .connect-btn:hover {
+    background: #e31c5f;
+  }
+  .message-btn {
+    background: #222;
+    color: white;
+  }
+  .message-btn:hover {
+    background: #000;
+  }
+  .pending-btn {
+    background: #f7f7f7;
+    color: #717171;
+    border: 1px solid #ddd;
+    cursor: default;
+  }
+  .details-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px 40px;
+    margin-top: 30px;
+  }
+</style>
+
+<div class="profile-wrapper" id="profileWrapper">
+  <div class="profile-content">
+    <!-- Profile Card (similar to your own profile) -->
+    <div class="profile-card">
+      <div class="avatar-large">
+        <% if (profileUser.profile?.avatar?.url) { %>
+          <img src="<%= profileUser.profile.avatar.url %>" alt="avatar">
+        <% } else { %>
+          <%= (profileUser.name || profileUser.username || "U")[0].toUpperCase() %>
+        <% } %>
+      </div>
+      <h2><%= profileUser.name || profileUser.username %></h2>
+      <p class="role-text"><%= (profileUser.host ? "Host" : "Guest") %></p>
+
+      <!-- Connection Actions -->
+      <div class="connection-actions">
+        <% if (connectionStatus === 'none') { %>
+          <form action="/connections/request/<%= profileUser._id %>" method="POST">
+            <button type="submit" class="connect-btn">Connect</button>
+          </form>
+        <% } else if (connectionStatus === 'pending') { %>
+          <% if (isRequester) { %>
+            <span class="pending-btn">Request Sent</span>
+          <% } else { %>
+            <a href="/connections/requests" class="pending-btn">Respond to Request</a>
+          <% } %>
+        <% } else if (connectionStatus === 'accepted') { %>
+          <span class="pending-btn" style="background:#e6f7e6; color:#2e7d32;">Connected</span>
+          <a href="/messages/with/<%= profileUser._id %>" class="message-btn">Message</a>
+        <% } %>
+      </div>
+    </div>
+
+    <!-- Profile Details -->
+    <% if (profileUser.profile) { %>
+      <div class="profile-details">
+        <h3>About <%= profileUser.name || profileUser.username %></h3>
+        <div class="details-grid">
+          <% if (profileUser.profile.location) { %>
+            <div class="detail-item">
+              <span class="detail-label">Lives in</span>
+              <span class="detail-value"><%= profileUser.profile.location %></span>
+            </div>
+          <% } %>
+          <% if (profileUser.profile.work) { %>
+            <div class="detail-item">
+              <span class="detail-label">Work</span>
+              <span class="detail-value"><%= profileUser.profile.work %></span>
+            </div>
+          <% } %>
+          <% if (profileUser.profile.languages) { %>
+            <div class="detail-item">
+              <span class="detail-label">Languages</span>
+              <span class="detail-value"><%= profileUser.profile.languages %></span>
+            </div>
+          <% } %>
+          <!-- Add more fields as you like -->
+        </div>
+
+        <% if (profileUser.profile.about) { %>
+          <div style="margin-top: 30px;">
+            <h4>About</h4>
+            <p><%= profileUser.profile.about %></p>
+          </div>
+        <% } %>
+
+        <% const allInterests = (profileUser.profile.interests || []).concat(profileUser.profile.custom_interests || []); %>
+        <% if (allInterests.length) { %>
+          <div style="margin-top: 30px;">
+            <h4>Interests</h4>
+            <div class="interests-tags">
+              <% allInterests.forEach(interest => { %>
+                <span class="interest-tag"><%= interest %></span>
+              <% }) %>
+            </div>
+          </div>
+        <% } %>
+      </div>
+    <% } %>
+
+    <!-- Optional: Show some of their past trips -->
+    <% if (pastTrips && pastTrips.length > 0) { %>
+      <div style="margin-top: 40px;">
+        <h3>Recent trips</h3>
+        <div class="trips-grid">
+          <% pastTrips.forEach(trip => { %>
+            <div class="trip-card" style="border:1px solid #eee; border-radius:12px; overflow:hidden;">
+              <img src="<%= trip.listing.image.url || '/default-listing.jpg' %>" style="width:100%; height:120px; object-fit:cover;">
+              <div style="padding:10px;">
+                <div><strong><%= trip.listing.title %></strong></div>
+                <div><%= new Date(trip.checkIn).toLocaleDateString() %></div>
+              </div>
+            </div>
+          <% }) %>
+        </div>
+      </div>
+    <% } %>
+  </div>
+</div>

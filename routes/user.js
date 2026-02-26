@@ -6,6 +6,9 @@ const multer = require("multer");
 const path = require("path");
 const { saveRedirectUrl, isLoggedIn } = require("../middleware.js");
 const userController = require("../controllers/users.js");
+const User = require("../models/user");
+const Connection = require("../models/connection");
+const Booking = require("../models/booking"); // optional, to show their past trips
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, "public/uploads/profile/"),
@@ -60,7 +63,8 @@ router.post("/login", saveRedirectUrl, (req, res, next) => {
     req.logIn(user, (err) => {
       if (err) return next(err);
       req.flash("success", "Welcome back to Wanderlust!");
-      const redirectUrl = req.query.returnTo || res.locals.redirectUrl || "/listings";
+      const redirectUrl =
+        req.query.returnTo || res.locals.redirectUrl || "/listings";
       delete req.session.returnTo;
       res.redirect(redirectUrl);
     });
@@ -112,5 +116,85 @@ router.post("/login", saveRedirectUrl, (req, res, next) => {
 router.get("/logout", userController.logOutUser);
 
 router.post("/logout", userController.logOutUser);
+
+// View another user's public profile
+// FIRST: List all users (more specific route)
+router.get("/list", isLoggedIn, async (req, res) => {
+  try {
+    const users = await User.find({ _id: { $ne: req.user._id } })
+      .populate("profile")
+      .limit(20);
+    res.render("users/list", { users });
+  } catch (err) {
+    console.error(err);
+    req.flash("error", "Could not load users.");
+    res.redirect("/listings");
+  }
+});
+
+// THEN: User profile by ID (parameterized route)
+router.get("/:id", isLoggedIn, async (req, res) => {
+  // Special case: if someone accidentally links to "/profile", redirect
+  if (req.params.id === "profile") {
+    req.flash("error", "Redirected to your profile.");
+    return res.redirect("/profile");
+  }
+
+  // Validate that the ID is a 24-character hex string (MongoDB ObjectId)
+  if (!req.params.id.match(/^[0-9a-fA-F]{24}$/)) {
+    req.flash("error", "Invalid user ID.");
+    return res.redirect("/listings");
+  }
+
+  try {
+    const user = await User.findById(req.params.id).populate("profile");
+    if (!user) {
+      req.flash("error", "User not found.");
+      return res.redirect("/listings");
+    }
+
+    // Don't allow viewing your own profile here (use /profile)
+    if (user._id.equals(req.user._id)) {
+      return res.redirect("/profile");
+    }
+
+    // Check connection status between logged-in user and this user
+    const connection = await Connection.findOne({
+      $or: [
+        { requester: req.user._id, recipient: user._id },
+        { requester: user._id, recipient: req.user._id },
+      ],
+    });
+
+    let connectionStatus = "none";
+    let isRequester = false;
+
+    if (connection) {
+      connectionStatus = connection.status;
+      isRequester = connection.requester.equals(req.user._id);
+    }
+
+    // Optional: fetch some of their past trips to show
+    const now = new Date();
+    const pastTrips = await Booking.find({
+      guest: user._id,
+      status: "booked",
+      checkOut: { $lt: now },
+    })
+      .populate("listing")
+      .limit(5);
+
+    res.render("users/show", {
+      profileUser: user,
+      connectionStatus,
+      isRequester,
+      pastTrips,
+    });
+  } catch (err) {
+    console.error(err);
+    req.flash("error", "Could not load user profile.");
+    res.redirect("/listings");
+  }
+});
 
 module.exports = router;

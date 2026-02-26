@@ -1,0 +1,25 @@
+<%- layout("/layout/boilerplate") %>
+<div class="container" style="max-width: 800px; margin: 40px auto;">
+  <h1>Travel Buddies</h1>
+  <p>People who visited the same places as you.</p>
+  <% if (buddies.length === 0) { %>
+    <p>No travel buddies found yet. Keep traveling!</p>
+  <% } else { %>
+    <div class="buddies-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px;">
+      <% buddies.forEach(user => { %>
+        <div class="buddy-card" style="border: 1px solid #eee; border-radius: 12px; padding: 16px; text-align: center;">
+          <div class="avatar-large" style="width: 80px; height: 80px; margin: 0 auto 10px; border-radius: 50%; overflow: hidden; background: #f0f0f0;">
+            <% if (user.profile?.avatar?.url) { %>
+              <img src="<%= user.profile.avatar.url %>" style="width:100%;height:100%;object-fit:cover;">
+            <% } else { %>
+              <span style="font-size: 32px; line-height: 80px;"><%= (user.name || user.username)[0].toUpperCase() %></span>
+            <% } %>
+          </div>
+          <h4><%= user.name || user.username %></h4>
+          <p><%= user.profile?.location || 'Location not set' %></p>
+          <a href="/messages/with/<%= user._id %>" class="message-btn" style="display:inline-block; margin-top:10px; padding:6px 12px; background:#eee; border-radius:20px;">Message</a>
+        </div>
+      <% }) %>
+    </div>
+  <% } %>
+</div>
