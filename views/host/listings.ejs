@@ -1,670 +1,687 @@
-<%
-  locals.currentPath = '/host/listings';
-%>
+<% locals.currentPath='/host/listings' ; %>
 
-<!-- Include the host navbar -->
-<%- include('../includes/navbar_host') %>
+  <!-- Include the host navbar -->
+  <%- include('../includes/navbar_host') %>
 
-<div class="host-listings-container">
-  <div class="host-listings-header">
-    <h1>Listings</h1>
-    <button class="create-listing-btn" id="openListingModalBtn">
-      <i class="fa-solid fa-plus"></i>
-      Create new listing
-    </button>
-  </div>
-
-  <% if (listings.length === 0) { %>
-    <!-- Empty state for listings -->
-    <div class="empty-state">
-      <div class="empty-state-icon">
-        <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="presentation" focusable="false" style="display: block; fill: none; height: 48px; width: 48px; stroke: currentcolor; stroke-width: 2; overflow: visible;">
-          <g fill="none" fill-rule="evenodd">
-            <path d="m2 16h28v12c0 1.1045695-.8954305 2-2 2h-24c-1.1045695 0-2-.8954305-2-2z" stroke="#222"></path>
-            <path d="m2 10 14-8 14 8v6h-28z" stroke="#222"></path>
-          </g>
-        </svg>
+    <div class="host-listings-container">
+      <div class="host-listings-header">
+        <h1>Listings</h1>
+        <button class="create-listing-btn" id="openListingModalBtn">
+          <i class="fa-solid fa-plus"></i>
+          Create new listing
+        </button>
       </div>
-      <h2 class="empty-state-title">You don't have<br>any listings yet</h2>
-      <p class="empty-state-text">Start hosting by creating your first listing</p>
-      <button class="complete-listing-btn" id="openListingModalBtnEmpty">
-        <i class="fa-solid fa-plus"></i>
-        Create your first listing
-      </button>
-    </div>
-  <% } else { %>
-    <div class="listings-grid">
-      <% listings.forEach(listing => { %>
-        <div class="listing-card">
-          <div class="listing-image">
-            <% if (listing.image && listing.image.url) { %>
-              <img src="<%= listing.image.url %>" alt="<%= listing.title %>">
-            <% } else { %>
-              <img src="/images/default-listing.jpg" alt="Default">
-            <% } %>
-            <div class="listing-status <%= listing.isPublished ? 'published' : 'draft' %>">
-              <%= listing.isPublished ? 'Published' : 'Draft' %>
-            </div>
+
+      <% if (listings.length===0) { %>
+        <!-- Empty state for listings -->
+        <div class="empty-state">
+          <div class="empty-state-icon">
+            <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="presentation"
+              focusable="false"
+              style="display: block; fill: none; height: 48px; width: 48px; stroke: currentcolor; stroke-width: 2; overflow: visible;">
+              <g fill="none" fill-rule="evenodd">
+                <path d="m2 16h28v12c0 1.1045695-.8954305 2-2 2h-24c-1.1045695 0-2-.8954305-2-2z" stroke="#222"></path>
+                <path d="m2 10 14-8 14 8v6h-28z" stroke="#222"></path>
+              </g>
+            </svg>
           </div>
-          
-          <div class="listing-info">
-            <h3><%= listing.title %></h3>
-            <p class="listing-location"><%= listing.location %></p>
-            
-            <div class="listing-stats">
-              <span><i class="fa-regular fa-star"></i> <%= listing.avgRating || 'New' %></span>
-              <span><i class="fa-regular fa-eye"></i> <%= listing.views || 0 %></span>
-            </div>
-            
-            <div class="listing-price">
-              ₹<%= listing.price %> <span>night</span>
-            </div>
-            
-            <div class="listing-actions">
-              <a href="/listings/<%= listing._id %>" class="action-btn" target="_blank">Preview</a>
-              <a href="/listings/<%= listing._id %>/edit" class="action-btn">Edit</a>
-            </div>
+          <h2 class="empty-state-title">You don't have<br>any listings yet</h2>
+          <p class="empty-state-text">Start hosting by creating your first listing</p>
+          <button class="complete-listing-btn" id="openListingModalBtnEmpty">
+            <i class="fa-solid fa-plus"></i>
+            Create your first listing
+          </button>
+        </div>
+        <% } else { %>
+          <div class="listings-grid">
+            <% listings.forEach(listing=> { %>
+              <div class="listing-card">
+                <div class="listing-image">
+                  <% if (listing.image && listing.image.url) { %>
+                    <img src="<%= listing.image.url %>" alt="<%= listing.title %>">
+                    <% } else { %>
+                      <img src="/images/default-listing.jpg" alt="Default">
+                      <% } %>
+                        <div class="listing-status <%= listing.isPublished ? 'published' : 'draft' %>">
+                          <%= listing.isPublished ? 'Published' : 'Draft' %>
+                        </div>
+                </div>
+
+                <div class="listing-info">
+                  <h3>
+                    <%= listing.title %>
+                  </h3>
+                  <p class="listing-location">
+                    <%= listing.location %>
+                  </p>
+
+                  <div class="listing-stats">
+                    <span><i class="fa-regular fa-star"></i>
+                      <%= listing.avgRating || 'New' %>
+                    </span>
+                    <span><i class="fa-regular fa-eye"></i>
+                      <%= listing.views || 0 %>
+                    </span>
+                  </div>
+
+                  <div class="listing-price">
+                    ₹<%= listing.price %> <span>night</span>
+                  </div>
+
+                  <div class="listing-actions">
+                    <a href="/listings/<%= listing._id %>" class="action-btn" target="_blank">Preview</a>
+                    <a href="/listings/<%= listing._id %>/edit" class="action-btn">Edit</a>
+
+                    <form action="/listings/<%= listing._id %>?_method=DELETE" method="POST" class="delete-form"
+                      onsubmit="return confirm('Are you sure you want to delete this listing?');">
+
+                      <button type="submit" class="action-btn delete-btn">
+                        Delete
+                      </button>
+                    </form>
+                  </div>
+                </div>
+              </div>
+              <% }) %>
+          </div>
+          <% } %>
+    </div>
+
+    <!-- Listing Type Modal -->
+    <div id="listingTypeModal" class="listing-modal">
+      <div class="modal-overlay"></div>
+      <div class="modal-container">
+        <div class="modal-header">
+          <h2 class="modal-title">What would you like to host?</h2>
+          <button class="modal-close-btn" id="closeListingModal">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+
+        <div class="modal-content">
+          <div class="listing-options">
+            <!-- Home Option -->
+            <a href="/listings/new?type=home" class="listing-option">
+              <div class="option-icon">
+                <i class="fa-solid fa-house"></i>
+              </div>
+              <div class="option-info">
+                <h3>Home</h3>
+                <p>List your entire place, private room, or shared room</p>
+              </div>
+              <div class="option-arrow">
+                <i class="fa-solid fa-chevron-right"></i>
+              </div>
+            </a>
+
+            <!-- Experience Option -->
+            <a href="/listings/new?type=experience" class="listing-option">
+              <div class="option-icon">
+                <i class="fa-solid fa-compass"></i>
+              </div>
+              <div class="option-info">
+                <h3>Experience</h3>
+                <p>Share an activity, tour, or class with travelers</p>
+              </div>
+              <div class="option-arrow">
+                <i class="fa-solid fa-chevron-right"></i>
+              </div>
+            </a>
+
+            <!-- Service Option -->
+            <a href="/listings/new?type=service" class="listing-option">
+              <div class="option-icon">
+                <i class="fa-solid fa-bell-concierge"></i>
+              </div>
+              <div class="option-info">
+                <h3>Service</h3>
+                <p>Offer a professional service like photography or cooking</p>
+              </div>
+              <div class="option-arrow">
+                <i class="fa-solid fa-chevron-right"></i>
+              </div>
+            </a>
           </div>
         </div>
-      <% }) %>
-    </div>
-  <% } %>
-</div>
-
-<!-- Listing Type Modal -->
-<div id="listingTypeModal" class="listing-modal">
-  <div class="modal-overlay"></div>
-  <div class="modal-container">
-    <div class="modal-header">
-      <h2 class="modal-title">What would you like to host?</h2>
-      <button class="modal-close-btn" id="closeListingModal">
-        <i class="fa-solid fa-xmark"></i>
-      </button>
-    </div>
-    
-    <div class="modal-content">
-      <div class="listing-options">
-        <!-- Home Option -->
-        <a href="/listings/new?type=home" class="listing-option">
-          <div class="option-icon">
-            <i class="fa-solid fa-house"></i>
-          </div>
-          <div class="option-info">
-            <h3>Home</h3>
-            <p>List your entire place, private room, or shared room</p>
-          </div>
-          <div class="option-arrow">
-            <i class="fa-solid fa-chevron-right"></i>
-          </div>
-        </a>
-        
-        <!-- Experience Option -->
-        <a href="/listings/new?type=experience" class="listing-option">
-          <div class="option-icon">
-            <i class="fa-solid fa-compass"></i>
-          </div>
-          <div class="option-info">
-            <h3>Experience</h3>
-            <p>Share an activity, tour, or class with travelers</p>
-          </div>
-          <div class="option-arrow">
-            <i class="fa-solid fa-chevron-right"></i>
-          </div>
-        </a>
-        
-        <!-- Service Option -->
-        <a href="/listings/new?type=service" class="listing-option">
-          <div class="option-icon">
-            <i class="fa-solid fa-bell-concierge"></i>
-          </div>
-          <div class="option-info">
-            <h3>Service</h3>
-            <p>Offer a professional service like photography or cooking</p>
-          </div>
-          <div class="option-arrow">
-            <i class="fa-solid fa-chevron-right"></i>
-          </div>
-        </a>
       </div>
     </div>
-  </div>
-</div>
-
-<style>
-/* Modal Styles */
-.listing-modal {
-  display: none;
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 10000;
-  align-items: center;
-  justify-content: center;
-}
-
-.listing-modal.show {
-  display: flex;
-}
-
-.modal-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(4px);
-}
-
-.modal-container {
-  position: relative;
-  width: 90%;
-  max-width: 600px;
-  background: white;
-  border-radius: 24px;
-  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.2);
-  z-index: 10001;
-  animation: modalSlideIn 0.3s ease;
-}
-
-@keyframes modalSlideIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 24px 24px 16px;
-  border-bottom: 1px solid #ebebeb;
-}
-
-.modal-title {
-  font-size: 28px;
-  font-weight: 600;
-  color: #222;
-  margin: 0;
-  line-height: 1.2;
-}
-
-.modal-close-btn {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  border: none;
-  background: #f7f7f7;
-  color: #222;
-  font-size: 20px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s ease;
-}
-
-.modal-close-btn:hover {
-  background: #ebebeb;
-  transform: rotate(90deg);
-}
-
-.modal-content {
-  padding: 24px;
-}
-
-.listing-options {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.listing-option {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-  padding: 20px;
-  border: 2px solid #ebebeb;
-  border-radius: 20px;
-  text-decoration: none;
-  color: inherit;
-  transition: all 0.2s ease;
-  position: relative;
-  overflow: hidden;
-}
-
-.listing-option:hover {
-  border-color: #ff385c;
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(255, 56, 92, 0.12);
-  background: #fff9f9;
-}
-
-.listing-option::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 4px;
-  height: 100%;
-  background: #ff385c;
-  transform: scaleY(0);
-  transition: transform 0.2s ease;
-}
-
-.listing-option:hover::before {
-  transform: scaleY(1);
-}
-
-.option-icon {
-  width: 60px;
-  height: 60px;
-  background: #f7f7f7;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 28px;
-  color: #ff385c;
-  flex-shrink: 0;
-  transition: all 0.2s ease;
-}
-
-.listing-option:hover .option-icon {
-  background: #ff385c;
-  color: white;
-  transform: scale(1.05);
-}
-
-.option-info {
-  flex: 1;
-}
-
-.option-info h3 {
-  font-size: 20px;
-  font-weight: 600;
-  color: #222;
-  margin: 0 0 4px 0;
-}
-
-.option-info p {
-  font-size: 15px;
-  color: #717171;
-  margin: 0;
-  line-height: 1.5;
-}
-
-.option-arrow {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: #f7f7f7;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #222;
-  font-size: 16px;
-  transition: all 0.2s ease;
-  flex-shrink: 0;
-}
-
-.listing-option:hover .option-arrow {
-  background: #ff385c;
-  color: white;
-  transform: translateX(4px);
-}
-
-/* Responsive Modal */
-@media (max-width: 768px) {
-  .modal-container {
-    width: 95%;
-  }
-  
-  .modal-title {
-    font-size: 24px;
-  }
-  
-  .listing-option {
-    padding: 16px;
-    gap: 16px;
-  }
-  
-  .option-icon {
-    width: 50px;
-    height: 50px;
-    font-size: 24px;
-  }
-  
-  .option-info h3 {
-    font-size: 18px;
-  }
-  
-  .option-info p {
-    font-size: 14px;
-  }
-}
-
-@media (max-width: 480px) {
-  .modal-header {
-    padding: 20px 16px;
-  }
-  
-  .modal-content {
-    padding: 16px;
-  }
-  
-  .modal-title {
-    font-size: 22px;
-  }
-  
-  .listing-option {
-    flex-wrap: wrap;
-  }
-  
-  .option-icon {
-    width: 44px;
-    height: 44px;
-    font-size: 22px;
-  }
-  
-  .option-arrow {
-    width: 36px;
-    height: 36px;
-  }
-}
-
-/* Existing styles remain the same */
-.host-listings-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 48px 24px;
-  font-family: 'Plus Jakarta Sans', sans-serif;
-}
-
-.host-listings-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 40px;
-}
-
-.host-listings-header h1 {
-  font-size: 48px;
-  font-weight: 600;
-  color: #222;
-  margin: 0;
-  line-height: 1;
-}
-
-.create-listing-btn {
-  background: #222;
-  color: white;
-  text-decoration: none;
-  padding: 14px 24px;
-  border-radius: 40px;
-  font-size: 16px;
-  font-weight: 500;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  transition: background 0.2s;
-  border: none;
-  cursor: pointer;
-}
-
-.create-listing-btn:hover {
-  background: #000;
-}
-
-.listings-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 24px;
-}
-
-.listing-card {
-  background: white;
-  border: 1px solid #ebebeb;
-  border-radius: 16px;
-  overflow: hidden;
-  transition: box-shadow 0.2s;
-}
-
-.listing-card:hover {
-  box-shadow: 0 4px 16px rgba(0,0,0,0.08);
-}
-
-.listing-image {
-  position: relative;
-  height: 200px;
-  overflow: hidden;
-}
-
-.listing-image img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.listing-status {
-  position: absolute;
-  top: 16px;
-  right: 16px;
-  padding: 6px 12px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 600;
-  background: white;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-}
-
-.listing-status.published {
-  background: #222;
-  color: white;
-}
-
-.listing-status.draft {
-  background: white;
-  color: #222;
-  border: 1px solid #ddd;
-}
-
-.listing-info {
-  padding: 16px;
-}
-
-.listing-info h3 {
-  font-size: 18px;
-  font-weight: 600;
-  color: #222;
-  margin: 0 0 4px 0;
-}
-
-.listing-location {
-  font-size: 14px;
-  color: #717171;
-  margin: 0 0 12px 0;
-}
-
-.listing-stats {
-  display: flex;
-  gap: 16px;
-  margin-bottom: 12px;
-  font-size: 14px;
-  color: #717171;
-}
-
-.listing-stats i {
-  margin-right: 4px;
-  color: #ff385c;
-}
-
-.listing-price {
-  font-size: 16px;
-  font-weight: 600;
-  color: #222;
-  margin-bottom: 16px;
-}
-
-.listing-price span {
-  font-weight: 400;
-  color: #717171;
-}
-
-.listing-actions {
-  display: flex;
-  gap: 8px;
-}
-
-.action-btn {
-  flex: 1;
-  text-align: center;
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  text-decoration: none;
-  color: #222;
-  font-size: 14px;
-  transition: background 0.2s;
-}
-
-.action-btn:hover {
-  background: #f7f7f7;
-}
-
-/* Empty state styles */
-.empty-state {
-  text-align: center;
-  max-width: 500px;
-  margin: 80px auto;
-}
-
-.empty-state-icon {
-  margin-bottom: 24px;
-  color: #222;
-}
-
-.empty-state-title {
-  font-size: 32px;
-  font-weight: 600;
-  color: #222;
-  line-height: 1.2;
-  margin: 0 0 16px 0;
-}
-
-.empty-state-text {
-  font-size: 18px;
-  color: #717171;
-  line-height: 1.5;
-  margin: 0 0 32px 0;
-}
-
-.complete-listing-btn {
-  display: inline-block;
-  background: #222;
-  color: white;
-  font-size: 16px;
-  font-weight: 500;
-  padding: 14px 32px;
-  border-radius: 40px;
-  text-decoration: none;
-  transition: background 0.2s;
-  border: none;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.complete-listing-btn:hover {
-  background: #000;
-}
-
-@media (max-width: 768px) {
-  .host-listings-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 16px;
-  }
-  
-  .host-listings-header h1 {
-    font-size: 36px;
-  }
-}
-</style>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-  const modal = document.getElementById('listingTypeModal');
-  const openModalBtn = document.getElementById('openListingModalBtn');
-  const openModalBtnEmpty = document.getElementById('openListingModalBtnEmpty');
-  const closeModalBtn = document.getElementById('closeListingModal');
-  const modalOverlay = document.querySelector('.modal-overlay');
-
-  // Function to open modal
-  function openModal() {
-    modal.classList.add('show');
-    document.body.style.overflow = 'hidden'; // Prevent background scrolling
-  }
-
-  // Function to close modal
-  function closeModal() {
-    modal.classList.remove('show');
-    document.body.style.overflow = ''; // Restore scrolling
-  }
-
-  // Open modal when button is clicked
-  if (openModalBtn) {
-    openModalBtn.addEventListener('click', openModal);
-  }
-
-  if (openModalBtnEmpty) {
-    openModalBtnEmpty.addEventListener('click', openModal);
-  }
-
-  // Close modal when X is clicked
-  if (closeModalBtn) {
-    closeModalBtn.addEventListener('click', closeModal);
-  }
-
-  // Close modal when overlay is clicked
-  if (modalOverlay) {
-    modalOverlay.addEventListener('click', closeModal);
-  }
-
-  // Close modal when Escape key is pressed
-  document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape' && modal.classList.contains('show')) {
-      closeModal();
-    }
-  });
-
-  // Prevent modal from closing when clicking inside the modal container
-  const modalContainer = document.querySelector('.modal-container');
-  if (modalContainer) {
-    modalContainer.addEventListener('click', function(e) {
-      e.stopPropagation();
-    });
-  }
-
-  // Add touch support for mobile
-  if ('ontouchstart' in window) {
-    const options = document.querySelectorAll('.listing-option');
-    options.forEach(option => {
-      option.addEventListener('touchstart', function() {
-        this.style.transform = 'scale(0.98)';
+
+    <style>
+      /* Modal Styles */
+      .listing-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 10000;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .listing-modal.show {
+        display: flex;
+      }
+
+      .modal-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(4px);
+      }
+
+      .modal-container {
+        position: relative;
+        width: 90%;
+        max-width: 600px;
+        background: white;
+        border-radius: 24px;
+        box-shadow: 0 24px 48px rgba(0, 0, 0, 0.2);
+        z-index: 10001;
+        animation: modalSlideIn 0.3s ease;
+      }
+
+      @keyframes modalSlideIn {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 24px 24px 16px;
+        border-bottom: 1px solid #ebebeb;
+      }
+
+      .modal-title {
+        font-size: 28px;
+        font-weight: 600;
+        color: #222;
+        margin: 0;
+        line-height: 1.2;
+      }
+
+      .modal-close-btn {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        border: none;
+        background: #f7f7f7;
+        color: #222;
+        font-size: 20px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+      }
+
+      .modal-close-btn:hover {
+        background: #ebebeb;
+        transform: rotate(90deg);
+      }
+
+      .modal-content {
+        padding: 24px;
+      }
+
+      .listing-options {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+
+      .listing-option {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        padding: 20px;
+        border: 2px solid #ebebeb;
+        border-radius: 20px;
+        text-decoration: none;
+        color: inherit;
+        transition: all 0.2s ease;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .listing-option:hover {
+        border-color: #ff385c;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(255, 56, 92, 0.12);
+        background: #fff9f9;
+      }
+
+      .listing-option::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 4px;
+        height: 100%;
+        background: #ff385c;
+        transform: scaleY(0);
+        transition: transform 0.2s ease;
+      }
+
+      .listing-option:hover::before {
+        transform: scaleY(1);
+      }
+
+      .option-icon {
+        width: 60px;
+        height: 60px;
+        background: #f7f7f7;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 28px;
+        color: #ff385c;
+        flex-shrink: 0;
+        transition: all 0.2s ease;
+      }
+
+      .listing-option:hover .option-icon {
+        background: #ff385c;
+        color: white;
+        transform: scale(1.05);
+      }
+
+      .option-info {
+        flex: 1;
+      }
+
+      .option-info h3 {
+        font-size: 20px;
+        font-weight: 600;
+        color: #222;
+        margin: 0 0 4px 0;
+      }
+
+      .option-info p {
+        font-size: 15px;
+        color: #717171;
+        margin: 0;
+        line-height: 1.5;
+      }
+
+      .option-arrow {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: #f7f7f7;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #222;
+        font-size: 16px;
+        transition: all 0.2s ease;
+        flex-shrink: 0;
+      }
+
+      .listing-option:hover .option-arrow {
+        background: #ff385c;
+        color: white;
+        transform: translateX(4px);
+      }
+
+      /* Responsive Modal */
+      @media (max-width: 768px) {
+        .modal-container {
+          width: 95%;
+        }
+
+        .modal-title {
+          font-size: 24px;
+        }
+
+        .listing-option {
+          padding: 16px;
+          gap: 16px;
+        }
+
+        .option-icon {
+          width: 50px;
+          height: 50px;
+          font-size: 24px;
+        }
+
+        .option-info h3 {
+          font-size: 18px;
+        }
+
+        .option-info p {
+          font-size: 14px;
+        }
+      }
+
+      @media (max-width: 480px) {
+        .modal-header {
+          padding: 20px 16px;
+        }
+
+        .modal-content {
+          padding: 16px;
+        }
+
+        .modal-title {
+          font-size: 22px;
+        }
+
+        .listing-option {
+          flex-wrap: wrap;
+        }
+
+        .option-icon {
+          width: 44px;
+          height: 44px;
+          font-size: 22px;
+        }
+
+        .option-arrow {
+          width: 36px;
+          height: 36px;
+        }
+      }
+
+      /* Existing styles remain the same */
+      .host-listings-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 48px 24px;
+        font-family: 'Plus Jakarta Sans', sans-serif;
+      }
+
+      .host-listings-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 40px;
+      }
+
+      .host-listings-header h1 {
+        font-size: 48px;
+        font-weight: 600;
+        color: #222;
+        margin: 0;
+        line-height: 1;
+      }
+
+      .create-listing-btn {
+        background: #222;
+        color: white;
+        text-decoration: none;
+        padding: 14px 24px;
+        border-radius: 40px;
+        font-size: 16px;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: background 0.2s;
+        border: none;
+        cursor: pointer;
+      }
+
+      .create-listing-btn:hover {
+        background: #000;
+      }
+
+      .listings-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 24px;
+      }
+
+      .listing-card {
+        background: white;
+        border: 1px solid #ebebeb;
+        border-radius: 16px;
+        overflow: hidden;
+        transition: box-shadow 0.2s;
+      }
+
+      .listing-card:hover {
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+      }
+
+      .listing-image {
+        position: relative;
+        height: 200px;
+        overflow: hidden;
+      }
+
+      .listing-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .listing-status {
+        position: absolute;
+        top: 16px;
+        right: 16px;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        background: white;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      }
+
+      .listing-status.published {
+        background: #222;
+        color: white;
+      }
+
+      .listing-status.draft {
+        background: white;
+        color: #222;
+        border: 1px solid #ddd;
+      }
+
+      .listing-info {
+        padding: 16px;
+      }
+
+      .listing-info h3 {
+        font-size: 18px;
+        font-weight: 600;
+        color: #222;
+        margin: 0 0 4px 0;
+      }
+
+      .listing-location {
+        font-size: 14px;
+        color: #717171;
+        margin: 0 0 12px 0;
+      }
+
+      .listing-stats {
+        display: flex;
+        gap: 16px;
+        margin-bottom: 12px;
+        font-size: 14px;
+        color: #717171;
+      }
+
+      .listing-stats i {
+        margin-right: 4px;
+        color: #ff385c;
+      }
+
+      .listing-price {
+        font-size: 16px;
+        font-weight: 600;
+        color: #222;
+        margin-bottom: 16px;
+      }
+
+      .listing-price span {
+        font-weight: 400;
+        color: #717171;
+      }
+
+      .listing-actions {
+        display: flex;
+        gap: 8px;
+      }
+
+      .action-btn {
+        flex: 1;
+        text-align: center;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        text-decoration: none;
+        color: #222;
+        font-size: 14px;
+        transition: background 0.2s;
+      }
+
+      .action-btn:hover {
+        background: #f7f7f7;
+      }
+
+      /* Empty state styles */
+      .empty-state {
+        text-align: center;
+        max-width: 500px;
+        margin: 80px auto;
+      }
+
+      .empty-state-icon {
+        margin-bottom: 24px;
+        color: #222;
+      }
+
+      .empty-state-title {
+        font-size: 32px;
+        font-weight: 600;
+        color: #222;
+        line-height: 1.2;
+        margin: 0 0 16px 0;
+      }
+
+      .empty-state-text {
+        font-size: 18px;
+        color: #717171;
+        line-height: 1.5;
+        margin: 0 0 32px 0;
+      }
+
+      .complete-listing-btn {
+        display: inline-block;
+        background: #222;
+        color: white;
+        font-size: 16px;
+        font-weight: 500;
+        padding: 14px 32px;
+        border-radius: 40px;
+        text-decoration: none;
+        transition: background 0.2s;
+        border: none;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .complete-listing-btn:hover {
+        background: #000;
+      }
+
+      @media (max-width: 768px) {
+        .host-listings-header {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 16px;
+        }
+
+        .host-listings-header h1 {
+          font-size: 36px;
+        }
+      }
+    </style>
+
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        const modal = document.getElementById('listingTypeModal');
+        const openModalBtn = document.getElementById('openListingModalBtn');
+        const openModalBtnEmpty = document.getElementById('openListingModalBtnEmpty');
+        const closeModalBtn = document.getElementById('closeListingModal');
+        const modalOverlay = document.querySelector('.modal-overlay');
+
+        // Function to open modal
+        function openModal() {
+          modal.classList.add('show');
+          document.body.style.overflow = 'hidden'; // Prevent background scrolling
+        }
+
+        // Function to close modal
+        function closeModal() {
+          modal.classList.remove('show');
+          document.body.style.overflow = ''; // Restore scrolling
+        }
+
+        // Open modal when button is clicked
+        if (openModalBtn) {
+          openModalBtn.addEventListener('click', openModal);
+        }
+
+        if (openModalBtnEmpty) {
+          openModalBtnEmpty.addEventListener('click', openModal);
+        }
+
+        // Close modal when X is clicked
+        if (closeModalBtn) {
+          closeModalBtn.addEventListener('click', closeModal);
+        }
+
+        // Close modal when overlay is clicked
+        if (modalOverlay) {
+          modalOverlay.addEventListener('click', closeModal);
+        }
+
+        // Close modal when Escape key is pressed
+        document.addEventListener('keydown', function (e) {
+          if (e.key === 'Escape' && modal.classList.contains('show')) {
+            closeModal();
+          }
+        });
+
+        // Prevent modal from closing when clicking inside the modal container
+        const modalContainer = document.querySelector('.modal-container');
+        if (modalContainer) {
+          modalContainer.addEventListener('click', function (e) {
+            e.stopPropagation();
+          });
+        }
+
+        // Add touch support for mobile
+        if ('ontouchstart' in window) {
+          const options = document.querySelectorAll('.listing-option');
+          options.forEach(option => {
+            option.addEventListener('touchstart', function () {
+              this.style.transform = 'scale(0.98)';
+            });
+            option.addEventListener('touchend', function () {
+              this.style.transform = '';
+            });
+          });
+        }
       });
-      option.addEventListener('touchend', function() {
-        this.style.transform = '';
-      });
-    });
-  }
-});
-</script>
+    </script>

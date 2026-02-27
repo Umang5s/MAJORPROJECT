@@ -295,7 +295,7 @@ module.exports.destroyListing = async (req, res) => {
   const { id } = req.params;
   await Listing.findByIdAndDelete(id);
   req.flash("success", "Listing deleted!");
-  res.redirect("/listings");
+  res.redirect("/host/listings");
 };
 
 // SEARCH LISTINGS - Searches ALL listings
