@@ -95,6 +95,7 @@ module.exports.renderNewListingForm = async (req, res) => {
 // SHOW LISTING - Anyone can view any listing
 module.exports.showListings = async (req, res) => {
   const { id } = req.params;
+  
   const listing = await Listing.findById(id)
     .populate({
       path: "reviews",
@@ -105,13 +106,14 @@ module.exports.showListings = async (req, res) => {
     })
     .populate("owner");
 
-    let watchlistListingIds = [];
+  let watchlistListingIds = [];
   if (req.user) {
     const watchlists = await Watchlist.find({ user: req.user._id });
     watchlistListingIds = watchlists.flatMap((wl) =>
       wl.listings.map((id) => id.toString()),
     );
   }
+  
   if (!listing) {
     req.flash("error", "Listing you requested does not exist!");
     return res.redirect("/listings");
@@ -134,7 +136,11 @@ module.exports.showListings = async (req, res) => {
     );
   }
 
-  res.render("listings/show.ejs", { listing,watchlistListingIds, userReview });
+  res.render("listings/show.ejs", { 
+    listing, 
+    watchlistListingIds, 
+    userReview 
+  });
 };
 
 // CREATE LISTING - Associates listing with logged in user (owner)
@@ -563,5 +569,247 @@ module.exports.getHostListings = async (req, res) => {
     console.error('Error fetching host listings:', error);
     req.flash('error', 'Error loading listings');
     res.redirect('/listings');
+  }
+};
+
+module.exports.getListingAnalytics = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // Find the listing with owner check
+    const listing = await Listing.findById(id)
+      .populate('owner', 'username email');
+    
+    if (!listing) {
+      req.flash('error', 'Listing not found');
+      return res.redirect('/host/listings');
+    }
+    
+    // Check if user is the owner
+    if (!listing.owner._id.equals(req.user._id)) {
+      req.flash('error', 'You are not authorized to view analytics for this listing');
+      return res.redirect('/host/listings');
+    }
+    
+    // Calculate analytics
+    const totalUniqueViews = listing.uniqueViewers?.length || 0;
+    const lastViewed = listing.lastViewedAt;
+    
+    // Calculate daily views (last 30 days)
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    
+    // If you have daily views tracking in your schema
+    let dailyViews = [];
+    let viewTrend = 'stable';
+    
+    if (listing.dailyViews && listing.dailyViews.length > 0) {
+      // Get last 30 days of data
+      dailyViews = listing.dailyViews
+        .filter(dv => new Date(dv.date) >= thirtyDaysAgo)
+        .sort((a, b) => new Date(a.date) - new Date(b.date));
+      
+      // Calculate trend (compare last 7 days with previous 7 days)
+      const last7Days = dailyViews.slice(-7).reduce((sum, d) => sum + d.count, 0);
+      const prev7Days = dailyViews.slice(-14, -7).reduce((sum, d) => sum + d.count, 0);
+      
+      if (last7Days > prev7Days * 1.2) viewTrend = 'increasing';
+      else if (last7Days < prev7Days * 0.8) viewTrend = 'decreasing';
+    }
+    
+    // Calculate average daily views
+    const avgDailyViews = dailyViews.length > 0
+      ? Math.round(dailyViews.reduce((sum, d) => sum + d.count, 0) / dailyViews.length)
+      : 0;
+    
+    // Get view history (when each unique viewer first saw it)
+    // This requires storing more data, but we'll simulate for now
+    const viewHistory = [];
+    if (listing.uniqueViewers && listing.uniqueViewers.length > 0) {
+      // In a real implementation, you'd have timestamps for each viewer
+      // For now, we'll just show counts
+      viewHistory.push({
+        date: listing.createdAt,
+        count: 1
+      });
+    }
+    
+    // Get similar listings for comparison
+    const similarListings = await Listing.find({
+      category: listing.category,
+      _id: { $ne: listing._id },
+      status: 'published'
+    })
+    .select('title uniqueViewers avgRating')
+    .limit(5);
+    
+    const similarListingsData = similarListings.map(l => ({
+      title: l.title,
+      views: l.uniqueViewers?.length || 0,
+      rating: l.avgRating
+    }));
+    
+    // Calculate average views for similar listings
+    const avgSimilarViews = similarListings.length > 0
+      ? Math.round(similarListings.reduce((sum, l) => sum + (l.uniqueViewers?.length || 0), 0) / similarListings.length)
+      : 0;
+    
+    // Performance rating
+    let performanceRating = 'average';
+    let performanceColor = '#717171';
+    
+    if (totalUniqueViews > avgSimilarViews * 1.5) {
+      performanceRating = 'excellent';
+      performanceColor = '#00a699';
+    } else if (totalUniqueViews > avgSimilarViews * 1.2) {
+      performanceRating = 'good';
+      performanceColor = '#ff385c';
+    } else if (totalUniqueViews < avgSimilarViews * 0.5) {
+      performanceRating = 'needs improvement';
+      performanceColor = '#e31c5f';
+    }
+    
+    // Prepare chart data for frontend
+    const chartLabels = dailyViews.map(d => {
+      const date = new Date(d.date);
+      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    });
+    
+    const chartData = dailyViews.map(d => d.count);
+    
+    res.render('host/analytics', {
+      listing,
+      analytics: {
+        totalUniqueViews,
+        lastViewed,
+        avgDailyViews,
+        viewTrend,
+        performanceRating,
+        performanceColor,
+        avgSimilarViews,
+        similarListings: similarListingsData,
+        chartLabels,
+        chartData,
+        days: dailyViews.length
+      }
+    });
+    
+  } catch (error) {
+    console.error('Analytics error:', error);
+    req.flash('error', 'Error loading analytics');
+    res.redirect('/host/listings');
+  }
+};
+
+/**
+ * Get quick analytics for all host listings (dashboard view)
+ */
+module.exports.getHostDashboardAnalytics = async (req, res) => {
+  try {
+    const listings = await Listing.find({ owner: req.user._id });
+    
+    // Calculate overall stats
+    const totalListings = listings.length;
+    const totalUniqueViews = listings.reduce((sum, l) => sum + (l.uniqueViewers?.length || 0), 0);
+    const avgViewsPerListing = totalListings > 0 ? Math.round(totalUniqueViews / totalListings) : 0;
+    
+    // Find best performing listing
+    const bestPerforming = listings.sort((a, b) => 
+      (b.uniqueViewers?.length || 0) - (a.uniqueViewers?.length || 0)
+    )[0];
+    
+    // Find most recent view
+    const recentlyViewed = listings
+      .filter(l => l.lastViewedAt)
+      .sort((a, b) => new Date(b.lastViewedAt) - new Date(a.lastViewedAt))
+      .slice(0, 5)
+      .map(l => ({
+        title: l.title,
+        lastViewed: l.lastViewedAt,
+        id: l._id
+      }));
+    
+    // Views distribution
+    const viewDistribution = {
+      '0-10': listings.filter(l => (l.uniqueViewers?.length || 0) <= 10).length,
+      '11-50': listings.filter(l => (l.uniqueViewers?.length || 0) > 10 && (l.uniqueViewers?.length || 0) <= 50).length,
+      '51-100': listings.filter(l => (l.uniqueViewers?.length || 0) > 50 && (l.uniqueViewers?.length || 0) <= 100).length,
+      '100+': listings.filter(l => (l.uniqueViewers?.length || 0) > 100).length
+    };
+    
+    res.json({
+      success: true,
+      analytics: {
+        totalListings,
+        totalUniqueViews,
+        avgViewsPerListing,
+        bestPerforming: bestPerforming ? {
+          title: bestPerforming.title,
+          views: bestPerforming.uniqueViewers?.length || 0,
+          id: bestPerforming._id
+        } : null,
+        recentlyViewed,
+        viewDistribution
+      }
+    });
+    
+  } catch (error) {
+    console.error('Dashboard analytics error:', error);
+    res.status(500).json({ success: false, error: 'Error loading analytics' });
+  }
+};
+
+/**
+ * Export view data as CSV
+ */
+module.exports.exportViewData = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const listing = await Listing.findById(id);
+    
+    if (!listing) {
+      return res.status(404).json({ error: 'Listing not found' });
+    }
+    
+    // Check ownership
+    if (!listing.owner.equals(req.user._id)) {
+      return res.status(403).json({ error: 'Unauthorized' });
+    }
+    
+    // Create CSV data
+    const rows = [
+      ['Date', 'Event', 'Viewer ID'].join(','),
+      ...(listing.uniqueViewers || []).map((viewer, index) => {
+        // In a real implementation, you'd have timestamps for each view
+        // For now, we'll simulate with the listing creation date
+        const date = new Date(listing.createdAt);
+        date.setDate(date.getDate() + index);
+        return [
+          date.toISOString().split('T')[0],
+          'Unique View',
+          `"${viewer.substring(0, 8)}..."`
+        ].join(',');
+      })
+    ];
+    
+    // Add last viewed if exists
+    if (listing.lastViewedAt) {
+      rows.push([
+        new Date(listing.lastViewedAt).toISOString().split('T')[0],
+        'Last Viewed',
+        '""'
+      ].join(','));
+    }
+    
+    const csv = rows.join('\n');
+    
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', `attachment; filename="${listing.title.replace(/[^a-z0-9]/gi, '_')}_views.csv"`);
+    res.send(csv);
+    
+  } catch (error) {
+    console.error('Export error:', error);
+    res.status(500).json({ error: 'Error exporting data' });
   }
 };

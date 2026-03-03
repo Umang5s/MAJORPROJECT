@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const wrapAsync = require("../utils/wrapAsync.js");
-const { isLoggedIn, isOwner, validateListing } = require("../middleware.js");
+const { isLoggedIn, isOwner, validateListing, trackUniqueView } = require("../middleware.js");
 const listingController = require("../controllers/listings.js");
 const multer = require("multer");
 const { storage } = require("../cloudConfig.js");
@@ -27,10 +27,31 @@ router.get("/new", isLoggedIn, wrapAsync(listingController.renderNewListingForm)
 // Copy from existing listing
 router.get("/copy/:id", isLoggedIn, wrapAsync(listingController.copyListing));
 
+router.get(
+  "/:id/analytics",
+  isLoggedIn,
+  trackUniqueView, // Still track the view
+  wrapAsync(listingController.getListingAnalytics)
+);
+
+
+router.get(
+  "/analytics/dashboard",
+  isLoggedIn,
+  wrapAsync(listingController.getHostDashboardAnalytics)
+);
+
+router.get(
+  "/:id/export",
+  isLoggedIn,
+  isOwner,
+  wrapAsync(listingController.exportViewData)
+);
+
 // In routes/listings.js - update the PUT route for editing
 router
   .route("/:id")
-  .get(wrapAsync(listingController.showListings))
+  .get(trackUniqueView, wrapAsync(listingController.showListings))
   .put(
     isLoggedIn,
     isOwner,

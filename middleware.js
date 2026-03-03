@@ -4,6 +4,7 @@ const Review = require("./models/review.js");
 const ExpressError = require("./utils/ExpressError.js");
 const { listingSchema, reviewSchema, hostReviewSchema } = require("./schema.js");
 
+
 // ========== AUTHENTICATION MIDDLEWARE ==========
 
 module.exports.isLoggedIn = (req, res, next) => {
@@ -361,3 +362,88 @@ module.exports.validateHostReview = (req, res, next) => {
         next();
     }
 };
+
+
+module.exports.trackUniqueView = async (req, res, next) => {
+  try {
+    console.log("========== VIEW TRACKER STARTED ==========");
+    console.log("Request URL:", req.originalUrl);
+    console.log("Request Path:", req.path);
+    console.log("Request BaseUrl:", req.baseUrl);
+    console.log("Full URL:", req.originalUrl);
+    
+    // Check if this is a listing route
+    const isListingRoute = req.originalUrl.match(/^\/listings\/[a-f0-9]{24}$/);
+    
+    console.log("Is listing route?", isListingRoute ? "Yes" : "No");
+    
+    if (isListingRoute) {
+      console.log("✅ Matched listing route");
+      
+      const listingId = req.params.id;
+      console.log("Listing ID:", listingId);
+      
+      // Get viewer identifier
+      let viewerId;
+      
+      if (req.user && req.user._id) {
+        viewerId = req.user._id.toString();
+        console.log("👤 Logged in user ID:", viewerId);
+      } else {
+        viewerId = req.ip || req.connection.remoteAddress;
+        console.log("🌐 Guest IP:", viewerId);
+      }
+      
+      // Find the listing
+      console.log("Finding listing...");
+      const listing = await Listing.findById(listingId);
+      
+      if (!listing) {
+        console.log("❌ Listing not found!");
+        return next();
+      }
+      
+      console.log("✅ Listing found:", listing._id.toString());
+      console.log("Current uniqueViewers:", listing.uniqueViewers);
+      console.log("Current uniqueViewers length:", listing.uniqueViewers?.length || 0);
+      
+      // Initialize if needed
+      if (!listing.uniqueViewers) {
+        console.log("Initializing uniqueViewers array");
+        listing.uniqueViewers = [];
+      }
+      
+      // Check if viewer exists
+      const viewerExists = listing.uniqueViewers.some(id => {
+        const exists = String(id) === String(viewerId);
+        if (exists) console.log(`Viewer ${viewerId} already exists`);
+        return exists;
+      });
+      
+      if (!viewerExists) {
+        // NEW VIEWER
+        console.log(`➕ Adding new viewer: ${viewerId}`);
+        listing.uniqueViewers.push(viewerId);
+        console.log(`New unique count: ${listing.uniqueViewers.length}`);
+      }
+      
+      // ALWAYS update last viewed
+      listing.lastViewedAt = new Date();
+      
+      // Save with validation disabled
+      console.log("Saving listing...");
+      await listing.save({ validateBeforeSave: false });
+      console.log("✅ Save successful");
+      
+    } else {
+      console.log("❌ Not a listing route, skipping");
+    }
+    
+    console.log("========== VIEW TRACKER COMPLETED ==========");
+    next();
+  } catch (error) {
+    console.error("❌ ERROR in view tracker:", error);
+    next();
+  }
+};
+

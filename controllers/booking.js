@@ -383,6 +383,7 @@ module.exports.cancelBooking = async (req, res) => {
   }
 };
 
+
 module.exports.startBooking = async (req, res) => {
   try {
     const { checkIn, checkOut, roomsBooked } = req.body;
@@ -395,17 +396,11 @@ module.exports.startBooking = async (req, res) => {
       listingId,
     });
 
-    // ===== 1. BASIC VALIDATION =====
-    if (!checkIn || !checkOut) {
-      req.flash("error", "Please select check-in and check-out dates.");
-      return res.redirect(`/listings/${listingId}`);
-    }
-
-    // ===== 2. CONVERT TO UTC DATES =====
+    // ===== 1. CONVERT TO UTC DATES =====
     const inDate = utcDate(checkIn);
     const outDate = utcDate(checkOut);
 
-    // Validate dates are real
+    // Validate dates are real (basic check, though middleware already did this)
     if (
       !inDate ||
       !outDate ||
@@ -416,7 +411,7 @@ module.exports.startBooking = async (req, res) => {
       return res.redirect(`/listings/${listingId}`);
     }
 
-    // ===== 3. BASIC RULES =====
+    // ===== 2. BASIC RULES =====
     const today = utcDate(new Date().toISOString().split("T")[0]);
 
     // Check for past dates
@@ -432,7 +427,7 @@ module.exports.startBooking = async (req, res) => {
       return res.redirect(`/listings/${listingId}`);
     }
 
-    // ===== 4. ROOM VALIDATION =====
+    // ===== 3. ROOM VALIDATION =====
     const rooms = parseInt(roomsBooked, 10);
     if (!rooms || rooms < 1) {
       req.flash("error", "Please enter a valid number of rooms (minimum 1).");
@@ -455,7 +450,7 @@ module.exports.startBooking = async (req, res) => {
       return res.redirect(`/listings/${listingId}`);
     }
 
-    // ===== 5. AVAILABILITY CHECK =====
+    // ===== 4. AVAILABILITY CHECK (for room counts, not blocked dates) =====
     const result = await checkAvailability(listingId, checkIn, checkOut, rooms);
 
     if (!result.available) {
@@ -466,7 +461,7 @@ module.exports.startBooking = async (req, res) => {
       return res.redirect(`/listings/${listingId}`);
     }
 
-    // ===== 6. STORE IN SESSION =====
+    // ===== 5. STORE IN SESSION =====
     req.session.bookingData = {
       listingId,
       checkIn, // Keep original string format

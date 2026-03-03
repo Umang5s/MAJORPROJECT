@@ -118,9 +118,13 @@ const listingSchema = new Schema({
       ref: "Review",
     },
   ],
-  views: {
-    type: Number,
-    default: 0,
+  // SIMPLIFIED VIEW TRACKING - Only what you asked for
+  uniqueViewers: [{
+    type: String, // Store user ID or IP
+  }],
+  lastViewedAt: {
+    type: Date,
+    default:null,
   },
   // Aggregated rating fields
   avgRating: { type: Number, default: 0, min: 0, max: 5 },
@@ -140,6 +144,11 @@ const listingSchema = new Schema({
   ratingsUpdatedAt: { type: Date, default: Date.now },
 }, {
   timestamps: true,
+});
+
+// Virtual for total unique viewers count
+listingSchema.virtual('uniqueViewerCount').get(function() {
+  return this.uniqueViewers?.length || 0;
 });
 
 // Virtual for cover image (first image)
