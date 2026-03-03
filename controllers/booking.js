@@ -5,7 +5,7 @@ const User = require("../models/user");
 const checkAvailability = require("../utils/checkAvailability");
 const crypto = require("crypto");
 const razorpay = require("../utils/razorpay");
-const utcDate = require('../utils/utcDate');  
+const utcDate = require("../utils/utcDate");
 
 module.exports.createBookingRequest = async (req, res) => {
   if (!req.session.bookingData) {
@@ -20,16 +20,17 @@ module.exports.createBookingRequest = async (req, res) => {
     // ✅ FIX: Use UTC dates consistently
     const checkInDate = utcDate(checkIn);
     const checkOutDate = utcDate(checkOut);
-    
+
     // calculate nights properly
     let totalNights = Math.ceil(
-      (checkOutDate - checkInDate) / (1000 * 60 * 60 * 24)
+      (checkOutDate - checkInDate) / (1000 * 60 * 60 * 24),
     );
 
     // safety: minimum 1 night
     if (totalNights < 1) totalNights = 1;
 
-    const totalPrice = totalNights * listing.price * (parseInt(roomsBooked, 10) || 1);
+    const totalPrice =
+      totalNights * listing.price * (parseInt(roomsBooked, 10) || 1);
 
     // Create Razorpay Order
     const options = {
@@ -85,7 +86,10 @@ module.exports.confirmBookingAfterPayment = async (req, res) => {
 
     // ✅ FIX: Ensure listing has an owner
     if (!listing.owner) {
-      req.flash("error", "Listing owner information is missing. Please contact support.");
+      req.flash(
+        "error",
+        "Listing owner information is missing. Please contact support.",
+      );
       return res.redirect("/listings");
     }
 
@@ -114,13 +118,13 @@ module.exports.confirmBookingAfterPayment = async (req, res) => {
     const booking = new Booking({
       listing: listing._id,
       guest: req.user._id,
-      host: listing.owner._id,          // now safe because we checked owner exists
+      host: listing.owner._id, // now safe because we checked owner exists
       checkIn: new Date(checkIn),
       checkOut: new Date(checkOut),
       roomsBooked: roomsBooked,
       price: finalPrice,
       paymentId: actualPaymentId,
-      status: "booked",
+      status: "confirmed",
       guestDetails: {
         name: guestDetails?.name,
         email: guestDetails?.email,
@@ -246,7 +250,7 @@ module.exports.viewMyBookings = async (req, res) => {
   } catch (err) {
     console.error(err);
     req.flash("error", "Unable to fetch your bookings.");
-    res.redirect("/");
+    res.redirect("/listings");
   }
 };
 
@@ -262,7 +266,7 @@ module.exports.viewReceivedBookings = async (req, res) => {
   } catch (err) {
     console.error(err);
     req.flash("error", "Unable to fetch received bookings.");
-    res.redirect("/");
+    res.redirect("/listings");
   }
 };
 
@@ -384,7 +388,12 @@ module.exports.startBooking = async (req, res) => {
     const { checkIn, checkOut, roomsBooked } = req.body;
     const listingId = req.params.id;
 
-    console.log("Booking attempt:", { checkIn, checkOut, roomsBooked, listingId });
+    console.log("Booking attempt:", {
+      checkIn,
+      checkOut,
+      roomsBooked,
+      listingId,
+    });
 
     // ===== 1. BASIC VALIDATION =====
     if (!checkIn || !checkOut) {
@@ -397,14 +406,19 @@ module.exports.startBooking = async (req, res) => {
     const outDate = utcDate(checkOut);
 
     // Validate dates are real
-    if (!inDate || !outDate || isNaN(inDate.getTime()) || isNaN(outDate.getTime())) {
+    if (
+      !inDate ||
+      !outDate ||
+      isNaN(inDate.getTime()) ||
+      isNaN(outDate.getTime())
+    ) {
       req.flash("error", "Invalid date format received.");
       return res.redirect(`/listings/${listingId}`);
     }
 
     // ===== 3. BASIC RULES =====
-    const today = utcDate(new Date().toISOString().split('T')[0]);
-    
+    const today = utcDate(new Date().toISOString().split("T")[0]);
+
     // Check for past dates
     if (inDate < today) {
       req.flash("error", "You cannot book past dates.");
@@ -434,7 +448,10 @@ module.exports.startBooking = async (req, res) => {
 
     const maxRooms = listing.totalRooms || 1;
     if (rooms > maxRooms) {
-      req.flash("error", `Maximum ${maxRooms} rooms available for this property.`);
+      req.flash(
+        "error",
+        `Maximum ${maxRooms} rooms available for this property.`,
+      );
       return res.redirect(`/listings/${listingId}`);
     }
 
@@ -444,7 +461,7 @@ module.exports.startBooking = async (req, res) => {
     if (!result.available) {
       req.flash(
         "error",
-        `Only ${result.availableRooms} room${result.availableRooms !== 1 ? 's' : ''} available for selected dates. You requested ${rooms}.`
+        `Only ${result.availableRooms} room${result.availableRooms !== 1 ? "s" : ""} available for selected dates. You requested ${rooms}.`,
       );
       return res.redirect(`/listings/${listingId}`);
     }
@@ -452,7 +469,7 @@ module.exports.startBooking = async (req, res) => {
     // ===== 6. STORE IN SESSION =====
     req.session.bookingData = {
       listingId,
-      checkIn,      // Keep original string format
+      checkIn, // Keep original string format
       checkOut,
       roomsBooked: rooms,
     };
@@ -462,7 +479,10 @@ module.exports.startBooking = async (req, res) => {
     res.redirect(`/bookings/checkout/${listingId}`);
   } catch (err) {
     console.error("startBooking error:", err);
-    req.flash("error", "Something went wrong while checking booking. Please try again.");
+    req.flash(
+      "error",
+      "Something went wrong while checking booking. Please try again.",
+    );
     res.redirect("/listings");
   }
 };

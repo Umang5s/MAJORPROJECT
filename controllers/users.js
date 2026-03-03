@@ -21,7 +21,7 @@ module.exports.registeredNewUser = async (req, res) => {
     });
   } catch (error) {
     req.flash("error", error.message);
-    res.redirect("/signup");
+    res.render("users/signup.ejs");
   }
 };
 

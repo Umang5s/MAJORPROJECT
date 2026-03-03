@@ -1,47 +1,520 @@
 <%- layout("/layout/boilerplate") %>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
-<div class="container mt-5">
-  <h2 class="mb-4">My Bookings</h2>
+<style>
+  :root {
+    --primary: #ff385c;
+    --primary-dark: #e31c5f;
+    --success: #00a699;
+    --success-dark: #008489;
+    --gray-bg: #f7f7f7;
+    --border: #ebebeb;
+    --text-primary: #222;
+    --text-secondary: #717171;
+  }
+
+  .bookings-container {
+    max-width: 1200px;
+    margin: 40px auto;
+    padding: 0 24px;
+  }
+
+  .bookings-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 32px;
+  }
+
+  .bookings-header h1 {
+    font-size: 32px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .bookings-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 24px;
+  }
+
+  .booking-card {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    position: relative;
+  }
+
+  .booking-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
+  }
+
+  .booking-image {
+    height: 200px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .booking-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+  }
+
+  .booking-card:hover .booking-image img {
+    transform: scale(1.05);
+  }
+
+  .status-badge {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    padding: 6px 14px;
+    border-radius: 30px;
+    font-size: 12px;
+    font-weight: 600;
+    z-index: 2;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .status-completed {
+    background: var(--success);
+    color: white;
+  }
+
+  .status-confirmed {
+    background: var(--primary);
+    color: white;
+  }
+
+  .status-cancelled {
+    background: #e0e0e0;
+    color: #666;
+  }
+
+  .booking-content {
+    padding: 20px;
+  }
+
+  .listing-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 12px;
+    line-height: 1.3;
+  }
+
+  .booking-details {
+    background: var(--gray-bg);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+
+  .detail-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    font-size: 14px;
+  }
+
+  .detail-label {
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .detail-value {
+    font-weight: 500;
+    color: var(--text-primary);
+  }
+
+  .price-highlight {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--primary);
+  }
+
+  .guest-info {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px;
+    margin-bottom: 16px;
+    font-size: 13px;
+  }
+
+  .guest-info i {
+    color: var(--primary);
+    width: 20px;
+  }
+
+  .review-section {
+    border-top: 1px solid var(--border);
+    padding-top: 16px;
+    margin-top: 16px;
+  }
+
+  .review-window-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 30px;
+    font-size: 12px;
+    font-weight: 500;
+    margin-bottom: 12px;
+  }
+
+  .review-open {
+    background: #e8f5e9;
+    color: #2e7d32;
+  }
+
+  .review-expired {
+    background: #ffebee;
+    color: #c62828;
+  }
+
+  .review-submitted {
+    background: #e3f2fd;
+    color: #1565c0;
+  }
+
+  .btn-review {
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 30px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .btn-review:hover {
+    background: var(--primary-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 56, 92, 0.3);
+    color: white;
+  }
+
+  .btn-review:active {
+    transform: translateY(0);
+  }
+
+  .btn-review.disabled,
+  .btn-review:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+    pointer-events: none;
+    transform: none;
+    box-shadow: none;
+  }
+
+  .btn-cancel {
+    background: white;
+    color: var(--text-secondary);
+    border: 1px solid var(--border);
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .btn-cancel:hover {
+    background: #fff1f0;
+    border-color: var(--primary);
+    color: var(--primary);
+  }
+
+  /* Cancel Button Styles - Enhanced */
+  .btn-cancel-booking {
+    background: white;
+    color: #dc3545;
+    border: 1px solid #dc3545;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+    justify-content: center;
+  }
+
+  .btn-cancel-booking:hover {
+    background: #dc3545;
+    color: white;
+    border-color: #dc3545;
+  }
+
+  .btn-cancel-booking:disabled {
+    background: #f8d7da;
+    color: #721c24;
+    border-color: #f5c6cb;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+
+  .cancel-policy-note {
+    font-size: 11px;
+    color: var(--text-secondary);
+    margin-top: 4px;
+    text-align: center;
+  }
+
+  .booking-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 16px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+    font-size: 12px;
+    color: var(--text-secondary);
+  }
+
+  .booking-id {
+    font-family: monospace;
+    background: var(--gray-bg);
+    padding: 4px 8px;
+    border-radius: 4px;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    background: var(--gray-bg);
+    border-radius: 16px;
+  }
+
+  .empty-state i {
+    font-size: 48px;
+    color: #ddd;
+    margin-bottom: 16px;
+  }
+
+  .empty-state h3 {
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+  }
+
+  .empty-state p {
+    color: var(--text-secondary);
+    margin-bottom: 24px;
+  }
+
+  .btn-primary {
+    background: var(--primary);
+    color: white;
+    padding: 12px 32px;
+    border-radius: 30px;
+    text-decoration: none;
+    font-weight: 600;
+    display: inline-block;
+    transition: all 0.2s;
+  }
+
+  .btn-primary:hover {
+    background: var(--primary-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 56, 92, 0.3);
+  }
+
+  /* Action Buttons Grid */
+  .action-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 12px;
+  }
+
+  .action-buttons.single {
+    grid-template-columns: 1fr;
+  }
+
+  @media (max-width: 768px) {
+    .bookings-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 16px;
+    }
+    
+    .bookings-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .action-buttons {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
+<div class="bookings-container">
+  <div class="bookings-header">
+    <h1><i class="fa-regular fa-calendar-check me-2"></i>My Bookings</h1>
+    <a href="/listings" class="btn-primary" style="padding: 10px 24px; font-size: 14px;">
+      <i class="fa-regular fa-magnifying-glass me-2"></i>Browse More
+    </a>
+  </div>
 
   <% if (!bookings || bookings.length === 0) { %>
-    <p>You haven't booked any listings yet.</p>
+    <div class="empty-state">
+      <i class="fa-regular fa-calendar-xmark"></i>
+      <h3>No bookings yet</h3>
+      <p>Start exploring and book your first stay!</p>
+      <a href="/listings" class="btn-primary">Browse Listings</a>
+    </div>
   <% } else { %>
-    <div class="row">
-      <% bookings.forEach(booking => { %>
-        <div class="col-md-4 mb-4">
-          <div class="card h-100 shadow">
+    <div class="bookings-grid">
+      <% bookings.forEach(booking => { 
+        const now = new Date();
+        const checkIn = new Date(booking.checkIn);
+        const checkOut = new Date(booking.checkOut);
+        const reviewExpires = booking.reviewWindowExpires ? new Date(booking.reviewWindowExpires) : null;
+        
+        const isCompleted = checkOut < now;
+        const isUpcoming = checkIn > now;
+        const isActive = checkIn <= now && checkOut >= now;
+        const canReview = booking.canReview && reviewExpires && reviewExpires > now && !booking.guestReviewed;
+        const canCancel = booking.status !== 'cancelled' && !isCompleted && booking.status !== 'completed';
+        const nights = Math.ceil((checkOut - checkIn) / (1000 * 60 * 60 * 24));
+      %>
+        <div class="booking-card">
+          <div class="booking-image">
             <% if (booking.listing && booking.listing.image && booking.listing.image.url) { %>
-              <img src="<%= booking.listing.image.url %>" class="card-img-top" alt="Listing Image">
+              <img src="<%= booking.listing.image.url %>" alt="<%= booking.listing.title %>">
+            <% } else { %>
+              <div style="width: 100%; height: 100%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);"></div>
             <% } %>
-            <div class="card-body">
-              <h5 class="card-title"><%= booking.listing ? booking.listing.title : "Listing" %></h5>
-              <p class="card-text">
-                <strong>Price:</strong> ₹<%= booking.price %><br>
-                <strong>Rooms:</strong> <%= booking.roomsBooked || 1 %><br>
-                <strong>Host:</strong> <%= (booking.host && booking.host.username) ? booking.host.username : (booking.listing && booking.listing.owner ? booking.listing.owner : 'Host') %><br>
-                <strong>Booking ID:</strong> <%= booking._id %><br>
-                <strong>Payment ID:</strong> <%= booking.paymentId || "N/A" %><br>
-                <strong>Booked On:</strong> <%= booking.createdAt ? booking.createdAt.toDateString() : '' %>
-              </p>
+            
+            <!-- Status Badge -->
+            <div class="status-badge 
+              <%= booking.status === 'completed' ? 'status-completed' : 
+                  (booking.status === 'cancelled' ? 'status-cancelled' : 'status-confirmed') %>">
+              <i class="fa-regular 
+                <%= booking.status === 'completed' ? 'fa-circle-check' : 
+                    (booking.status === 'cancelled' ? 'fa-circle-xmark' : 'fa-circle') %> me-1"></i>
+              <%= booking.status === 'completed' ? 'Completed' : 
+                  (booking.status === 'cancelled' ? 'Cancelled' : 'Confirmed') %>
+            </div>
+          </div>
 
-              <!-- Guest details (if present) -->
-              <% if (booking.guestDetails) { %>
-                <div class="mb-2">
-                  <strong>Guest:</strong> <%= booking.guestDetails.name || '' %> (<%= booking.guestDetails.email || '' %>)<br>
-                  <strong>Phone:</strong> <%= booking.guestDetails.phone || 'N/A' %><br>
-                  <strong>Guests Count:</strong> <%= booking.guestDetails.guestsCount || 'N/A' %>
+          <div class="booking-content">
+            <h3 class="listing-title">
+              <%= booking.listing ? booking.listing.title : "Property Stay" %>
+            </h3>
+
+            <div class="booking-details">
+              <div class="detail-row">
+                <span class="detail-label"><i class="fa-regular fa-calendar"></i> Check-in</span>
+                <span class="detail-value"><%= checkIn.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) %></span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label"><i class="fa-regular fa-calendar"></i> Check-out</span>
+                <span class="detail-value"><%= checkOut.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) %></span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label"><i class="fa-regular fa-clock"></i> Duration</span>
+                <span class="detail-value"><%= nights %> night<%= nights > 1 ? 's' : '' %></span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label"><i class="fa-regular fa-door-open"></i> Rooms</span>
+                <span class="detail-value"><%= booking.roomsBooked || 1 %></span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label"><i class="fa-regular fa-user"></i> Guests</span>
+                <span class="detail-value"><%= booking.guestDetails?.guestsCount || 1 %></span>
+              </div>
+              <div class="detail-row" style="margin-top: 8px; padding-top: 8px; border-top: 1px dashed #ddd;">
+                <span class="detail-label"><strong>Total Price</strong></span>
+                <span class="price-highlight">₹<%= booking.price.toLocaleString('en-IN') %></span>
+              </div>
+            </div>
+
+            <% if (booking.guestDetails) { %>
+              <div class="guest-info">
+                <div><i class="fa-regular fa-user me-2"></i><%= booking.guestDetails.name || 'Guest' %></div>
+                <div><i class="fa-regular fa-envelope me-2"></i><%= booking.guestDetails.email || 'No email' %></div>
+                <div><i class="fa-regular fa-phone me-2"></i><%= booking.guestDetails.phone || 'No phone' %></div>
+                <% if (booking.guestDetails.specialRequest && booking.guestDetails.specialRequest !== 'NA') { %>
+                  <div class="mt-2 pt-2 border-top">
+                    <i class="fa-regular fa-note-sticky me-2"></i><%= booking.guestDetails.specialRequest %>
+                  </div>
+                <% } %>
+              </div>
+            <% } %>
+
+            <!-- Review Section -->
+            <div class="review-section">
+              <% if (booking.status === 'completed' && !booking.guestReviewed) { %>
+                <% if (canReview) { %>
+                  <div class="review-window-badge review-open">
+                    <i class="fa-regular fa-clock"></i> Review window open until <%= reviewExpires.toLocaleDateString() %>
+                  </div>
+                  <a href="/bookings/<%= booking._id %>/review" class="btn-review">
+                    <i class="fa-regular fa-star"></i> Write a Review
+                  </a>
+                <% } else { %>
+                  <div class="review-window-badge review-expired">
+                    <i class="fa-regular fa-clock-slash"></i> Review window expired
+                  </div>
+                <% } %>
+              <% } else if (booking.guestReviewed) { %>
+                <div class="review-window-badge review-submitted">
+                  <i class="fa-regular fa-circle-check"></i> Review submitted
                 </div>
+                <a href="/listings/<%= booking.listing._id %>#reviews" class="btn-review" style="background: var(--success);">
+                  <i class="fa-regular fa-eye"></i> View Your Review
+                </a>
               <% } %>
 
-              <a href="/listings/<%= booking.listing ? booking.listing._id : '' %>" class="btn btn-primary">View Listing</a>
+              <!-- Action Buttons Grid -->
+              <div class="action-buttons <%= (!canCancel ? 'single' : '') %>">
+                <a href="/listings/<%= booking.listing ? booking.listing._id : '' %>" class="btn-cancel">
+                  <i class="fa-regular fa-eye"></i> View Listing
+                </a>
 
-              <% if (booking.status !== "cancelled") { %>
-                <form action="/bookings/<%= booking._id %>/cancel" method="POST" class="d-inline"
-                  onsubmit="return confirm('Are you sure you want to cancel this booking?');">
-                  <button class="btn btn-danger btn-sm mt-2">Cancel Booking</button>
-                </form>
-              <% } %>
+                <% if (canCancel) { %>
+                  <form action="/bookings/<%= booking._id %>/cancel" method="POST" 
+                        onsubmit="return confirmCancel(event, '<%= checkIn.toLocaleDateString() %>', '<%= booking.price %>');">
+                    <button type="submit" class="btn-cancel-booking">
+                      <i class="fa-regular fa-ban"></i> Cancel Booking
+                    </button>
+                    <div class="cancel-policy-note">Free cancellation before 24 hours</div>
+                  </form>
+                <% } %>
+              </div>
+            </div>
 
+            <div class="booking-footer">
+              <span class="booking-id">ID: <%= booking._id.toString().slice(-8) %></span>
+              <span><i class="fa-regular fa-credit-card me-1"></i> <%= booking.paymentId ? booking.paymentId.slice(-8) : 'N/A' %></span>
             </div>
           </div>
         </div>
@@ -49,3 +522,56 @@
     </div>
   <% } %>
 </div>
+
+<!-- Cancel Confirmation Modal -->
+<div id="cancelModal" class="modal" style="display: none;">
+  <div class="modal-content" style="max-width: 400px; padding: 24px; border-radius: 16px;">
+    <h3 style="margin-bottom: 16px; color: #222;">Cancel Booking?</h3>
+    <p id="cancelModalMessage" style="margin-bottom: 20px; color: #666;"></p>
+    <div style="display: flex; gap: 12px;">
+      <button id="confirmCancelBtn" class="btn-cancel-booking" style="flex: 1;">Yes, Cancel</button>
+      <button id="closeCancelModal" class="btn-cancel" style="flex: 1;">No, Keep It</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  function confirmCancel(event, checkInDate, price) {
+    event.preventDefault();
+    const form = event.target;
+    
+    // Format the message
+    const message = `Are you sure you want to cancel this booking?
+    
+• Check-in: ${checkInDate}
+• Total amount: ₹${price}
+• Refund policy: Free cancellation before 24 hours
+
+This action cannot be undone.`;
+    
+    if (confirm(message)) {
+      form.submit();
+    }
+    return false;
+  }
+
+  // Close modal when clicking outside
+  window.onclick = function(event) {
+    const modal = document.getElementById('cancelModal');
+    if (event.target == modal) {
+      modal.style.display = 'none';
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    const modal = document.getElementById('cancelModal');
+    const closeBtn = document.getElementById('closeCancelModal');
+    const confirmBtn = document.getElementById('confirmCancelBtn');
+    
+    if (closeBtn) {
+      closeBtn.onclick = function() {
+        modal.style.display = 'none';
+      }
+    }
+  });
+</script>

@@ -1,4 +1,4 @@
-<% const hasExistingDraft=typeof existingDraft !=='undefined' && existingDraft; locals.currentPath='/listings/new' ; %>
+<% const hasExistingDraft = typeof existingDraft !== 'undefined' && existingDraft; locals.currentPath = '/listings/new' ; %>
 
   <!-- Include the host navbar -->
   <%- include('../includes/navbar_host') %>
@@ -10,7 +10,7 @@
     <!-- Include the CSS file -->
     <link rel="stylesheet" href="/css/new.css">
 
-    <div class="create-listing-container" id="createListingApp">
+    <div class="create-listing-container" id="createListingApp" :class="{ loading: isSubmitting }">
       <!-- Initial Modal - What would you like to host? -->
       <div class="listing-modal" id="typeModal" :class="{ show: currentStep === 0 }">
         <div class="modal-overlay" @click="closeModal"></div>
@@ -426,7 +426,7 @@
           <div class="step-header">
             <span class="step-badge">Step 1</span>
             <h1 class="step-title">Share some basics about your place</h1>
-            <p class="step-description">You’ll add more details later, such as bed types.</p>
+            <p class="step-description">You'll add more details later, such as bed types.</p>
           </div>
 
           <form class="step-form">
@@ -526,7 +526,7 @@
           </form>
         </div>
 
-        <!-- Photo Upload Step (SubStep 2 of Step 2) -->
+        <!-- Photo Upload Step (SubStep 2 of Step 2) - UPDATED with proper file input name -->
         <div class="step-form-section" v-if="currentMainStep === 2 && currentSubStep === 2">
           <div class="step-header">
             <span class="step-badge">Step 2</span>
@@ -541,7 +541,7 @@
             <div class="photo-grid">
               <!-- Existing Photos -->
               <div v-for="(photo, index) in formData.photos" :key="index" class="photo-item">
-                <img :src="photo.url || photo" class="photo-thumbnail" alt="Upload preview">
+                <img :src="photo.preview || photo.url || photo" class="photo-thumbnail" alt="Upload preview">
                 <button type="button" class="remove-photo" @click="removePhoto(index)">
                   <i class="fa-solid fa-xmark"></i>
                 </button>
@@ -555,7 +555,7 @@
                   <span>Add photo</span>
                   <span class="photo-count">{{ formData.photos.length }}/5 minimum</span>
                 </label>
-                <input type="file" id="photoUpload" accept="image/*" multiple style="display: none"
+                <input type="file" id="photoUpload" name="listing[images]" accept="image/*" multiple style="display: none"
                   @change="handlePhotoUpload">
               </div>
             </div>
@@ -919,13 +919,17 @@
             </div>
             <div class="fixed-right-actions">
               <!-- Back button - conditionally shown/hidden -->
-              <button type="button" class="fixed-back-link" @click="goBack" v-if="!isFirstStep">
+              <button type="button" class="fixed-back-link" @click="goBack" v-if="!isFirstStep" :disabled="isSubmitting">
                 Back
               </button>
 
-              <!-- Next/Get Started/Create button - dynamic based on current step -->
-              <button type="button" class="fixed-next-btn" @click="handleNext" :disabled="!isNextEnabled">
-                {{ nextButtonText }}
+              <button type="button" class="fixed-next-btn" @click="handleNext" :disabled="!isNextEnabled || isSubmitting">
+                <span v-if="isSubmitting && currentMainStep === 3 && currentSubStep === 8">
+                  <i class="fa-solid fa-spinner fa-spin"></i> Creating...
+                </span>
+                <span v-else>
+                  {{ nextButtonText }}
+                </span>
               </button>
             </div>
           </div>
@@ -943,9 +947,9 @@
             </div>
 
             <div class="modal-content">
-              <% if (userListings && userListings.length> 0) { %>
+              <% if (userListings && userListings.length > 0) { %>
                 <div class="existing-listings-grid">
-                  <% userListings.forEach(listing=> { %>
+                  <% userListings.forEach(listing => { %>
                     <div class="existing-listing-card" @click="copyListing('<%= listing._id %>')">
                       <div class="existing-listing-image">
                         <% if (listing.image && listing.image.url) { %>
@@ -981,6 +985,15 @@
                   <% } %>
             </div>
           </div>
+        </div>
+      </div>
+
+      <!-- Loading Overlay -->
+      <div class="loading-overlay" v-if="isSubmitting">
+        <div class="loading-spinner-large">
+          <i class="fa-solid fa-circle-notch fa-spin"></i>
+          <p>Creating your listing...</p>
+          <p class="loading-subtext">This may take a few moments</p>
         </div>
       </div>
     </div>

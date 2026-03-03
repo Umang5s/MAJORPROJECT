@@ -1,0 +1,100 @@
+<%- layout("/layout/boilerplate") %>
+<link rel="stylesheet" href="/css/review-form.css" />
+
+<div class="review-page-container">
+  <div class="review-form-card host-review">
+    <div class="review-form-header">
+      <h1>Review Your Guest</h1>
+      <p>Help other hosts by sharing your experience with this guest</p>
+    </div>
+
+    <form action="/bookings/<%= bookingId %>/host-reviews" method="POST" class="review-form" id="hostReviewForm">
+      <!-- Guest Info Summary (optional) -->
+      <div class="guest-info-summary">
+        <div class="info-icon">
+          <i class="fa-regular fa-user"></i>
+        </div>
+        <div class="info-text">
+          <p>You're reviewing the guest who stayed at your property.</p>
+          <p class="note">Host reviews don't include star ratings - only written feedback.</p>
+        </div>
+      </div>
+
+      <!-- Written Review Section -->
+      <div class="review-comment-section">
+        <h2>Write your review</h2>
+        <p class="section-subtitle">Share your experience with this guest (minimum 10 characters)</p>
+        
+        <textarea 
+          name="review[comment]" 
+          id="hostReviewComment"
+          placeholder="How was your experience with this guest? Were they respectful? Would you recommend them to other hosts?" 
+          required
+          minlength="10"
+          maxlength="5000"
+          rows="6"
+        ></textarea>
+        
+        <div class="char-counter">
+          <span id="charCount">0</span> / 5000 characters
+        </div>
+      </div>
+
+      <!-- Tips for Host Reviews -->
+      <div class="review-tips">
+        <h3><i class="fa-regular fa-lightbulb"></i> Tips for writing a helpful host review</h3>
+        <ul>
+          <li>Did the guest follow house rules?</li>
+          <li>Was communication easy and timely?</li>
+          <li>Did they leave the place in good condition?</li>
+          <li>Would you host them again?</li>
+        </ul>
+      </div>
+
+      <!-- Form Actions -->
+      <div class="form-actions">
+        <button type="submit" class="submit-review-btn" id="submitHostReviewBtn">
+          <span>Submit Review</span>
+          <i class="fa-solid fa-arrow-right"></i>
+        </button>
+        <a href="/bookings/received" class="cancel-review-btn">Cancel</a>
+      </div>
+
+      <!-- Review Policy Notice -->
+      <div class="review-policy-notice">
+        <i class="fa-solid fa-info-circle"></i>
+        <div class="policy-text">
+          <p><strong>Your review will be published after the guest reviews or after 14 days.</strong></p>
+          <p>Host reviews are important for our community. Please be honest and constructive.</p>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Character counter for textarea
+    const commentInput = document.getElementById('hostReviewComment');
+    const charCount = document.getElementById('charCount');
+    
+    if (commentInput && charCount) {
+      commentInput.addEventListener('input', function() {
+        charCount.textContent = this.value.length;
+      });
+    }
+    
+    // Form submission validation
+    const form = document.getElementById('hostReviewForm');
+    if (form) {
+      form.addEventListener('submit', function(e) {
+        const comment = document.getElementById('hostReviewComment').value.trim();
+        
+        if (comment.length < 10) {
+          e.preventDefault();
+          alert('Please write a review with at least 10 characters');
+        }
+      });
+    }
+  });
+</script>

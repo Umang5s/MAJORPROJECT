@@ -1,0 +1,877 @@
+/* review-form.css - Styling for review forms */
+
+.review-page-container {
+  max-width: 800px;
+  margin: 40px auto;
+  padding: 0 20px;
+}
+
+.review-form-card {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+  padding: 40px;
+}
+
+.review-form-card.host-review {
+  border-top: 4px solid #00a699;
+}
+
+.review-form-header {
+  text-align: center;
+  margin-bottom: 40px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #ebebeb;
+}
+
+.review-form-header h1 {
+  font-size: 32px;
+  font-weight: 600;
+  color: #222;
+  margin-bottom: 8px;
+}
+
+.review-form-header p {
+  font-size: 16px;
+  color: #717171;
+}
+
+.edit-warning {
+  background: #fff3e0;
+  border-radius: 30px;
+  padding: 10px 20px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 16px;
+  color: #e67e22;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* Ratings Section */
+.ratings-section {
+  margin-bottom: 40px;
+}
+
+.ratings-section h2 {
+  font-size: 20px;
+  font-weight: 600;
+  color: #222;
+  margin-bottom: 8px;
+}
+
+.section-subtitle {
+  font-size: 14px;
+  color: #717171;
+  margin-bottom: 24px;
+}
+
+.rating-category {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.rating-category:last-child {
+  border-bottom: none;
+}
+
+.category-label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.category-name {
+  font-size: 16px;
+  font-weight: 500;
+  color: #222;
+}
+
+.rating-required {
+  color: #ff385c;
+  font-size: 14px;
+}
+
+/* Star Rating */
+.star-rating {
+  display: flex;
+  flex-direction: row-reverse;
+  gap: 4px;
+}
+
+.star-rating input {
+  display: none;
+}
+
+.star-rating label {
+  font-size: 28px;
+  color: #ddd;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.star-rating label:hover,
+.star-rating label:hover ~ label,
+.star-rating input:checked ~ label {
+  color: #ff385c;
+}
+
+/* Review Comment Section */
+.review-comment-section {
+  margin-bottom: 40px;
+}
+
+.review-comment-section h2 {
+  font-size: 20px;
+  font-weight: 600;
+  color: #222;
+  margin-bottom: 8px;
+}
+
+.review-comment-section textarea {
+  width: 100%;
+  padding: 16px;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  font-family: inherit;
+  font-size: 16px;
+  line-height: 1.6;
+  resize: vertical;
+  transition: all 0.2s;
+}
+
+.review-comment-section textarea:focus {
+  outline: none;
+  border-color: #ff385c;
+  box-shadow: 0 0 0 3px rgba(255, 56, 92, 0.1);
+}
+
+.char-counter {
+  text-align: right;
+  font-size: 13px;
+  color: #717171;
+  margin-top: 8px;
+}
+
+/* Photo Upload Section */
+.photo-upload-section {
+  margin-bottom: 40px;
+  padding: 24px;
+  background: #f7f7f7;
+  border-radius: 16px;
+}
+
+.photo-upload-section h2 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #222;
+  margin-bottom: 4px;
+}
+
+.photo-upload-container {
+  margin-top: 20px;
+}
+
+.photo-preview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.photo-preview-item {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.photo-preview-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.remove-photo-btn {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.6);
+  border: none;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  transition: all 0.2s;
+}
+
+.remove-photo-btn:hover {
+  background: #ff385c;
+  transform: scale(1.1);
+}
+
+.upload-photo-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background: white;
+  border: 2px dashed #ddd;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  color: #222;
+  transition: all 0.2s;
+}
+
+.upload-photo-btn:hover {
+  border-color: #ff385c;
+  color: #ff385c;
+}
+
+.photo-limit-note {
+  font-size: 12px;
+  color: #717171;
+  margin-top: 12px;
+}
+
+/* Guest Info Summary (for host reviews) */
+.guest-info-summary {
+  display: flex;
+  gap: 16px;
+  padding: 20px;
+  background: #e6f7f5;
+  border-radius: 12px;
+  margin-bottom: 32px;
+}
+
+.info-icon {
+  width: 48px;
+  height: 48px;
+  background: #00a699;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 24px;
+}
+
+.info-text p {
+  font-size: 15px;
+  color: #222;
+  margin-bottom: 4px;
+}
+
+.info-text .note {
+  font-size: 13px;
+  color: #00a699;
+  font-weight: 500;
+}
+
+/* Review Tips */
+.review-tips {
+  background: #f7f7f7;
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 32px;
+}
+
+.review-tips h3 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #222;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.review-tips h3 i {
+  color: #ff385c;
+}
+
+.review-tips ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.review-tips li {
+  padding: 8px 0;
+  padding-left: 24px;
+  position: relative;
+  color: #555;
+  font-size: 14px;
+}
+
+.review-tips li:before {
+  content: '•';
+  color: #ff385c;
+  font-weight: bold;
+  position: absolute;
+  left: 8px;
+}
+
+/* Form Actions */
+.form-actions {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.submit-review-btn {
+  flex: 2;
+  background: #ff385c;
+  color: white;
+  border: none;
+  padding: 16px 32px;
+  border-radius: 40px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s;
+}
+
+.submit-review-btn:hover {
+  background: #e31c5f;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 56, 92, 0.3);
+}
+
+.cancel-review-btn {
+  flex: 1;
+  background: white;
+  color: #222;
+  border: 1px solid #ddd;
+  padding: 16px 32px;
+  border-radius: 40px;
+  font-size: 16px;
+  font-weight: 500;
+  text-decoration: none;
+  text-align: center;
+  transition: all 0.2s;
+}
+
+.cancel-review-btn:hover {
+  background: #f7f7f7;
+  border-color: #222;
+}
+
+/* Review Policy Notice */
+.review-policy-notice {
+  display: flex;
+  gap: 12px;
+  padding: 16px;
+  background: #fff8e7;
+  border-radius: 12px;
+  margin-top: 24px;
+}
+
+.review-policy-notice i {
+  color: #fbbf24;
+  font-size: 20px;
+}
+
+.policy-text p {
+  font-size: 13px;
+  color: #555;
+  line-height: 1.5;
+  margin-bottom: 4px;
+}
+
+.policy-text p:last-child {
+  margin-bottom: 0;
+}
+
+.edit-warning-footer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  background: #fff3e0;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #e67e22;
+  margin-top: 24px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .review-form-card {
+    padding: 24px;
+  }
+  
+  .review-form-header h1 {
+    font-size: 28px;
+  }
+  
+  .rating-category {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  
+  .star-rating {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .form-actions {
+    flex-direction: column;
+  }
+  
+  .submit-review-btn,
+  .cancel-review-btn {
+    width: 100%;
+  }
+  
+  .review-policy-notice {
+    flex-direction: column;
+    text-align: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .review-form-card {
+    padding: 16px;
+  }
+  
+  .review-form-header h1 {
+    font-size: 24px;
+  }
+  
+  .photo-preview-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Modern Airbnb-style review form */
+
+.review-progress {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 40px;
+  padding: 0 20px;
+}
+
+.progress-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  flex: 1;
+}
+
+.progress-step:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  top: 15px;
+  right: -50%;
+  width: 100%;
+  height: 2px;
+  background: #ebebeb;
+  z-index: 1;
+}
+
+.progress-step.active:not(:last-child)::after {
+  background: #ff385c;
+}
+
+.step-number {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #ebebeb;
+  color: #717171;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  margin-bottom: 8px;
+  z-index: 2;
+  position: relative;
+}
+
+.progress-step.active .step-number {
+  background: #ff385c;
+  color: white;
+}
+
+.step-label {
+  font-size: 12px;
+  color: #717171;
+  font-weight: 500;
+}
+
+.progress-step.active .step-label {
+  color: #ff385c;
+}
+
+.form-step {
+  display: none;
+}
+
+.form-step.active {
+  display: block;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Ratings Grid */
+.ratings-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+  margin: 30px 0;
+}
+
+.rating-card-modern {
+  background: #f9f9f9;
+  border-radius: 16px;
+  padding: 20px;
+  transition: all 0.2s;
+}
+
+.rating-card-modern:hover {
+  background: #f7f7f7;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+.rating-card-header {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.rating-icon {
+  width: 40px;
+  height: 40px;
+  background: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ff385c;
+  font-size: 18px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.rating-title h3 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #222;
+  margin: 0 0 4px 0;
+}
+
+.rating-hint {
+  font-size: 12px;
+  color: #717171;
+}
+
+.rating-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.rating-chip {
+  flex: 1;
+  min-width: 80px;
+  cursor: pointer;
+}
+
+.rating-chip input {
+  display: none;
+}
+
+.chip-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px;
+  background: white;
+  border: 1px solid #ebebeb;
+  border-radius: 30px;
+  transition: all 0.2s;
+  text-align: center;
+}
+
+.rating-chip:hover .chip-content {
+  border-color: #ff385c;
+  background: #fff8f9;
+}
+
+.rating-chip.selected .chip-content {
+  background: #ff385c;
+  border-color: #ff385c;
+  color: white;
+}
+
+.chip-number {
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.chip-label {
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+.rating-chip.selected .chip-number,
+.rating-chip.selected .chip-label {
+  color: white;
+}
+
+/* Writing Prompts */
+.writing-prompts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.prompt-chip {
+  padding: 8px 16px;
+  background: #f7f7f7;
+  border: 1px solid #ebebeb;
+  border-radius: 30px;
+  font-size: 13px;
+  color: #222;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.prompt-chip:hover {
+  background: #fff;
+  border-color: #ff385c;
+}
+
+.prompt-chip.active {
+  background: #ff385c;
+  color: white;
+  border-color: #ff385c;
+}
+
+.prompt-suggestions {
+  background: #fff8f9;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 20px;
+  border-left: 3px solid #ff385c;
+}
+
+.suggestion-text {
+  margin: 0;
+  color: #222;
+  font-style: italic;
+}
+
+/* Modern Upload Area */
+.photo-upload-container-modern {
+  margin: 30px 0;
+}
+
+.upload-area {
+  border: 2px dashed #ddd;
+  border-radius: 16px;
+  padding: 40px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: #f9f9f9;
+}
+
+.upload-area:hover {
+  border-color: #ff385c;
+  background: #fff8f9;
+}
+
+.upload-area.dragover {
+  border-color: #ff385c;
+  background: #fff0f2;
+}
+
+.upload-content i {
+  font-size: 48px;
+  color: #ff385c;
+  margin-bottom: 16px;
+}
+
+.upload-content h4 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #222;
+  margin-bottom: 8px;
+}
+
+.upload-content p {
+  color: #717171;
+  margin-bottom: 8px;
+}
+
+.browse-link {
+  color: #ff385c;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.upload-hint {
+  font-size: 12px;
+  color: #999;
+  display: block;
+  margin-top: 8px;
+}
+
+.photo-preview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.photo-preview-item {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.photo-preview-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.photo-order {
+  position: absolute;
+  bottom: 8px;
+  left: 8px;
+  background: rgba(0,0,0,0.7);
+  color: white;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.remove-photo-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.5);
+  border: none;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.remove-photo-btn:hover {
+  background: #ff385c;
+  transform: scale(1.1);
+}
+
+/* Step Navigation */
+.step-navigation {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 30px;
+  gap: 16px;
+}
+
+.btn-next-step,
+.btn-prev-step,
+.submit-review-btn {
+  padding: 14px 28px;
+  border-radius: 30px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+  flex: 1;
+}
+
+.btn-next-step {
+  background: #ff385c;
+  color: white;
+}
+
+.btn-next-step:hover {
+  background: #e31c5f;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255,56,92,0.3);
+}
+
+.btn-prev-step {
+  background: #f7f7f7;
+  color: #222;
+  border: 1px solid #ddd;
+}
+
+.btn-prev-step:hover {
+  background: #ebebeb;
+}
+
+.submit-review-btn {
+  background: #00a699;
+  color: white;
+}
+
+.submit-review-btn:hover {
+  background: #008489;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,166,153,0.3);
+}
+
+/* Char Warning */
+.char-warning {
+  margin-left: 10px;
+  font-size: 12px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .ratings-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .progress-step .step-label {
+    display: none;
+  }
+  
+  .step-navigation {
+    flex-direction: column;
+  }
+}

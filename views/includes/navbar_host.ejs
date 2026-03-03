@@ -77,6 +77,8 @@
               <a href="/host/calendar">Calendar</a>
               <a href="/host/listings">Listings</a>
               <a href="/host/messages">Messages</a>
+              <a href="/bookings/received">receivedBookings</a>
+
               <hr>
               <a href="/listings/new">Create new listing</a>
               <a href="/host/earnings">Earnings</a>
@@ -93,43 +95,43 @@
     </div>
   </nav>
 
-<script>
-  document.addEventListener("DOMContentLoaded", function () {
-    const profileBtn = document.getElementById("hostProfileBtn");
-    const dropdown = document.getElementById("hostDropdown");
-    const notificationBell = document.getElementById("notificationBell");
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const profileBtn = document.getElementById("hostProfileBtn");
+      const dropdown = document.getElementById("hostDropdown");
+      const notificationBell = document.getElementById("notificationBell");
 
-    if (profileBtn && dropdown) {
-      profileBtn.addEventListener("click", function (e) {
-        // If notification bell was clicked, don't toggle dropdown
-        if (e.target.closest('.notification-icon')) {
-          return; // Let the link work normally without toggling dropdown
-        }
+      if (profileBtn && dropdown) {
+        profileBtn.addEventListener("click", function (e) {
+          // If notification bell was clicked, don't toggle dropdown
+          if (e.target.closest('.notification-icon')) {
+            return; // Let the link work normally without toggling dropdown
+          }
 
-        const clickedAvatar = e.target.closest(".host-profile-img, .host-profile-initial");
-        
-        // If avatar clicked → allow normal link behavior
-        if (clickedAvatar) return;
+          const clickedAvatar = e.target.closest(".host-profile-img, .host-profile-initial");
 
-        // Otherwise toggle dropdown
-        e.preventDefault();
-        e.stopPropagation();
-        dropdown.classList.toggle("show");
-      });
+          // If avatar clicked → allow normal link behavior
+          if (clickedAvatar) return;
 
-      // Close dropdown when clicking outside
-      document.addEventListener("click", function (e) {
-        if (!profileBtn.contains(e.target)) {
-          dropdown.classList.remove("show");
-        }
-      });
+          // Otherwise toggle dropdown
+          e.preventDefault();
+          e.stopPropagation();
+          dropdown.classList.toggle("show");
+        });
 
-      // Escape key closes dropdown
-      document.addEventListener("keydown", function (e) {
-        if (e.key === "Escape") {
-          dropdown.classList.remove("show");
-        }
-      });
-    }
-  });
-</script>
+        // Close dropdown when clicking outside
+        document.addEventListener("click", function (e) {
+          if (!profileBtn.contains(e.target)) {
+            dropdown.classList.remove("show");
+          }
+        });
+
+        // Escape key closes dropdown
+        document.addEventListener("keydown", function (e) {
+          if (e.key === "Escape") {
+            dropdown.classList.remove("show");
+          }
+        });
+      }
+    });
+  </script>

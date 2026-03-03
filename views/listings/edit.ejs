@@ -1,79 +1,770 @@
-<%- layout("/layout/boilerplate") %>
+<% 
+const hasExistingDraft = typeof existingDraft !== 'undefined' && existingDraft; 
+locals.currentPath = `/listings/${listing._id}/edit`;
+%>
 
-    <div class="row">
-        <div class="col-8 offset-2">
-            <br><br>
+<!-- Include the host navbar -->
+<%- include('../includes/navbar_host') %>
 
-            <body>
-                <h3>Edit this listing</h3>
-                <form method="post" action="/listings/<%= listing._id%>?_method=PUT" class="needs-validation" novalidate
-                    enctype="multipart/form-data">
-                    <div class="mb-3">
-                        <label for="title" class="form-label">Title</label>
-                        <input type="text" name="listing[title]" class="form-control" value="<%= listing.title %>"
-                            required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="description" class="form-label">Description</label>
-                        <textarea name="listing[description]" class="form-control"
-                            required><%= listing.description %></textarea>
-                    </div>
+<script>
+  window.MAP_TOKEN = '<%= process.env.MAP_TOKEN %>';
+  window.MAPBOX_TOKEN = window.MAP_TOKEN;
+  window.LISTING_DATA = <%- formData %>;
+  window.LISTING_ID = '<%= listing._id %>';
+</script>
 
-                    <div class="mb-3">
-                        <h3>Current Image</h3>
-                        <img src="<%=originalImageUrl %>" alt="image">
+<!-- Include the CSS file -->
+<link rel="stylesheet" href="/css/new.css">
+<link rel="stylesheet" href="/css/edit.css">
 
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="image" class="form-label">Upload New Image</label>
-                        <input type="file" name="listing[image]" class="form-control">
-                    </div>
-
-                    <div class="row">
-                        <div class="mb-3 col-md-4">
-                            <label for="price" class="form-label">Price:</label>
-                            <input type="number" name="listing[price]" class="form-control" value="<%= listing.price %>"
-                                required>
-                        </div>
-                        <div class="mb-3 col-md-8">
-                            <label for="country" class="form-label">Country:</label>
-                            <input type="text" name="listing[country]" class="form-control"
-                                value="<%= listing.country %>" required>
-
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Total Rooms</label>
-                            <input type="number" name="listing[totalRooms]" class="form-control"
-                                value="<%= listing.totalRooms %>" min="1" required>
-                        </div>
-
-                    </div>
-                    <div class="mb-3">
-                        <label for="location" class="form-label">Location:</label>
-                        <input name="listing[location]" type="text" class="form-control" value="<%= listing.location %>"
-                            required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="category" class="form-label">Category:</label>
-                        <select name="listing[category]" class="form-select" required>
-                            <option selected disabled value="">Choose a category</option>
-                            <option value="Trending">Trending</option>
-                            <option value="Rooms">Rooms</option>
-                            <option value="Mountains">Mountains</option>
-                            <option value="Castles">Castles</option>
-                            <option value="Amazing Pools">Amazing Pools</option>
-                            <option value="Camping">Camping</option>
-                            <option value="Farms">Farms</option>
-                            <option value="Arctic">Arctic</option>
-                        </select>
-                        <div class="invalid-feedback">
-                            Please select a category.
-                        </div>
-                    </div>
-                    <button class="btn btn-dark edit-btn">Edit</button>
-                    <br><br>
-                </form>
-            </body>
+<div class="create-listing-container" id="editListingApp">
+  <!-- Main Content -->
+  <div class="main-content">
+    <!-- Progress Bar -->
+    <div class="progress-container">
+      <div class="progress-bar">
+        <div class="progress-step" :class="{ active: currentMainStep >= 1 }">
+          <div class="step-number">1</div>
+          <div class="step-label">Basics</div>
         </div>
+        <div class="progress-line"></div>
+        <div class="progress-step" :class="{ active: currentMainStep >= 2 }">
+          <div class="step-number">2</div>
+          <div class="step-label">Details</div>
+        </div>
+        <div class="progress-line"></div>
+        <div class="progress-step" :class="{ active: currentMainStep >= 3 }">
+          <div class="step-number">3</div>
+          <div class="step-label">Pricing</div>
+        </div>
+        <div class="progress-line"></div>
+        <div class="progress-step" :class="{ active: currentMainStep >= 4 }">
+          <div class="step-number">4</div>
+          <div class="step-label">Legal</div>
+        </div>
+      </div>
     </div>
+
+    <!-- Edit Header -->
+    <div class="edit-header" v-if="!isEditing">
+      <div class="edit-header-content">
+        <h1>Editing: {{ formData.title || 'Untitled' }}</h1>
+        <div class="edit-actions">
+          <a :href="'/listings/' + listingId" class="preview-link">
+            <i class="fa-solid fa-eye"></i> View Listing
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== MAIN STEP 1: BASICS ========== -->
+    <!-- Step 2: Tell us about your place (SubStep 2) -->
+    <div class="step-form-section" v-if="currentMainStep === 1 && currentSubStep === 2">
+      <div class="step-header">
+        <span class="step-badge">Step 1</span>
+        <h1 class="step-title">Tell us about your place</h1>
+        <p class="step-description">
+          Update the type of property and what guests will have access to.
+        </p>
+      </div>
+
+      <form class="step-form">
+        <div class="form-group">
+          <label class="form-label">What type of property do you have?</label>
+          <div class="property-types">
+            <label class="property-option" v-for="type in propertyTypes" :key="type.value">
+              <input type="radio" name="propertyType" :value="type.value" v-model="formData.propertyType" required>
+              <span class="option-content">
+                <i :class="type.icon"></i>
+                <span>{{ type.label }}</span>
+              </span>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">What will guests have?</label>
+          <div class="guest-access">
+            <label class="access-option" v-for="access in guestAccessTypes" :key="access.value">
+              <input type="radio" name="guestAccess" :value="access.value" v-model="formData.guestAccess" required>
+              <span class="option-content">
+                <strong>{{ access.label }}</strong>
+                <span class="option-hint">{{ access.hint }}</span>
+              </span>
+            </label>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <!-- Step 3: Property Type Selection (Detailed) (SubStep 3) -->
+    <div class="step-form-section" v-if="currentMainStep === 1 && currentSubStep === 3">
+      <h1 class="step-title">Which of these best describes your place?</h1>
+
+      <form class="step-form">
+        <div class="property-grid">
+          <label class="property-card" v-for="prop in detailedPropertyTypes" :key="prop.value">
+            <input type="radio" name="detailedPropertyType" :value="prop.value"
+              v-model="formData.detailedPropertyType" required>
+            <span class="card-content">
+              <i :class="prop.icon"></i>
+              <span>{{ prop.label }}</span>
+            </span>
+          </label>
+        </div>
+      </form>
+    </div>
+
+    <!-- Step 4: Place Type (SubStep 4) -->
+    <div class="step-form-section" v-if="currentMainStep === 1 && currentSubStep === 4">
+      <h1 class="step-title">What type of place will guests have?</h1>
+
+      <form class="step-form">
+        <div class="place-type-options">
+          <label class="place-option" v-for="place in placeTypes" :key="place.value">
+            <input type="radio" name="placeType" :value="place.value" v-model="formData.placeType" required>
+            <span class="option-content">
+              <strong>{{ place.label }}</strong>
+              <span class="option-description">{{ place.description }}</span>
+            </span>
+          </label>
+        </div>
+      </form>
+    </div>
+
+    <!-- Step 5: Location with Map (SubStep 5) -->
+    <div class="step-form-section" v-if="currentMainStep === 1 && currentSubStep === 5">
+      <div class="step-header">
+        <h1 class="step-title">Where's your place located?</h1>
+        <p class="step-description">Your address is only shared with guests after they've made a reservation.</p>
+      </div>
+
+      <div class="location-grid">
+        <div class="map-column">
+          <div id="locationMap" class="location-map"></div>
+        </div>
+
+        <div class="address-column">
+          <div class="location-form">
+            <div class="search-box">
+              <i class="fa-solid fa-magnifying-glass"></i>
+              <input type="text" id="addressSearch" placeholder="Enter your address" autocomplete="off"
+                v-model="formData.address" @input="searchLocations" @keyup.enter="searchLocations">
+            </div>
+
+            <div id="suggestionsList" class="suggestions-list" v-if="suggestions.length > 0">
+              <div class="suggestion-item" v-for="suggestion in suggestions" :key="suggestion.id"
+                @click="selectLocation(suggestion)">
+                <i class="fa-solid fa-location-dot"></i>
+                <div>
+                  <strong>{{ suggestion.place_name }}</strong>
+                  <div style="font-size: 13px; color: #717171;">{{ suggestion.context }}</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="recent-searches" v-if="recentSearches.length > 0">
+              <h4>Recent searches</h4>
+              <div class="recent-list">
+                <div class="recent-item" v-for="recent in recentSearches" :key="recent.id"
+                  @click="selectLocation(recent)">
+                  <i class="fa-solid fa-clock-rotate-left"></i>
+                  <span>{{ recent.place_name }}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="selected-location-info" v-if="formData.lat && formData.lng">
+              <div class="info-box">
+                <i class="fa-solid fa-check-circle" style="color: #ff385c;"></i>
+                <span>Location selected: {{ formData.address }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 6: Full Address Details (SubStep 6) -->
+    <div class="step-form-section" v-if="currentMainStep === 1 && currentSubStep === 6">
+      <div class="step-header">
+        <span class="step-badge">Step 1</span>
+        <h1 class="step-title">Confirm your exact address</h1>
+        <p class="step-description">
+          Your address is only shared with guests after they've made a reservation.
+        </p>
+      </div>
+
+      <form class="step-form">
+        <div class="address-form-grid">
+          <!-- Address Line 1 -->
+          <div class="form-field full-width">
+            <label class="address-label">Address line 1 <span class="required">*</span></label>
+            <input type="text" class="address-input" v-model="formData.addressLine1"
+              placeholder="Street address, P.O. box, company name" required>
+          </div>
+
+          <!-- Address Line 2 -->
+          <div class="form-field full-width">
+            <label class="address-label">Address line 2 <span class="optional">(optional)</span></label>
+            <input type="text" class="address-input" v-model="formData.addressLine2"
+              placeholder="Apartment, suite, unit, building, floor, etc.">
+          </div>
+
+          <!-- City/Locality -->
+          <div class="form-field half-width">
+            <label class="address-label">City/Locality <span class="required">*</span></label>
+            <input type="text" class="address-input" v-model="formData.city" placeholder="e.g. Udaipur" required>
+          </div>
+
+          <!-- State/Province -->
+          <div class="form-field half-width">
+            <label class="address-label">State/Province <span class="required">*</span></label>
+            <input type="text" class="address-input" v-model="formData.state" placeholder="e.g. Rajasthan" required>
+          </div>
+
+          <!-- Postal/ZIP Code -->
+          <div class="form-field half-width">
+            <label class="address-label">Postal/ZIP code <span class="required">*</span></label>
+            <input type="text" class="address-input" v-model="formData.postalCode" placeholder="e.g. 313001" required>
+          </div>
+
+          <!-- Country (pre-filled from previous step) -->
+          <div class="form-field half-width">
+            <label class="address-label">Country <span class="required">*</span></label>
+            <input type="text" class="address-input" v-model="formData.country" readonly disabled
+              style="background: #f7f7f7; cursor: not-allowed;">
+          </div>
+
+          <!-- Exact Location Confirmation -->
+          <div class="form-field full-width location-confirmation">
+            <div class="confirmation-box">
+              <i class="fa-solid fa-map-pin" style="color: #ff385c; font-size: 20px;"></i>
+              <div>
+                <strong>Selected location on map:</strong>
+                <p>{{ formData.address }}, {{ formData.country }}</p>
+              </div>
+              <button type="button" class="change-location-btn" @click="goToSubStep(5)">
+                <i class="fa-solid fa-pencil"></i> Change
+              </button>
+            </div>
+          </div>
+
+          <!-- Additional instructions for guests -->
+          <div class="form-field full-width">
+            <label class="address-label">Additional instructions for guests <span
+                class="optional">(optional)</span></label>
+            <textarea class="address-textarea" v-model="formData.instructions"
+              placeholder="e.g. The building entrance is on the left, ring the bell twice..." rows="3"></textarea>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <!-- Step 7: Share basics about your place (guests, beds) (SubStep 7) -->
+    <div class="step-form-section" v-if="currentMainStep === 1 && currentSubStep === 7">
+      <div class="step-header">
+        <span class="step-badge">Step 1</span>
+        <h1 class="step-title">Share some basics about your place</h1>
+        <p class="step-description">You can update the number of guests, bedrooms, beds, and bathrooms.</p>
+      </div>
+
+      <form class="step-form">
+        <div class="basics-grid">
+          <!-- Guests -->
+          <div class="basics-item">
+            <label class="basics-label">Guests</label>
+            <div class="counter-control">
+              <button type="button" class="counter-btn" @click="decrement('guests')">−</button>
+              <span class="counter-value">{{ formData.guests }}</span>
+              <button type="button" class="counter-btn" @click="increment('guests')">+</button>
+            </div>
+          </div>
+
+          <!-- Bedrooms -->
+          <div class="basics-item">
+            <label class="basics-label">Bedrooms</label>
+            <div class="counter-control">
+              <button type="button" class="counter-btn" @click="decrement('bedrooms')">−</button>
+              <span class="counter-value">{{ formData.bedrooms }}</span>
+              <button type="button" class="counter-btn" @click="increment('bedrooms')">+</button>
+            </div>
+          </div>
+
+          <!-- Beds -->
+          <div class="basics-item">
+            <label class="basics-label">Beds</label>
+            <div class="counter-control">
+              <button type="button" class="counter-btn" @click="decrement('beds')">−</button>
+              <span class="counter-value">{{ formData.beds }}</span>
+              <button type="button" class="counter-btn" @click="increment('beds')">+</button>
+            </div>
+          </div>
+
+          <!-- Bathrooms -->
+          <div class="basics-item">
+            <label class="basics-label">Bathrooms</label>
+            <div class="counter-control">
+              <button type="button" class="counter-btn" @click="decrement('bathrooms')">−</button>
+              <span class="counter-value">{{ formData.bathrooms }}</span>
+              <button type="button" class="counter-btn" @click="increment('bathrooms')">+</button>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <!-- ========== MAIN STEP 2: DETAILS ========== -->
+
+    <!-- Step 2 Intro Page -->
+    <div class="step-form-section" v-if="currentMainStep === 2 && currentSubStep === 0">
+      <div class="step-header">
+        <span class="step-badge">Step 2</span>
+        <h1 class="step-title">Update your place details</h1>
+        <p class="step-description">
+          In this step, you can update amenities, photos, title, description, and highlights.
+        </p>
+      </div>
+    </div>
+
+    <!-- Amenities selection page (SubStep 1 of Step 2) -->
+    <div class="step-form-section" v-if="currentMainStep === 2 && currentSubStep === 1">
+      <div class="step-header">
+        <span class="step-badge">Step 2</span>
+        <h1 class="step-title">Tell guests what your place has to offer</h1>
+        <p class="step-description">Update the amenities your place offers.</p>
+      </div>
+
+      <form class="step-form">
+        <!-- Guest favourites -->
+        <h3 class="amenity-category">What about these guest favourites?</h3>
+        <div class="amenities-grid">
+          <label v-for="item in guestFavourites" :key="item" class="amenity-checkbox">
+            <input type="checkbox" :value="item" v-model="formData.amenities">
+            <span>{{ item }}</span>
+          </label>
+        </div>
+
+        <!-- Standout amenities -->
+        <h3 class="amenity-category">Do you have any standout amenities?</h3>
+        <div class="amenities-grid">
+          <label v-for="item in standoutAmenities" :key="item" class="amenity-checkbox">
+            <input type="checkbox" :value="item" v-model="formData.amenities">
+            <span>{{ item }}</span>
+          </label>
+        </div>
+
+        <!-- Safety items -->
+        <h3 class="amenity-category">Do you have any of these safety items?</h3>
+        <div class="amenities-grid">
+          <label v-for="item in safetyItems" :key="item" class="amenity-checkbox">
+            <input type="checkbox" :value="item" v-model="formData.amenities">
+            <span>{{ item }}</span>
+          </label>
+        </div>
+      </form>
+    </div>
+
+    <!-- Photo Upload Step (SubStep 2 of Step 2) -->
+    <div class="step-form-section" v-if="currentMainStep === 2 && currentSubStep === 2">
+      <div class="step-header">
+        <span class="step-badge">Step 2</span>
+        <h1 class="step-title">Update photos of your place</h1>
+        <p class="step-description">
+          You can add new photos or remove existing ones. The first photo will be the cover.
+        </p>
+      </div>
+
+      <div class="photo-upload-container">
+        <!-- Photo Grid -->
+        <div class="photo-grid">
+          <!-- Existing Photos -->
+          <div v-for="(photo, index) in formData.photos" :key="index" class="photo-item" 
+               :class="{ 'main-photo-item': index === 0 }">
+            <img :src="photo.url || photo" class="photo-thumbnail" alt="Upload preview">
+            <button type="button" class="remove-photo" @click="removePhoto(index)">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+            <div class="photo-order" v-if="index === 0">Cover</div>
+            <div class="photo-order" v-else>Photo {{ index + 1 }}</div>
+          </div>
+
+          <!-- Upload Button (shows until 10 photos) -->
+          <div v-if="formData.photos.length < 10" class="photo-item upload-placeholder">
+            <label for="photoUpload" class="upload-label">
+              <i class="fa-solid fa-cloud-upload-alt"></i>
+              <span>Add photo</span>
+              <span class="photo-count">{{ formData.photos.length }}/10</span>
+            </label>
+            <input type="file" id="photoUpload" accept="image/*" multiple style="display: none"
+              @change="handlePhotoUpload">
+          </div>
+        </div>
+
+        <!-- Progress Indicator -->
+        <div class="photo-progress">
+          <div class="progress-text">
+            <i class="fa-solid fa-circle-info"></i>
+            <span>{{ formData.photos.length }} of 10 photos</span>
+          </div>
+          <div class="progress-bar-container">
+            <div class="progress-bar-fill" :style="{ width: (formData.photos.length / 10 * 100) + '%' }"></div>
+          </div>
+        </div>
+
+        <div class="photo-tip">
+          <i class="fa-solid fa-lightbulb"></i>
+          <span>Tip: Properties with high-quality photos get more bookings.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Title & Description Step (SubStep 3 of Step 2) -->
+    <div class="step-form-section" v-if="currentMainStep === 2 && currentSubStep === 3">
+      <div class="step-header">
+        <span class="step-badge">Step 2</span>
+        <h1 class="step-title">Update your title and description</h1>
+        <p class="step-description">Tell guests what makes your place special.</p>
+      </div>
+
+      <form class="step-form">
+        <div class="form-group">
+          <label class="form-label">Title <span class="required">*</span></label>
+          <input type="text" class="form-input" v-model="formData.title"
+            placeholder="e.g. Cozy apartment in the heart of the city" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Description <span class="required">*</span></label>
+          <textarea class="form-textarea" v-model="formData.description"
+            placeholder="Describe your space, amenities, neighborhood, and anything else guests should know"
+            rows="5" required></textarea>
+        </div>
+      </form>
+    </div>
+
+    <!-- Highlights Selection (SubStep 4 of Step 2) -->
+    <div class="step-form-section" v-if="currentMainStep === 2 && currentSubStep === 4">
+      <div class="step-header">
+        <span class="step-badge">Step 2</span>
+        <h1 class="step-title">Update your highlights</h1>
+        <p class="step-description">Choose up to 2 highlights to feature.</p>
+      </div>
+
+      <form class="step-form">
+        <div class="highlights-grid">
+          <label class="highlight-option" v-for="highlight in highlights" :key="highlight.value">
+            <input type="checkbox" :value="highlight.value" v-model="formData.highlights"
+              @change="validateHighlights">
+            <span class="highlight-content">
+              <span class="highlight-emoji">{{ highlight.emoji }}</span>
+              <span class="highlight-label">{{ highlight.label }}</span>
+            </span>
+          </label>
+        </div>
+
+        <div class="highlight-limit" v-if="formData.highlights.length === 2">
+          <i class="fa-solid fa-check-circle"></i>
+          <span>You've selected 2 highlights (maximum reached)</span>
+        </div>
+      </form>
+    </div>
+
+    <!-- ========== MAIN STEP 3: PRICING & LEGAL ========== -->
+
+    <!-- Step 3 Intro Page -->
+    <div class="step-form-section" v-if="currentMainStep === 3 && currentSubStep === 0">
+      <div class="step-header">
+        <span class="step-badge">Step 3</span>
+        <h1 class="step-title">Update pricing and legal details</h1>
+        <p class="step-description">
+          Update booking settings, pricing, and legal information.
+        </p>
+      </div>
+    </div>
+
+    <!-- Booking Settings (SubStep 1) -->
+    <div class="step-form-section" v-if="currentMainStep === 3 && currentSubStep === 1">
+      <div class="step-header">
+        <h1 class="step-title">Update booking settings</h1>
+        <p class="step-description">You can change this at any time. <a href="#" class="learn-more-link">Learn
+            more</a></p>
+      </div>
+
+      <form class="step-form">
+        <div class="booking-settings">
+          <label class="booking-option">
+            <input type="radio" name="bookingType" value="approve" v-model="formData.bookingType">
+            <div class="booking-content">
+              <strong>Approve bookings</strong>
+              <p class="booking-description">Review reservation requests before accepting.</p>
+            </div>
+          </label>
+
+          <label class="booking-option">
+            <input type="radio" name="bookingType" value="instant" v-model="formData.bookingType">
+            <div class="booking-content">
+              <strong>Use Instant Book</strong>
+              <p class="booking-description">Let guests book automatically.</p>
+            </div>
+          </label>
+        </div>
+      </form>
+    </div>
+
+    <!-- Base Price (SubStep 2) -->
+    <div class="step-form-section" v-if="currentMainStep === 3 && currentSubStep === 2">
+      <div class="step-header">
+        <h1 class="step-title">Update base price</h1>
+        <p class="step-description">Set your nightly rate.</p>
+      </div>
+
+      <form class="step-form">
+        <div class="price-input-container">
+          <span class="currency-symbol">₹</span>
+          <input type="number" class="price-input" v-model="formData.basePrice" placeholder="2273">
+        </div>
+        <p class="price-note">Guest price before taxes ₹{{ calculateGuestPrice(formData.basePrice) }}</p>
+      </form>
+    </div>
+
+    <!-- Price Breakdown (SubStep 3) -->
+    <div class="step-form-section" v-if="currentMainStep === 3 && currentSubStep === 3">
+      <div class="step-header">
+        <h1 class="step-title">Price breakdown</h1>
+      </div>
+
+      <form class="step-form">
+        <div class="price-breakdown-card">
+          <div class="price-row">
+            <span>Base price</span>
+            <span>₹{{ formData.basePrice || 2273 }}</span>
+          </div>
+          <div class="price-row">
+            <span>Guest service fee</span>
+            <span>₹{{ calculateServiceFee(formData.basePrice) }}</span>
+          </div>
+          <div class="price-row total">
+            <span>Guest price before taxes</span>
+            <span>₹{{ calculateGuestPrice(formData.basePrice) }}</span>
+          </div>
+          <div class="price-row earnings">
+            <span>You earn</span>
+            <span>₹{{ calculateEarnings(formData.basePrice) }}</span>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <!-- Weekend Price (SubStep 4) -->
+    <div class="step-form-section" v-if="currentMainStep === 3 && currentSubStep === 4">
+      <div class="step-header">
+        <h1 class="step-title">Update weekend price</h1>
+        <p class="step-description">Add a premium for Fridays and Saturdays.</p>
+      </div>
+
+      <form class="step-form">
+        <div class="price-input-container">
+          <span class="currency-symbol">₹</span>
+          <input type="number" class="price-input" v-model="formData.weekendPrice"
+            :placeholder="String(calculateWeekendPrice(formData.basePrice))">
+        </div>
+
+        <div class="weekend-premium">
+          <label>Weekend premium</label>
+          <div class="slider-container">
+            <input type="range" min="0" max="99" step="1" v-model="formData.weekendPremium"
+              @input="updateWeekendPrice">
+            <div class="slider-values">
+              <span>0%</span>
+              <span>{{ formData.weekendPremium }}%</span>
+              <span>99%</span>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <!-- Discounts (SubStep 5) -->
+    <div class="step-form-section" v-if="currentMainStep === 3 && currentSubStep === 5">
+      <div class="step-header">
+        <h1 class="step-title">Update discounts</h1>
+        <p class="step-description">Help your place stand out with discounts.</p>
+      </div>
+
+      <form class="step-form">
+        <div class="discounts-grid">
+          <label class="discount-option">
+            <input type="checkbox" value="newListing" v-model="formData.discounts">
+            <div class="discount-content">
+              <span class="discount-percentage">20%</span>
+              <div>
+                <strong>New listing promotion</strong>
+                <p>Offer 20% off your first 3 bookings</p>
+              </div>
+            </div>
+          </label>
+
+          <label class="discount-option">
+            <input type="checkbox" value="weekly" v-model="formData.discounts">
+            <div class="discount-content">
+              <span class="discount-percentage">10%</span>
+              <div>
+                <strong>Weekly discount</strong>
+                <p>For stays of 7 nights or more</p>
+              </div>
+            </div>
+          </label>
+
+          <label class="discount-option">
+            <input type="checkbox" value="monthly" v-model="formData.discounts">
+            <div class="discount-content">
+              <span class="discount-percentage">20%</span>
+              <div>
+                <strong>Monthly discount</strong>
+                <p>For stays of 28 nights or more</p>
+              </div>
+            </div>
+          </label>
+        </div>
+      </form>
+    </div>
+
+    <!-- Safety Details (SubStep 6) -->
+    <div class="step-form-section" v-if="currentMainStep === 3 && currentSubStep === 6">
+      <div class="step-header">
+        <h1 class="step-title">Update safety details</h1>
+      </div>
+
+      <form class="step-form">
+        <h3 class="safety-heading">Does your place have any of these?</h3>
+
+        <div class="safety-items">
+          <label class="safety-checkbox">
+            <input type="checkbox" value="exteriorCamera" v-model="formData.safetyItems">
+            <span>Exterior security camera present</span>
+          </label>
+
+          <label class="safety-checkbox">
+            <input type="checkbox" value="noiseMonitor" v-model="formData.safetyItems">
+            <span>Noise decibel monitor present</span>
+          </label>
+
+          <label class="safety-checkbox">
+            <input type="checkbox" value="weapons" v-model="formData.safetyItems">
+            <span>Weapon(s) on the property</span>
+          </label>
+        </div>
+
+        <div class="safety-info">
+          <h4>Important things to know</h4>
+          <p>Security cameras that monitor indoor spaces are not allowed even if they're turned off. All exterior
+            security cameras must be disclosed.</p>
+        </div>
+      </form>
+    </div>
+
+    <!-- Residential Address (SubStep 7) -->
+    <div class="step-form-section" v-if="currentMainStep === 3 && currentSubStep === 7">
+      <div class="step-header">
+        <h1 class="step-title">Update residential address</h1>
+        <p class="step-description">This is required to comply with financial regulations.</p>
+      </div>
+
+      <form class="step-form">
+        <h3 class="address-heading">What's your residential address?</h3>
+        <p class="address-note">Guests won't see this information.</p>
+
+        <div class="residential-address-form">
+          <div class="form-field full-width">
+            <label>Country/region</label>
+            <input type="text" class="form-input" v-model="formData.residentialCountry" value="India" readonly>
+          </div>
+
+          <div class="form-field full-width">
+            <label>Flat, house, etc. (if applicable)</label>
+            <input type="text" class="form-input" v-model="formData.flatNumber" placeholder="e.g. Flat 101">
+          </div>
+
+          <div class="form-field full-width">
+            <label>Street address</label>
+            <input type="text" class="form-input" v-model="formData.residentialStreet" required>
+          </div>
+
+          <div class="form-field full-width">
+            <label>Nearby landmark (if applicable)</label>
+            <input type="text" class="form-input" v-model="formData.landmark" placeholder="e.g. Near central park">
+          </div>
+
+          <div class="form-field half-width">
+            <label>City/town</label>
+            <input type="text" class="form-input" v-model="formData.residentialCity" required>
+          </div>
+
+          <div class="form-field half-width">
+            <label>State/union territory</label>
+            <input type="text" class="form-input" v-model="formData.residentialState" required>
+          </div>
+
+          <div class="form-field half-width">
+            <label>PIN code</label>
+            <input type="text" class="form-input" v-model="formData.residentialPincode" required>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <!-- Business Type (SubStep 8) -->
+    <div class="step-form-section" v-if="currentMainStep === 3 && currentSubStep === 8">
+      <div class="step-header">
+        <h1 class="step-title">Are you hosting as a business?</h1>
+        <p class="step-description">This means your business is most likely registered with your state or
+          government.</p>
+      </div>
+
+      <form class="step-form">
+        <div class="business-options">
+          <label class="business-option">
+            <input type="radio" name="businessType" value="yes" v-model="formData.isBusiness">
+            <span>Yes</span>
+          </label>
+
+          <label class="business-option">
+            <input type="radio" name="businessType" value="no" v-model="formData.isBusiness">
+            <span>No</span>
+          </label>
+        </div>
+      </form>
+    </div>
+
+    <!-- GLOBAL FIXED FOOTER BUTTONS - appears on all steps -->
+    <div class="fixed-form-actions">
+      <div class="fixed-actions-container">
+        <div class="fixed-left-actions" v-if="showUtilityLinks">
+          <a href="#" class="fixed-questions-link">Questions?</a>
+          <a href="#" class="fixed-save-exit-link" @click.prevent="saveAndExit">Save & exit</a>
+        </div>
+        <div class="fixed-left-actions" v-else>
+          <span></span>
+        </div>
+        <div class="fixed-right-actions">
+          <!-- Back button - conditionally shown/hidden -->
+          <button type="button" class="fixed-back-link" @click="goBack" v-if="!isFirstStep">
+            Back
+          </button>
+
+          <!-- Next/Update button - dynamic based on current step -->
+          <button type="button" class="fixed-next-btn" @click="handleNext" :disabled="!isNextEnabled">
+            {{ nextButtonText }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Include Mapbox GL for maps -->
+<link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet">
+<script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+<script src="/js/edit.js"></script>

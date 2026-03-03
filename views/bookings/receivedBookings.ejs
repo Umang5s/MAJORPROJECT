@@ -1,46 +1,491 @@
 <%- layout("/layout/boilerplate") %>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
-<div class="container mt-5">
-  <h2 class="mb-4">Received Bookings</h2>
+<style>
+  :root {
+    --primary: #ff385c;
+    --primary-dark: #e31c5f;
+    --success: #00a699;
+    --success-dark: #008489;
+    --gray-bg: #f7f7f7;
+    --border: #ebebeb;
+    --text-primary: #222;
+    --text-secondary: #717171;
+  }
+
+  .bookings-container {
+    max-width: 1200px;
+    margin: 40px auto;
+    padding: 0 24px;
+  }
+
+  .bookings-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 32px;
+  }
+
+  .bookings-header h1 {
+    font-size: 32px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .bookings-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 24px;
+  }
+
+  .booking-card {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    position: relative;
+  }
+
+  .booking-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
+  }
+
+  .booking-image {
+    height: 180px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .booking-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+  }
+
+  .booking-card:hover .booking-image img {
+    transform: scale(1.05);
+  }
+
+  .status-badge {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    padding: 6px 14px;
+    border-radius: 30px;
+    font-size: 12px;
+    font-weight: 600;
+    z-index: 2;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .status-completed {
+    background: var(--success);
+    color: white;
+  }
+
+  .status-confirmed {
+    background: var(--primary);
+    color: white;
+  }
+
+  .status-cancelled {
+    background: #e0e0e0;
+    color: #666;
+  }
+
+  .booking-content {
+    padding: 20px;
+  }
+
+  .guest-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .guest-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 20px;
+    font-weight: 600;
+  }
+
+  .guest-name {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+  }
+
+  .guest-email {
+    font-size: 13px;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .booking-details {
+    background: var(--gray-bg);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+
+  .detail-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    font-size: 14px;
+  }
+
+  .detail-label {
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .detail-value {
+    font-weight: 500;
+    color: var(--text-primary);
+  }
+
+  .price-highlight {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--primary);
+  }
+
+  .guest-details-expanded {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    margin-bottom: 16px;
+    font-size: 14px;
+  }
+
+  .guest-details-expanded i {
+    color: var(--primary);
+    width: 20px;
+  }
+
+  .detail-item {
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .guest-review-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 30px;
+    font-size: 12px;
+    font-weight: 500;
+    background: #e8f5e9;
+    color: #2e7d32;
+  }
+
+  .btn-host-review {
+    background: var(--success);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 30px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .btn-host-review:hover {
+    background: var(--success-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 166, 153, 0.3);
+    color: white;
+  }
+
+  .btn-host-review:active {
+    transform: translateY(0);
+  }
+
+  .btn-host-review.disabled {
+    background: #ccc;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+
+  .btn-cancel {
+    background: white;
+    color: var(--text-secondary);
+    border: 1px solid var(--border);
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .btn-cancel:hover {
+    background: #fff1f0;
+    border-color: var(--primary);
+    color: var(--primary);
+  }
+
+  .booking-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 16px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+    font-size: 12px;
+    color: var(--text-secondary);
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    background: var(--gray-bg);
+    border-radius: 16px;
+  }
+
+  .empty-state i {
+    font-size: 48px;
+    color: #ddd;
+    margin-bottom: 16px;
+  }
+
+  .empty-state h3 {
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+  }
+
+  .empty-state p {
+    color: var(--text-secondary);
+    margin-bottom: 24px;
+  }
+
+  .btn-primary {
+    background: var(--primary);
+    color: white;
+    padding: 12px 32px;
+    border-radius: 30px;
+    text-decoration: none;
+    font-weight: 600;
+    display: inline-block;
+    transition: all 0.2s;
+  }
+
+  .btn-primary:hover {
+    background: var(--primary-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 56, 92, 0.3);
+  }
+
+  @media (max-width: 768px) {
+    .bookings-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 16px;
+    }
+    
+    .bookings-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
+<div class="bookings-container">
+  <div class="bookings-header">
+    <h1><i class="fa-regular fa-calendar-check me-2"></i>Received Bookings</h1>
+    <a href="/host/listings" class="btn-primary" style="padding: 10px 24px; font-size: 14px;">
+      <i class="fa-regular fa-list me-2"></i>My Listings
+    </a>
+  </div>
 
   <% if (!bookings || bookings.length === 0) { %>
-    <p>No bookings received yet.</p>
+    <div class="empty-state">
+      <i class="fa-regular fa-calendar-xmark"></i>
+      <h3>No bookings received</h3>
+      <p>Your listings haven't been booked yet. Keep promoting!</p>
+      <a href="/host/listings" class="btn-primary">View My Listings</a>
+    </div>
   <% } else { %>
-    <div class="row">
-      <% bookings.forEach(booking => { %>
-        <div class="col-md-4 mb-4">
-          <div class="card h-100 shadow">
+    <div class="bookings-grid">
+      <% bookings.forEach(booking => { 
+        const now = new Date();
+        const checkIn = new Date(booking.checkIn);
+        const checkOut = new Date(booking.checkOut);
+        const reviewExpires = booking.reviewWindowExpires ? new Date(booking.reviewWindowExpires) : null;
+        
+        const isCompleted = checkOut < now;
+        const isUpcoming = checkIn > now;
+        const canReview = booking.canReview && reviewExpires && reviewExpires > now && !booking.hostReviewed;
+        const nights = Math.ceil((checkOut - checkIn) / (1000 * 60 * 60 * 24));
+        
+        // Get guest initials for avatar
+        const guestName = booking.guestDetails?.name || booking.guest?.username || 'Guest';
+        const initials = guestName.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+      %>
+        <div class="booking-card">
+          <div class="booking-image">
             <% if (booking.listing && booking.listing.image && booking.listing.image.url) { %>
-              <img src="<%= booking.listing.image.url %>" class="card-img-top" alt="Listing Image">
+              <img src="<%= booking.listing.image.url %>" alt="<%= booking.listing.title %>">
+            <% } else { %>
+              <div style="width: 100%; height: 100%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);"></div>
             <% } %>
-            <div class="card-body">
-              <h5 class="card-title"><%= booking.listing ? booking.listing.title : "Listing" %></h5>
-              <p class="card-text">
-                <strong>Guest:</strong>
-                <% if (booking.guestDetails && booking.guestDetails.name) { %>
-                  <%= booking.guestDetails.name %> (<%= booking.guestDetails.email || '' %>)
-                <% } else if (booking.guest) { %>
-                  <%= booking.guest.username || booking.guest.email %>
+            
+            <!-- Status Badge -->
+            <div class="status-badge 
+              <%= booking.status === 'completed' ? 'status-completed' : 
+                  (booking.status === 'cancelled' ? 'status-cancelled' : 'status-confirmed') %>">
+              <i class="fa-regular 
+                <%= booking.status === 'completed' ? 'fa-circle-check' : 
+                    (booking.status === 'cancelled' ? 'fa-circle-xmark' : 'fa-circle') %> me-1"></i>
+              <%= booking.status === 'completed' ? 'Completed' : 
+                  (booking.status === 'cancelled' ? 'Cancelled' : 'Confirmed') %>
+            </div>
+          </div>
+
+          <div class="booking-content">
+            <!-- Guest Info Header -->
+            <div class="guest-header">
+              <div class="guest-avatar">
+                <%= initials %>
+              </div>
+              <div>
+                <div class="guest-name"><%= guestName %></div>
+                <div class="guest-email">
+                  <i class="fa-regular fa-envelope"></i> 
+                  <%= booking.guestDetails?.email || booking.guest?.email || 'No email' %>
+                </div>
+              </div>
+            </div>
+
+            <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 12px;">
+              <i class="fa-regular fa-building me-2"></i><%= booking.listing ? booking.listing.title : "Property Stay" %>
+            </h3>
+
+            <div class="booking-details">
+              <div class="detail-row">
+                <span class="detail-label"><i class="fa-regular fa-calendar"></i> Check-in</span>
+                <span class="detail-value"><%= checkIn.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) %></span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label"><i class="fa-regular fa-calendar"></i> Check-out</span>
+                <span class="detail-value"><%= checkOut.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) %></span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label"><i class="fa-regular fa-clock"></i> Duration</span>
+                <span class="detail-value"><%= nights %> night<%= nights > 1 ? 's' : '' %></span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label"><i class="fa-regular fa-door-open"></i> Rooms</span>
+                <span class="detail-value"><%= booking.roomsBooked || 1 %></span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label"><i class="fa-regular fa-user"></i> Guests</span>
+                <span class="detail-value"><%= booking.guestDetails?.guestsCount || 1 %></span>
+              </div>
+              <div class="detail-row" style="margin-top: 8px; padding-top: 8px; border-top: 1px dashed #ddd;">
+                <span class="detail-label"><strong>Total Earnings</strong></span>
+                <span class="price-highlight">₹<%= booking.price.toLocaleString('en-IN') %></span>
+              </div>
+            </div>
+
+            <!-- Expanded Guest Details -->
+            <div class="guest-details-expanded">
+              <div class="detail-item">
+                <i class="fa-regular fa-phone"></i>
+                <span><%= booking.guestDetails?.phone || 'No phone provided' %></span>
+              </div>
+              <% if (booking.guestDetails?.arrivalTime) { %>
+                <div class="detail-item">
+                  <i class="fa-regular fa-clock"></i>
+                  <span>Arrival: <%= booking.guestDetails.arrivalTime %></span>
+                </div>
+              <% } %>
+              <% if (booking.guestDetails?.specialRequest && booking.guestDetails.specialRequest !== 'NA') { %>
+                <div class="detail-item">
+                  <i class="fa-regular fa-note-sticky"></i>
+                  <span><%= booking.guestDetails.specialRequest %></span>
+                </div>
+              <% } %>
+            </div>
+
+            <!-- Guest Review Status -->
+            <% if (booking.guestReviewed) { %>
+              <div class="guest-review-badge" style="margin-bottom: 16px;">
+                <i class="fa-regular fa-star"></i> Guest left a review
+              </div>
+            <% } %>
+
+            <!-- Host Review Section -->
+            <div style="margin-bottom: 16px;">
+              <% if (booking.status === 'completed' && !booking.hostReviewed) { %>
+                <% if (canReview) { %>
+                  <a href="/bookings/<%= booking._id %>/host-review" class="btn-host-review">
+                    <i class="fa-regular fa-star"></i> Review This Guest
+                  </a>
                 <% } else { %>
-                  Guest
+                  <button class="btn-host-review disabled" disabled>
+                    <i class="fa-regular fa-clock-slash"></i> Review Window Closed
+                  </button>
                 <% } %>
-                <br>
-                <strong>Price:</strong> ₹<%= booking.price %><br>
-                <strong>Rooms:</strong> <%= booking.roomsBooked || 1 %><br>
-                <strong>Booking ID:</strong> <%= booking._id %><br>
-                <strong>Payment ID:</strong> <%= booking.paymentId || "N/A" %><br>
-                <strong>Booked On:</strong> <%= booking.createdAt ? booking.createdAt.toDateString() : '' %>
-              </p>
+              <% } else if (booking.hostReviewed) { %>
+                <button class="btn-host-review disabled" style="background: var(--success);" disabled>
+                  <i class="fa-regular fa-circle-check"></i> You Reviewed This Guest
+                </button>
+              <% } %>
+            </div>
 
-              <a href="/listings/<%= booking.listing ? booking.listing._id : '' %>" class="btn btn-primary">View Listing</a>
+            <!-- Action Buttons -->
+            <div style="display: flex; gap: 10px;">
+              <a href="/listings/<%= booking.listing ? booking.listing._id : '' %>" class="btn-cancel">
+                <i class="fa-regular fa-eye"></i> View Listing
+              </a>
 
-              <% if (booking.status !== "cancelled") { %>
-                <form action="/bookings/<%= booking._id %>/cancel" method="POST" class="d-inline"
-                  onsubmit="return confirm('Are you sure you want to cancel this booking?');">
-                  <button class="btn btn-danger btn-sm mt-2">Cancel Booking</button>
+              <% if (booking.status !== "cancelled" && !isCompleted) { %>
+                <form action="/bookings/<%= booking._id %>/cancel" method="POST" style="display: inline;"
+                      onsubmit="return confirm('Are you sure you want to cancel this booking?');">
+                  <button type="submit" class="btn-cancel">
+                    <i class="fa-regular fa-ban"></i> Cancel
+                  </button>
                 </form>
               <% } %>
+            </div>
 
+            <div class="booking-footer">
+              <span class="booking-id">ID: <%= booking._id.toString().slice(-8) %></span>
+              <span><i class="fa-regular fa-credit-card me-1"></i> <%= booking.paymentId ? booking.paymentId.slice(-8) : 'N/A' %></span>
             </div>
           </div>
         </div>

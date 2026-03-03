@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background-color: #f7f7f7;
+      line-height: 1.6;
+    }
+    .email-container {
+      max-width: 600px;
+      margin: 20px auto;
+      background: white;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+    .email-header {
+      background: linear-gradient(135deg, #ff385c 0%, #e31c5f 100%);
+      padding: 40px 30px;
+      text-align: center;
+    }
+    .email-header h1 {
+      color: white;
+      font-size: 28px;
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+    .email-header p {
+      color: rgba(255,255,255,0.9);
+      font-size: 16px;
+    }
+    .email-body {
+      padding: 40px 30px;
+    }
+    .greeting {
+      font-size: 18px;
+      font-weight: 600;
+      color: #222;
+      margin-bottom: 20px;
+    }
+    .message {
+      color: #555;
+      margin-bottom: 30px;
+      font-size: 16px;
+    }
+    .booking-details {
+      background: #f7f7f7;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 30px;
+    }
+    .detail-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid #ebebeb;
+    }
+    .detail-row:last-child {
+      border-bottom: none;
+    }
+    .detail-label {
+      color: #717171;
+      font-weight: 500;
+    }
+    .detail-value {
+      color: #222;
+      font-weight: 600;
+    }
+    .cta-button {
+      display: inline-block;
+      background: #ff385c;
+      color: white;
+      text-decoration: none;
+      padding: 16px 32px;
+      border-radius: 40px;
+      font-weight: 600;
+      font-size: 16px;
+      margin: 20px 0;
+      transition: background 0.2s;
+    }
+    .cta-button:hover {
+      background: #e31c5f;
+    }
+    .expiry-note {
+      background: #fff3e0;
+      border-radius: 8px;
+      padding: 15px;
+      margin: 20px 0;
+      font-size: 14px;
+      color: #e67e22;
+    }
+    .footer {
+      text-align: center;
+      padding: 30px;
+      background: #f7f7f7;
+      color: #717171;
+      font-size: 14px;
+    }
+    .footer a {
+      color: #ff385c;
+      text-decoration: none;
+    }
+    @media (max-width: 600px) {
+      .email-container {
+        margin: 10px;
+        border-radius: 12px;
+      }
+      .email-header {
+        padding: 30px 20px;
+      }
+      .email-body {
+        padding: 30px 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="email-container">
+    <div class="email-header">
+      <h1>How was your stay?</h1>
+      <p>Share your experience with the community</p>
+    </div>
+    
+    <div class="email-body">
+      <div class="greeting">Hi <%= guestName %>,</div>
+      
+      <div class="message">
+        We hope you had a wonderful time at <strong><%= listingTitle %></strong>. 
+        Your feedback helps other travelers make informed decisions and helps hosts improve their service.
+      </div>
+      
+      <div class="booking-details">
+        <h3 style="margin-bottom: 15px; color: #222;">Your stay details</h3>
+        <div class="detail-row">
+          <span class="detail-label">Property:</span>
+          <span class="detail-value"><%= listingTitle %></span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Check-in:</span>
+          <span class="detail-value"><%= checkIn %></span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Check-out:</span>
+          <span class="detail-value"><%= checkOut %></span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Booking ID:</span>
+          <span class="detail-value"><%= bookingId %></span>
+        </div>
+      </div>
+      
+      <div style="text-align: center;">
+        <a href="<%= reviewUrl %>" class="cta-button">Write Your Review</a>
+      </div>
+      
+      <div class="expiry-note">
+        <strong>⏰ Time sensitive:</strong> You have until <strong><%= expiresAt %></strong> to submit your review. 
+        After this date, you won't be able to leave a review for this stay.
+      </div>
+      
+      <div style="color: #717171; font-size: 14px; margin-top: 20px;">
+        <p>Your review will be published after the host reviews or after 14 days. 
+        You can edit your review within 48 hours of submission.</p>
+      </div>
+    </div>
+    
+    <div class="footer">
+      <p>© <%= new Date().getFullYear() %> Your Airbnb Clone. All rights reserved.</p>
+      <p style="margin-top: 10px;">
+        <a href="#">Help Center</a> • 
+        <a href="#">Privacy Policy</a> • 
+        <a href="#">Terms of Service</a>
+      </p>
+    </div>
+  </div>
+</body>
+</html>

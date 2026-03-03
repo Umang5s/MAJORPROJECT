@@ -121,10 +121,50 @@ module.exports.listingSchema = Joi.object({
   }).required(),
 });
 
+// Enhanced review schema with category-specific comments
 module.exports.reviewSchema = Joi.object({
   review: Joi.object({
-    rating: Joi.number().required().min(1).max(5),
-    comment: Joi.string().required(),
+    // Category ratings with their comments
+    cleanliness: Joi.object({
+      rating: Joi.number().min(1).max(5).required(),
+      comment: Joi.string().min(1).max(1000).allow('').optional()
+    }).required(),
+    
+    accuracy: Joi.object({
+      rating: Joi.number().min(1).max(5).required(),
+      comment: Joi.string().min(1).max(1000).allow('').optional()
+    }).required(),
+    
+    communication: Joi.object({
+      rating: Joi.number().min(1).max(5).required(),
+      comment: Joi.string().min(1).max(1000).allow('').optional()
+    }).required(),
+    
+    location: Joi.object({
+      rating: Joi.number().min(1).max(5).required(),
+      comment: Joi.string().min(1).max(1000).allow('').optional()
+    }).required(),
+    
+    checkIn: Joi.object({
+      rating: Joi.number().min(1).max(5).required(),
+      comment: Joi.string().min(1).max(1000).allow('').optional()
+    }).required(),
+    
+    value: Joi.object({
+      rating: Joi.number().min(1).max(5).required(),
+      comment: Joi.string().min(1).max(1000).allow('').optional()
+    }).required(),
+    
+    // Overall comment (optional)
+    overallComment: Joi.string().min(1).max(5000).allow('').optional(),
+  }).required(),
+});
+
+
+// Add this at the bottom of your schema.js
+module.exports.hostReviewSchema = Joi.object({
+  review: Joi.object({
+    comment: Joi.string().min(10).max(5000).required(),
   }).required(),
 });
 

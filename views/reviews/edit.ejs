@@ -1,0 +1,196 @@
+<%- layout("/layout/boilerplate") %>
+<link rel="stylesheet" href="/css/review-form.css" />
+
+<div class="review-page-container">
+  <div class="review-form-card">
+    <div class="review-form-header">
+      <h1>Edit Your Review</h1>
+      <p>You can edit your review within 48 hours of submission</p>
+      <div class="edit-warning">
+        <i class="fa-regular fa-clock"></i>
+        <span>Time remaining: <span id="timeRemaining">Calculating...</span></span>
+      </div>
+    </div>
+
+    <form action="/reviews/<%= review._id %>?_method=PUT" method="POST" class="review-form" id="editReviewForm">
+      <!-- Category Ratings Section -->
+      <div class="ratings-section">
+        <h2>Update your ratings</h2>
+        
+        <!-- Cleanliness -->
+        <div class="rating-category">
+          <div class="category-label">
+            <span class="category-name">Cleanliness</span>
+          </div>
+          <div class="star-rating" data-category="cleanliness">
+            <% for (let i = 5; i >= 1; i--) { %>
+              <input type="radio" name="review[cleanliness]" value="<%= i %>" id="clean<%= i %>" <%= review.cleanliness == i ? 'checked' : '' %>>
+              <label for="clean<%= i %>">★</label>
+            <% } %>
+          </div>
+        </div>
+
+        <!-- Accuracy -->
+        <div class="rating-category">
+          <div class="category-label">
+            <span class="category-name">Accuracy</span>
+          </div>
+          <div class="star-rating" data-category="accuracy">
+            <% for (let i = 5; i >= 1; i--) { %>
+              <input type="radio" name="review[accuracy]" value="<%= i %>" id="acc<%= i %>" <%= review.accuracy == i ? 'checked' : '' %>>
+              <label for="acc<%= i %>">★</label>
+            <% } %>
+          </div>
+        </div>
+
+        <!-- Communication -->
+        <div class="rating-category">
+          <div class="category-label">
+            <span class="category-name">Communication</span>
+          </div>
+          <div class="star-rating" data-category="communication">
+            <% for (let i = 5; i >= 1; i--) { %>
+              <input type="radio" name="review[communication]" value="<%= i %>" id="comm<%= i %>" <%= review.communication == i ? 'checked' : '' %>>
+              <label for="comm<%= i %>">★</label>
+            <% } %>
+          </div>
+        </div>
+
+        <!-- Location -->
+        <div class="rating-category">
+          <div class="category-label">
+            <span class="category-name">Location</span>
+          </div>
+          <div class="star-rating" data-category="location">
+            <% for (let i = 5; i >= 1; i--) { %>
+              <input type="radio" name="review[location]" value="<%= i %>" id="loc<%= i %>" <%= review.location == i ? 'checked' : '' %>>
+              <label for="loc<%= i %>">★</label>
+            <% } %>
+          </div>
+        </div>
+
+        <!-- Check-in -->
+        <div class="rating-category">
+          <div class="category-label">
+            <span class="category-name">Check-in</span>
+          </div>
+          <div class="star-rating" data-category="checkIn">
+            <% for (let i = 5; i >= 1; i--) { %>
+              <input type="radio" name="review[checkIn]" value="<%= i %>" id="check<%= i %>" <%= review.checkIn == i ? 'checked' : '' %>>
+              <label for="check<%= i %>">★</label>
+            <% } %>
+          </div>
+        </div>
+
+        <!-- Value -->
+        <div class="rating-category">
+          <div class="category-label">
+            <span class="category-name">Value</span>
+          </div>
+          <div class="star-rating" data-category="value">
+            <% for (let i = 5; i >= 1; i--) { %>
+              <input type="radio" name="review[value]" value="<%= i %>" id="val<%= i %>" <%= review.value == i ? 'checked' : '' %>>
+              <label for="val<%= i %>">★</label>
+            <% } %>
+          </div>
+        </div>
+      </div>
+
+      <!-- Written Review Section -->
+      <div class="review-comment-section">
+        <h2>Update your review</h2>
+        <textarea 
+          name="review[comment]" 
+          id="editReviewComment"
+          required
+          minlength="10"
+          maxlength="5000"
+          rows="6"
+        ><%= review.comment %></textarea>
+        
+        <div class="char-counter">
+          <span id="charCount"><%= review.comment.length %></span> / 5000 characters
+        </div>
+      </div>
+
+      <!-- Form Actions -->
+      <div class="form-actions">
+        <button type="submit" class="submit-review-btn">
+          <span>Update Review</span>
+          <i class="fa-solid fa-check"></i>
+        </button>
+        <a href="javascript:history.back()" class="cancel-review-btn">Cancel</a>
+      </div>
+
+      <!-- Edit Warning -->
+      <div class="edit-warning-footer">
+        <i class="fa-regular fa-info-circle"></i>
+        <span>You can only edit reviews within 48 hours of submission</span>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Character counter
+    const commentInput = document.getElementById('editReviewComment');
+    const charCount = document.getElementById('charCount');
+    
+    if (commentInput && charCount) {
+      commentInput.addEventListener('input', function() {
+        charCount.textContent = this.value.length;
+      });
+    }
+    
+    // Calculate time remaining for edit window
+    const createdAt = new Date('<%= review.createdAt %>');
+    const now = new Date();
+    const hoursSinceCreation = (now - createdAt) / (1000 * 60 * 60);
+    const hoursRemaining = Math.max(0, 48 - hoursSinceCreation);
+    
+    const timeRemainingEl = document.getElementById('timeRemaining');
+    if (timeRemainingEl) {
+      if (hoursRemaining <= 0) {
+        timeRemainingEl.textContent = 'Expired';
+        timeRemainingEl.style.color = '#e31c5f';
+      } else {
+        const hours = Math.floor(hoursRemaining);
+        const minutes = Math.floor((hoursRemaining - hours) * 60);
+        timeRemainingEl.textContent = `${hours}h ${minutes}m remaining`;
+      }
+    }
+    
+    // Star rating highlight
+    document.querySelectorAll('.star-rating').forEach(rating => {
+      const radios = rating.querySelectorAll('input[type="radio"]');
+      const labels = rating.querySelectorAll('label');
+      
+      // Set initial state based on checked radio
+      const checked = rating.querySelector('input:checked');
+      if (checked) {
+        const value = checked.value;
+        labels.forEach((label, idx) => {
+          if (5 - idx <= value) {
+            label.style.color = '#ff385c';
+          } else {
+            label.style.color = '#ddd';
+          }
+        });
+      }
+      
+      radios.forEach(radio => {
+        radio.addEventListener('change', function() {
+          const value = this.value;
+          labels.forEach((label, idx) => {
+            if (5 - idx <= value) {
+              label.style.color = '#ff385c';
+            } else {
+              label.style.color = '#ddd';
+            }
+          });
+        });
+      });
+    });
+  });
+</script>

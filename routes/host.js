@@ -18,22 +18,33 @@ router.get("/today", requireHost, async (req, res) => {
         const listingIds = hostListings.map(l => l._id);
         
         // Get today's check-ins for ONLY THIS HOST's listings
+        // FIXED: Changed 'user' to 'guest' in populate
         const todayCheckIns = await Booking.find({
             listing: { $in: listingIds },
             checkIn: { $gte: today, $lt: tomorrow }
-        }).populate('listing user');
+        })
+        .populate('listing')
+        .populate('guest', 'username email'); // ✅ Changed from 'user' to 'guest'
         
         // Get today's check-outs for ONLY THIS HOST's listings
+        // FIXED: Changed 'user' to 'guest' in populate
         const todayCheckOuts = await Booking.find({
             listing: { $in: listingIds },
             checkOut: { $gte: today, $lt: tomorrow }
-        }).populate('listing user');
+        })
+        .populate('listing')
+        .populate('guest', 'username email'); // ✅ Changed from 'user' to 'guest'
         
         // Get upcoming reservations for ONLY THIS HOST's listings
+        // FIXED: Changed 'user' to 'guest' in populate
         const upcomingReservations = await Booking.find({
             listing: { $in: listingIds },
             checkIn: { $gt: tomorrow }
-        }).populate('listing user').sort({ checkIn: 1 }).limit(10);
+        })
+        .populate('listing')
+        .populate('guest', 'username email') // ✅ Changed from 'user' to 'guest'
+        .sort({ checkIn: 1 })
+        .limit(10);
         
         res.render("host/today", {
             todayCheckIns,
@@ -54,7 +65,10 @@ router.get("/listings", requireHost, async (req, res) => {
     try {
         // Get ONLY THIS HOST's listings
         const listings = await Listing.find({ owner: req.user._id })
-            .populate('reviews');
+            .populate({
+                path: 'reviews',
+                populate: { path: 'author', select: 'username' } // ✅ Added author populate for reviews
+            });
         
         // Calculate average ratings for each listing
         for (let listing of listings) {
@@ -86,9 +100,12 @@ router.get("/calendar", requireHost, async (req, res) => {
         const listingIds = listings.map(l => l._id);
         
         // Get bookings for ONLY THIS HOST's listings
+        // FIXED: Changed 'user' to 'guest' in populate
         const bookings = await Booking.find({
             listing: { $in: listingIds }
-        }).populate('listing user');
+        })
+        .populate('listing')
+        .populate('guest', 'username email'); // ✅ Changed from 'user' to 'guest'
         
         res.render("host/calendar", { 
             listings,

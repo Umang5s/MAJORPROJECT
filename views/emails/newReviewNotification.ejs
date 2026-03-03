@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background-color: #f7f7f7;
+      line-height: 1.6;
+    }
+    .email-container {
+      max-width: 600px;
+      margin: 20px auto;
+      background: white;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+    .email-header {
+      background: linear-gradient(135deg, #ff385c 0%, #e31c5f 100%);
+      padding: 40px 30px;
+      text-align: center;
+    }
+    .email-header h1 {
+      color: white;
+      font-size: 28px;
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+    .email-header p {
+      color: rgba(255,255,255,0.9);
+      font-size: 16px;
+    }
+    .email-body {
+      padding: 40px 30px;
+    }
+    .greeting {
+      font-size: 18px;
+      font-weight: 600;
+      color: #222;
+      margin-bottom: 20px;
+    }
+    .message {
+      color: #555;
+      margin-bottom: 30px;
+      font-size: 16px;
+    }
+    .rating-summary {
+      display: flex;
+      justify-content: space-around;
+      background: #f7f7f7;
+      border-radius: 12px;
+      padding: 25px;
+      margin: 30px 0;
+    }
+    .rating-item {
+      text-align: center;
+    }
+    .rating-label {
+      font-size: 14px;
+      color: #717171;
+      margin-bottom: 5px;
+    }
+    .rating-value {
+      font-size: 24px;
+      font-weight: 600;
+      color: #222;
+    }
+    .review-preview {
+      background: #f7f7f7;
+      border-radius: 12px;
+      padding: 25px;
+      margin: 30px 0;
+    }
+    .review-text {
+      font-style: italic;
+      color: #333;
+      margin-bottom: 15px;
+      line-height: 1.6;
+    }
+    .cta-button {
+      display: inline-block;
+      background: #ff385c;
+      color: white;
+      text-decoration: none;
+      padding: 16px 32px;
+      border-radius: 40px;
+      font-weight: 600;
+      font-size: 16px;
+      margin: 20px 0;
+      transition: background 0.2s;
+    }
+    .cta-button:hover {
+      background: #e31c5f;
+    }
+    .reply-section {
+      background: #e6f7f5;
+      border-radius: 12px;
+      padding: 25px;
+      margin: 30px 0;
+    }
+    .footer {
+      text-align: center;
+      padding: 30px;
+      background: #f7f7f7;
+      color: #717171;
+      font-size: 14px;
+    }
+    .footer a {
+      color: #ff385c;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="email-container">
+    <div class="email-header">
+      <h1>You Received a New Review! ⭐</h1>
+      <p>See what your guest thought</p>
+    </div>
+    
+    <div class="email-body">
+      <div class="greeting">Hi <%= hostName %>,</div>
+      
+      <div class="message">
+        A guest has just reviewed their stay at <strong><%= listingTitle %></strong>. 
+        Reviews help you improve and attract more bookings!
+      </div>
+      
+      <div class="rating-summary">
+        <div class="rating-item">
+          <div class="rating-label">Cleanliness</div>
+          <div class="rating-value"><%= cleanliness || '5.0' %></div>
+        </div>
+        <div class="rating-item">
+          <div class="rating-label">Accuracy</div>
+          <div class="rating-value"><%= accuracy || '5.0' %></div>
+        </div>
+        <div class="rating-item">
+          <div class="rating-label">Communication</div>
+          <div class="rating-value"><%= communication || '5.0' %></div>
+        </div>
+        <div class="rating-item">
+          <div class="rating-label">Location</div>
+          <div class="rating-value"><%= location || '5.0' %></div>
+        </div>
+        <div class="rating-item">
+          <div class="rating-label">Value</div>
+          <div class="rating-value"><%= value || '5.0' %></div>
+        </div>
+      </div>
+      
+      <div class="review-preview">
+        <h3 style="margin-bottom: 15px;">What they said:</h3>
+        <div class="review-text">"<%= reviewComment || 'Great stay! Would recommend.' %>"</div>
+      </div>
+      
+      <div class="reply-section">
+        <h3 style="margin-bottom: 15px; color: #00a699;">💬 Want to respond?</h3>
+        <p style="margin-bottom: 15px;">Guests appreciate when hosts take the time to respond to reviews. It shows you care about their experience.</p>
+        <a href="<%= replyUrl %>" style="color: #00a699; font-weight: 600; text-decoration: underline;">Reply to this review →</a>
+      </div>
+      
+      <div style="text-align: center;">
+        <a href="<%= reviewUrl %>" class="cta-button">View All Reviews</a>
+      </div>
+    </div>
+    
+    <div class="footer">
+      <p>© <%= new Date().getFullYear() %> Your Airbnb Clone. All rights reserved.</p>
+      <p style="margin-top: 10px;">
+        <a href="#">Host Dashboard</a> • 
+        <a href="#">Help Center</a> • 
+        <a href="#">Community Guidelines</a>
+      </p>
+    </div>
+  </div>
+</body>
+</html>

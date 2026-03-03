@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background-color: #f7f7f7;
+      line-height: 1.6;
+    }
+    .email-container {
+      max-width: 600px;
+      margin: 20px auto;
+      background: white;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+    .email-header {
+      background: linear-gradient(135deg, #00a699 0%, #008489 100%);
+      padding: 40px 30px;
+      text-align: center;
+    }
+    .email-header h1 {
+      color: white;
+      font-size: 28px;
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+    .email-header p {
+      color: rgba(255,255,255,0.9);
+      font-size: 16px;
+    }
+    .email-body {
+      padding: 40px 30px;
+    }
+    .greeting {
+      font-size: 18px;
+      font-weight: 600;
+      color: #222;
+      margin-bottom: 20px;
+    }
+    .message {
+      color: #555;
+      margin-bottom: 30px;
+      font-size: 16px;
+    }
+    .reply-container {
+      background: #f7f7f7;
+      border-radius: 12px;
+      padding: 25px;
+      margin: 30px 0;
+      position: relative;
+    }
+    .reply-container:before {
+      content: '';
+      position: absolute;
+      top: -10px;
+      left: 30px;
+      border-left: 10px solid transparent;
+      border-right: 10px solid transparent;
+      border-bottom: 10px solid #f7f7f7;
+    }
+    .host-name {
+      font-weight: 600;
+      color: #222;
+      margin-bottom: 10px;
+    }
+    .reply-text {
+      color: #333;
+      line-height: 1.6;
+      margin-bottom: 15px;
+      font-style: italic;
+    }
+    .reply-date {
+      color: #717171;
+      font-size: 12px;
+    }
+    .original-review {
+      border-left: 3px solid #ff385c;
+      padding-left: 20px;
+      margin: 30px 0;
+    }
+    .cta-button {
+      display: inline-block;
+      background: #ff385c;
+      color: white;
+      text-decoration: none;
+      padding: 16px 32px;
+      border-radius: 40px;
+      font-weight: 600;
+      font-size: 16px;
+      margin: 20px 0;
+      transition: background 0.2s;
+    }
+    .cta-button:hover {
+      background: #e31c5f;
+    }
+    .footer {
+      text-align: center;
+      padding: 30px;
+      background: #f7f7f7;
+      color: #717171;
+      font-size: 14px;
+    }
+    .footer a {
+      color: #ff385c;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="email-container">
+    <div class="email-header">
+      <h1>The Host Replied to Your Review 💬</h1>
+      <p>The host appreciated your feedback</p>
+    </div>
+    
+    <div class="email-body">
+      <div class="greeting">Hi <%= guestName %>,</div>
+      
+      <div class="message">
+        The host of <strong><%= listingTitle %></strong> has replied to your review.
+      </div>
+      
+      <div class="reply-container">
+        <div class="host-name"><%= hostName %> (Host) replied:</div>
+        <div class="reply-text">"<%= replyText %>"</div>
+        <div class="reply-date"><%= new Date().toLocaleDateString() %></div>
+      </div>
+      
+      <div class="original-review">
+        <p style="color: #717171; margin-bottom: 5px;">Your original review:</p>
+        <p style="color: #333;">"<%= originalReview %>"</p>
+      </div>
+      
+      <p style="color: #555; margin: 20px 0;">
+        It's great to see hosts engaging with guest feedback! This helps build a stronger community.
+      </p>
+      
+      <div style="text-align: center;">
+        <a href="<%= listingUrl %>" class="cta-button">View on Site</a>
+      </div>
+    </div>
+    
+    <div class="footer">
+      <p>© <%= new Date().getFullYear() %> Your Airbnb Clone. All rights reserved.</p>
+      <p style="margin-top: 10px;">
+        <a href="#">Help Center</a> • 
+        <a href="#">Community Guidelines</a> • 
+        <a href="#">Contact Us</a>
+      </p>
+    </div>
+  </div>
+</body>
+</html>

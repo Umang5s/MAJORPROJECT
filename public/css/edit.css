@@ -1668,3 +1668,107 @@
     font-size: 14px;
   }
 }
+/* Edit specific styles */
+.edit-header {
+  max-width: 800px;
+  margin: 0 auto 40px;
+  padding: 20px 0;
+}
+
+.edit-header-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: white;
+  padding: 20px 24px;
+  border-radius: 16px;
+  border: 1px solid #ebebeb;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+}
+
+.edit-header h1 {
+  font-size: 24px;
+  font-weight: 600;
+  color: #222;
+  margin: 0;
+}
+
+.preview-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: #f7f7f7;
+  border-radius: 40px;
+  color: #222;
+  text-decoration: none;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.preview-link:hover {
+  background: #ff385c;
+  color: white;
+}
+
+/* Main photo indicator */
+.main-photo-item {
+  border: 3px solid #ff385c;
+  position: relative;
+}
+
+.main-photo-item::after {
+  content: 'Cover Photo';
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  background: #ff385c;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  z-index: 2;
+}
+
+/* Update button styling */
+.fixed-next-btn.update-btn {
+  background: #00a699;
+}
+
+.fixed-next-btn.update-btn:hover {
+  background: #008489;
+}
+
+/* Draft indicator */
+.draft-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  background: #fff3cd;
+  border: 1px solid #ffeeba;
+  border-radius: 20px;
+  color: #856404;
+  font-size: 13px;
+  font-weight: 500;
+  margin-left: 16px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .edit-header-content {
+    flex-direction: column;
+    gap: 16px;
+    text-align: center;
+  }
+  
+  .edit-header h1 {
+    font-size: 20px;
+  }
+  
+  .preview-link {
+    width: 100%;
+    justify-content: center;
+  }
+}

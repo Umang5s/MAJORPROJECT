@@ -1,0 +1,626 @@
+<%- layout("/layout/boilerplate") %>
+<link rel="stylesheet" href="/css/review-form.css" />
+
+<div class="review-page-container">
+  <div class="review-form-card">
+    <!-- Progress Steps -->
+    <div class="review-progress">
+      <div class="progress-step active">
+        <span class="step-number">1</span>
+        <span class="step-label">Rate & Comment</span>
+      </div>
+      <div class="progress-step">
+        <span class="step-number">2</span>
+        <span class="step-label">Overall Review</span>
+      </div>
+      <div class="progress-step">
+        <span class="step-number">3</span>
+        <span class="step-label">Add Photos</span>
+      </div>
+    </div>
+
+    <div class="review-form-header">
+      <h1>Share your experience</h1>
+      <p>Tell us what you thought about each aspect of your stay</p>
+    </div>
+
+    <form action="/bookings/<%= bookingId %>/reviews" method="POST" class="review-form" id="guestReviewForm" enctype="multipart/form-data">
+      
+      <!-- Step 1: Category Ratings with Comments -->
+      <div class="form-step active" id="step1">
+        <div class="ratings-section">
+          <h2>How was your stay?</h2>
+          <p class="section-subtitle">Rate and comment on each aspect</p>
+
+          <!-- Cleanliness -->
+          <div class="rating-card-modern">
+            <div class="rating-card-header">
+              <div class="rating-icon">
+                <i class="fa-solid fa-broom"></i>
+              </div>
+              <div class="rating-title">
+                <h3>Cleanliness</h3>
+                <span class="rating-hint">How clean was the space?</span>
+              </div>
+            </div>
+            
+            <div class="rating-chips">
+              <label class="rating-chip">
+                <input type="radio" name="review[cleanliness][rating]" value="5" required>
+                <span class="chip-content">
+                  <span class="chip-number">5</span>
+                  <span class="chip-label">Exceptional</span>
+                </span>
+              </label>
+              <label class="rating-chip">
+                <input type="radio" name="review[cleanliness][rating]" value="4">
+                <span class="chip-content">
+                  <span class="chip-number">4</span>
+                  <span class="chip-label">Great</span>
+                </span>
+              </label>
+              <label class="rating-chip">
+                <input type="radio" name="review[cleanliness][rating]" value="3">
+                <span class="chip-content">
+                  <span class="chip-number">3</span>
+                  <span class="chip-label">Good</span>
+                </span>
+              </label>
+              <label class="rating-chip">
+                <input type="radio" name="review[cleanliness][rating]" value="2">
+                <span class="chip-content">
+                  <span class="chip-number">2</span>
+                  <span class="chip-label">Fair</span>
+                </span>
+              </label>
+              <label class="rating-chip">
+                <input type="radio" name="review[cleanliness][rating]" value="1">
+                <span class="chip-content">
+                  <span class="chip-number">1</span>
+                  <span class="chip-label">Poor</span>
+                </span>
+              </label>
+            </div>
+            
+            <div class="category-comment">
+              <textarea name="review[cleanliness][comment]" placeholder="Tell us more about the cleanliness... (optional)" rows="2"></textarea>
+            </div>
+          </div>
+
+          <!-- Accuracy -->
+          <div class="rating-card-modern">
+            <div class="rating-card-header">
+              <div class="rating-icon">
+                <i class="fa-solid fa-bullseye"></i>
+              </div>
+              <div class="rating-title">
+                <h3>Accuracy</h3>
+                <span class="rating-hint">Did it match the description?</span>
+              </div>
+            </div>
+            
+            <div class="rating-chips">
+              <label class="rating-chip">
+                <input type="radio" name="review[accuracy][rating]" value="5" required>
+                <span class="chip-content">
+                  <span class="chip-number">5</span>
+                  <span class="chip-label">Exactly as described</span>
+                </span>
+              </label>
+              <label class="rating-chip">
+                <input type="radio" name="review[accuracy][rating]" value="4">
+                <span class="chip-content">
+                  <span class="chip-number">4</span>
+                  <span class="chip-label">Very accurate</span>
+                </span>
+              </label>
+              <label class="rating-chip">
+                <input type="radio" name="review[accuracy][rating]" value="3">
+                <span class="chip-content">
+                  <span class="chip-number">3</span>
+                  <span class="chip-label">Somewhat accurate</span>
+                </span>
+              </label>
+              <label class="rating-chip">
+                <input type="radio" name="review[accuracy][rating]" value="2">
+                <span class="chip-content">
+                  <span class="chip-number">2</span>
+                  <span class="chip-label">Not very accurate</span>
+                </span>
+              </label>
+              <label class="rating-chip">
+                <input type="radio" name="review[accuracy][rating]" value="1">
+                <span class="chip-content">
+                  <span class="chip-number">1</span>
+                  <span class="chip-label">Completely different</span>
+                </span>
+              </label>
+            </div>
+            
+            <div class="category-comment">
+              <textarea name="review[accuracy][comment]" placeholder="Tell us more about the accuracy... (optional)" rows="2"></textarea>
+            </div>
+          </div>
+
+          <!-- Communication -->
+          <div class="rating-card-modern">
+            <div class="rating-card-header">
+              <div class="rating-icon">
+                <i class="fa-solid fa-message"></i>
+              </div>
+              <div class="rating-title">
+                <h3>Communication</h3>
+                <span class="rating-hint">How was the host's communication?</span>
+              </div>
+            </div>
+            
+            <div class="rating-chips">
+              <label class="rating-chip">
+                <input type="radio" name="review[communication][rating]" value="5" required>
+                <span class="chip-content">
+                  <span class="chip-number">5</span>
+                  <span class="chip-label">Responsive & helpful</span>
+                </span>
+              </label>
+              <label class="rating-chip">
+                <input type="radio" name="review[communication][rating]" value="4">
+                <span class="chip-content">
+                  <span class="chip-number">4</span>
+                  <span class="chip-label">Good communication</span>
+                </span>
+              </label>
+              <label class="rating-chip">
+                <input type="radio" name="review[communication][rating]" value="3">
+                <span class="chip-content">
+                  <span class="chip-number">3</span>
+                  <span class="chip-label">Adequate</span>
+                </span>
+              </label>
+              <label class="rating-chip">
+                <input type="radio" name="review[communication][rating]" value="2">
+                <span class="chip-content">
+                  <span class="chip-number">2</span>
+                  <span class="chip-label">Slow to respond</span>
+                </span>
+              </label>
+              <label class="rating-chip">
+                <input type="radio" name="review[communication][rating]" value="1">
+                <span class="chip-content">
+                  <span class="chip-number">1</span>
+                  <span class="chip-label">No response</span>
+                </span>
+              </label>
+            </div>
+            
+            <div class="category-comment">
+              <textarea name="review[communication][comment]" placeholder="Tell us more about the communication... (optional)" rows="2"></textarea>
+            </div>
+          </div>
+
+          <!-- Location -->
+          <div class="rating-card-modern">
+            <div class="rating-card-header">
+              <div class="rating-icon">
+                <i class="fa-solid fa-location-dot"></i>
+              </div>
+              <div class="rating-title">
+                <h3>Location</h3>
+                <span class="rating-hint">How convenient was the location?</span>
+              </div>
+            </div>
+            
+            <div class="rating-chips">
+              <label class="rating-chip">
+                <input type="radio" name="review[location][rating]" value="5" required>
+                <span class="chip-content">
+                  <span class="chip-number">5</span>
+                  <span class="chip-label">Perfect location</span>
+                </span>
+              </label>
+              <label class="rating-chip">
+                <input type="radio" name="review[location][rating]" value="4">
+                <span class="chip-content">
+                  <span class="chip-number">4</span>
+                  <span class="chip-label">Great location</span>
+                </span>
+              </label>
+              <label class="rating-chip">
+                <input type="radio" name="review[location][rating]" value="3">
+                <span class="chip-content">
+                  <span class="chip-number">3</span>
+                  <span class="chip-label">Good location</span>
+                </span>
+              </label>
+              <label class="rating-chip">
+                <input type="radio" name="review[location][rating]" value="2">
+                <span class="chip-content">
+                  <span class="chip-number">2</span>
+                  <span class="chip-label">Okay location</span>
+                </span>
+              </label>
+              <label class="rating-chip">
+                <input type="radio" name="review[location][rating]" value="1">
+                <span class="chip-content">
+                  <span class="chip-number">1</span>
+                  <span class="chip-label">Poor location</span>
+                </span>
+              </label>
+            </div>
+            
+            <div class="category-comment">
+              <textarea name="review[location][comment]" placeholder="Tell us more about the location... (optional)" rows="2"></textarea>
+            </div>
+          </div>
+
+          <!-- Check-in -->
+          <div class="rating-card-modern">
+            <div class="rating-card-header">
+              <div class="rating-icon">
+                <i class="fa-solid fa-door-open"></i>
+              </div>
+              <div class="rating-title">
+                <h3>Check-in</h3>
+                <span class="rating-hint">How smooth was the check-in?</span>
+              </div>
+            </div>
+            
+            <div class="rating-chips">
+              <label class="rating-chip">
+                <input type="radio" name="review[checkIn][rating]" value="5" required>
+                <span class="chip-content">
+                  <span class="chip-number">5</span>
+                  <span class="chip-label">Seamless</span>
+                </span>
+              </label>
+              <label class="rating-chip">
+                <input type="radio" name="review[checkIn][rating]" value="4">
+                <span class="chip-content">
+                  <span class="chip-number">4</span>
+                  <span class="chip-label">Very smooth</span>
+                </span>
+              </label>
+              <label class="rating-chip">
+                <input type="radio" name="review[checkIn][rating]" value="3">
+                <span class="chip-content">
+                  <span class="chip-number">3</span>
+                  <span class="chip-label">Smooth</span>
+                </span>
+              </label>
+              <label class="rating-chip">
+                <input type="radio" name="review[checkIn][rating]" value="2">
+                <span class="chip-content">
+                  <span class="chip-number">2</span>
+                  <span class="chip-label">Minor issues</span>
+                </span>
+              </label>
+              <label class="rating-chip">
+                <input type="radio" name="review[checkIn][rating]" value="1">
+                <span class="chip-content">
+                  <span class="chip-number">1</span>
+                  <span class="chip-label">Difficult</span>
+                </span>
+              </label>
+            </div>
+            
+            <div class="category-comment">
+              <textarea name="review[checkIn][comment]" placeholder="Tell us more about the check-in... (optional)" rows="2"></textarea>
+            </div>
+          </div>
+
+          <!-- Value -->
+          <div class="rating-card-modern">
+            <div class="rating-card-header">
+              <div class="rating-icon">
+                <i class="fa-solid fa-coins"></i>
+              </div>
+              <div class="rating-title">
+                <h3>Value</h3>
+                <span class="rating-hint">Was it worth the price?</span>
+              </div>
+            </div>
+            
+            <div class="rating-chips">
+              <label class="rating-chip">
+                <input type="radio" name="review[value][rating]" value="5" required>
+                <span class="chip-content">
+                  <span class="chip-number">5</span>
+                  <span class="chip-label">Excellent value</span>
+                </span>
+              </label>
+              <label class="rating-chip">
+                <input type="radio" name="review[value][rating]" value="4">
+                <span class="chip-content">
+                  <span class="chip-number">4</span>
+                  <span class="chip-label">Good value</span>
+                </span>
+              </label>
+              <label class="rating-chip">
+                <input type="radio" name="review[value][rating]" value="3">
+                <span class="chip-content">
+                  <span class="chip-number">3</span>
+                  <span class="chip-label">Fair value</span>
+                </span>
+              </label>
+              <label class="rating-chip">
+                <input type="radio" name="review[value][rating]" value="2">
+                <span class="chip-content">
+                  <span class="chip-number">2</span>
+                  <span class="chip-label">Overpriced</span>
+                </span>
+              </label>
+              <label class="rating-chip">
+                <input type="radio" name="review[value][rating]" value="1">
+                <span class="chip-content">
+                  <span class="chip-number">1</span>
+                  <span class="chip-label">Not worth it</span>
+                </span>
+              </label>
+            </div>
+            
+            <div class="category-comment">
+              <textarea name="review[value][comment]" placeholder="Tell us more about the value... (optional)" rows="2"></textarea>
+            </div>
+          </div>
+
+          <div class="step-navigation">
+            <button type="button" class="btn-next-step" onclick="goToStep(2)">Continue to overall review →</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 2: Overall Written Review -->
+      <div class="form-step" id="step2">
+        <div class="review-comment-section">
+          <h2>Overall experience</h2>
+          <p class="section-subtitle">Share your overall thoughts (optional)</p>
+
+          <textarea name="review[overallComment]" id="overallComment"
+            placeholder="Tell us about your overall experience. What did you love? What could be improved?" 
+            rows="6"></textarea>
+
+          <div class="char-counter">
+            <span id="overallCharCount">0</span> / 5000 characters
+          </div>
+
+          <div class="step-navigation">
+            <button type="button" class="btn-prev-step" onclick="goToStep(1)">← Back</button>
+            <button type="button" class="btn-next-step" onclick="goToStep(3)">Continue to photos →</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 3: Photo Upload -->
+      <div class="form-step" id="step3">
+        <div class="photo-upload-section">
+          <h2>Add photos (optional)</h2>
+          <p class="section-subtitle">Show others what your stay looked like</p>
+
+          <div class="photo-upload-container-modern" id="photoUploadContainer">
+            <div class="photo-preview-grid" id="photoPreviewGrid"></div>
+
+            <div class="upload-area" id="uploadArea">
+              <input 
+                type="file" 
+                id="reviewPhotos" 
+                name="reviewPhotos"
+                accept="image/*"
+                multiple
+                style="display: none;"
+              >
+              <div class="upload-content">
+                <i class="fa-solid fa-cloud-upload-alt"></i>
+                <h4>Drag & drop photos here</h4>
+                <p>or <span class="browse-link">browse files</span></p>
+                <span class="upload-hint">Maximum 5 photos, up to 10MB each</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="step-navigation">
+            <button type="button" class="btn-prev-step" onclick="goToStep(2)">← Back</button>
+            <button type="submit" class="submit-review-btn" id="submitReviewBtn">
+              <span>Submit Review</span>
+              <i class="fa-solid fa-check"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Review Policy Notice -->
+      <div class="review-policy-notice">
+        <i class="fa-solid fa-info-circle"></i>
+        <div class="policy-text">
+          <p><strong>Your review will be published after the host reviews or after 14 days.</strong></p>
+          <p>You can edit your review within 48 hours of submission. Reviews must follow our content policy.</p>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<style>
+.category-comment {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px dashed #ebebeb;
+}
+
+.category-comment textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 14px;
+  resize: vertical;
+  transition: all 0.2s;
+}
+
+.category-comment textarea:focus {
+  outline: none;
+  border-color: #ff385c;
+  box-shadow: 0 0 0 2px rgba(255,56,92,0.1);
+}
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    // Step navigation
+    window.goToStep = function(stepNumber) {
+      document.querySelectorAll('.form-step').forEach(step => {
+        step.classList.remove('active');
+      });
+      document.getElementById(`step${stepNumber}`).classList.add('active');
+      
+      document.querySelectorAll('.progress-step').forEach((step, index) => {
+        if (index < stepNumber) {
+          step.classList.add('active');
+        } else {
+          step.classList.remove('active');
+        }
+      });
+    };
+
+    // Character counter for overall comment
+    const overallComment = document.getElementById('overallComment');
+    const overallCharCount = document.getElementById('overallCharCount');
+
+    if (overallComment && overallCharCount) {
+      overallComment.addEventListener('input', function () {
+        overallCharCount.textContent = this.value.length;
+      });
+    }
+
+    // Rating chip selection
+    document.querySelectorAll('.rating-chip input[type="radio"]').forEach(radio => {
+      radio.addEventListener('change', function() {
+        const chip = this.closest('.rating-chip');
+        const parent = chip.closest('.rating-chips');
+        
+        parent.querySelectorAll('.rating-chip').forEach(c => {
+          c.classList.remove('selected');
+        });
+        
+        chip.classList.add('selected');
+      });
+    });
+
+    // Drag and drop upload
+    const uploadArea = document.getElementById('uploadArea');
+    const photoInput = document.getElementById('reviewPhotos');
+    const previewGrid = document.getElementById('photoPreviewGrid');
+    let selectedFiles = [];
+
+    if (uploadArea && photoInput && previewGrid) {
+      const maxPhotos = 5;
+
+      uploadArea.querySelector('.browse-link').addEventListener('click', () => {
+        photoInput.click();
+      });
+
+      uploadArea.addEventListener('click', () => {
+        photoInput.click();
+      });
+
+      uploadArea.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadArea.classList.add('dragover');
+      });
+
+      uploadArea.addEventListener('dragleave', () => {
+        uploadArea.classList.remove('dragover');
+      });
+
+      uploadArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadArea.classList.remove('dragover');
+        
+        const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
+        handleFiles(files);
+      });
+
+      photoInput.addEventListener('change', function (e) {
+        const files = Array.from(e.target.files);
+        handleFiles(files);
+      });
+
+      function handleFiles(files) {
+        if (selectedFiles.length + files.length > maxPhotos) {
+          alert(`You can only upload up to ${maxPhotos} photos`);
+          return;
+        }
+
+        files.forEach(file => {
+          if (!file.type.startsWith('image/')) {
+            alert('Please upload only image files');
+            return;
+          }
+          selectedFiles.push(file);
+        });
+
+        updatePreviewGrid();
+      }
+
+      function updatePreviewGrid() {
+        previewGrid.innerHTML = '';
+
+        selectedFiles.forEach((file, index) => {
+          const reader = new FileReader();
+          reader.onload = function (e) {
+            const previewItem = document.createElement('div');
+            previewItem.className = 'photo-preview-item';
+            previewItem.innerHTML = `
+              <img src="${e.target.result}" alt="Preview ${index + 1}">
+              <button type="button" class="remove-photo-btn" data-index="${index}">
+                <i class="fa-solid fa-times"></i>
+              </button>
+              <div class="photo-order">${index + 1}</div>
+            `;
+            previewGrid.appendChild(previewItem);
+
+            previewItem.querySelector('.remove-photo-btn').addEventListener('click', function () {
+              selectedFiles.splice(index, 1);
+              updatePreviewGrid();
+              
+              const dt = new DataTransfer();
+              selectedFiles.forEach(file => dt.items.add(file));
+              photoInput.files = dt.files;
+            });
+          };
+          reader.readAsDataURL(file);
+        });
+
+        if (selectedFiles.length >= maxPhotos) {
+          uploadArea.style.display = 'none';
+        } else {
+          uploadArea.style.display = 'block';
+        }
+      }
+    }
+    
+    // Form submission validation
+    const form = document.getElementById('guestReviewForm');
+    if (form) {
+      form.addEventListener('submit', function (e) {
+        const categories = ['cleanliness', 'accuracy', 'communication', 'location', 'checkIn', 'value'];
+        let missingRatings = [];
+
+        // Check if all categories have ratings
+        categories.forEach(category => {
+          const ratingSelected = document.querySelector(`input[name="review[${category}][rating]"]:checked`);
+          if (!ratingSelected) {
+            missingRatings.push(category);
+          }
+        });
+
+        if (missingRatings.length > 0) {
+          e.preventDefault();
+          alert(`Please rate all categories: ${missingRatings.join(', ')}`);
+          
+          // Go back to step 1
+          goToStep(1);
+        }
+      });
+    }
+  });
+</script>

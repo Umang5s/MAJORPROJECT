@@ -10,13 +10,13 @@ const upload = multer({ storage });
 // Search route - searches ALL listings
 router.get("/search", wrapAsync(listingController.searchListings));
 
-// Index route - shows ALL listings (for traveller mode)
+// In routes/listings.js - update the POST route
 router
   .route("/")
   .get(wrapAsync(listingController.index))
   .post(
     isLoggedIn,
-    upload.single("listing[image]"),
+    upload.array("listing[images]", 10), // Changed from single to array
     validateListing,
     wrapAsync(listingController.createListing)
   );
@@ -27,21 +27,22 @@ router.get("/new", isLoggedIn, wrapAsync(listingController.renderNewListingForm)
 // Copy from existing listing
 router.get("/copy/:id", isLoggedIn, wrapAsync(listingController.copyListing));
 
-// Show, Edit, Delete routes
+// In routes/listings.js - update the PUT route for editing
 router
   .route("/:id")
   .get(wrapAsync(listingController.showListings))
   .put(
     isLoggedIn,
     isOwner,
-    upload.single("listing[image]"),
+    upload.array("listing[photos]", 10), // Changed to array
     validateListing,
     wrapAsync(listingController.editListing)
   )
   .delete(isLoggedIn, isOwner, wrapAsync(listingController.destroyListing));
 
-// Edit route
+// Edit routes
 router.get("/:id/edit", isLoggedIn, isOwner, wrapAsync(listingController.renderEditForm));
+router.put("/:id", isLoggedIn, isOwner, upload.array("listing[photos]", 10), wrapAsync(listingController.updateListing));
 
 
 module.exports = router;

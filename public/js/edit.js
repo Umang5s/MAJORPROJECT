@@ -1,20 +1,16 @@
 new Vue({
-  el: "#createListingApp",
+  el: "#editListingApp",
   data: {
-    currentStep: 0,
     currentMainStep: 1,
     currentSubStep: 0,
-    selectedType: "home",
-    showCopyModal: false,
-    showFullBreakdown: true,
-    isSubmitting: false,
-    formData: {
+    listingId: window.LISTING_ID || null,
+    formData: window.LISTING_DATA || {
       propertyType: "",
       guestAccess: "",
       detailedPropertyType: "",
       placeType: "",
       address: "",
-      country: "",
+      country: "India",
       lat: null,
       lng: null,
       addressLine1: "",
@@ -33,7 +29,6 @@ new Vue({
       title: "",
       description: "",
       highlights: [],
-      // Step 3 fields
       bookingType: "approve",
       basePrice: 2273,
       weekendPrice: 2318,
@@ -49,6 +44,7 @@ new Vue({
       residentialPincode: "",
       isBusiness: "no",
     },
+    deletedPhotos: [], // Track photos to delete
     mapboxToken: null,
     suggestions: [],
     recentSearches: [],
@@ -83,23 +79,11 @@ new Vue({
       { value: "house", label: "House", icon: "fa-solid fa-house" },
       { value: "flat", label: "Flat/apartment", icon: "fa-solid fa-building" },
       { value: "barn", label: "Barn", icon: "fa-solid fa-warehouse" },
-      {
-        value: "bnb",
-        label: "Bed & breakfast",
-        icon: "fa-solid fa-mug-saucer",
-      },
+      { value: "bnb", label: "Bed & breakfast", icon: "fa-solid fa-mug-saucer" },
       { value: "boat", label: "Boat", icon: "fa-solid fa-ship" },
       { value: "cabin", label: "Cabin", icon: "fa-solid fa-tree" },
-      {
-        value: "camper",
-        label: "Campervan/motorhome",
-        icon: "fa-solid fa-truck",
-      },
-      {
-        value: "casa",
-        label: "Casa particular",
-        icon: "fa-solid fa-umbrella-beach",
-      },
+      { value: "camper", label: "Campervan/motorhome", icon: "fa-solid fa-truck" },
+      { value: "casa", label: "Casa particular", icon: "fa-solid fa-umbrella-beach" },
       { value: "castle", label: "Castle", icon: "fa-solid fa-crown" },
     ],
     placeTypes: [
@@ -111,14 +95,12 @@ new Vue({
       {
         value: "room",
         label: "A room",
-        description:
-          "Guests have their own room in a home, plus access to shared spaces.",
+        description: "Guests have their own room in a home, plus access to shared spaces.",
       },
       {
         value: "shared",
         label: "A shared room in a hostel",
-        description:
-          "Guests sleep in a shared room in a professionally managed hostel with staff on-site 24/7.",
+        description: "Guests sleep in a shared room in a professionally managed hostel with staff on-site 24/7.",
       },
     ],
     guestFavourites: [
@@ -163,59 +145,22 @@ new Vue({
     ],
   },
   computed: {
-    typeIcon() {
-      const icons = {
-        home: "fa-house",
-        experience: "fa-compass",
-        service: "fa-bell-concierge",
-      };
-      return icons[this.selectedType] || "fa-house";
-    },
-    typeDescription() {
-      const descriptions = {
-        home: "List your space and start earning money by hosting guests from around the world.",
-        experience:
-          "Share your passion by hosting unique activities and experiences for travelers.",
-        service:
-          "Offer professional services and connect with travelers who need your expertise.",
-      };
-      return descriptions[this.selectedType] || descriptions.home;
-    },
-
-    // Check if current step is the first step (no back button)
     isFirstStep() {
-      // Welcome screen (substep 0) doesn't need back button
-      if (this.currentMainStep === 1 && this.currentSubStep === 0) {
-        return true;
-      }
-      return false;
+      return this.currentMainStep === 1 && this.currentSubStep === 0;
     },
     showUtilityLinks() {
-      // Hide on Get Started page (substep 1) since it has its own Exit link in content
-      if (this.currentMainStep === 1 && this.currentSubStep === 1) {
-        return false;
-      }
       return true;
     },
-    // Get the appropriate button text based on current step
     nextButtonText() {
-      if (this.currentMainStep === 1) {
-        if (this.currentSubStep === 0) return "Get started";
-        if (this.currentSubStep === 1) return "Get started";
-      }
       if (this.currentMainStep === 3 && this.currentSubStep === 8) {
-        return "Create listing";
+        return "Update listing";
       }
       return "Next";
     },
-
-    // Enable/disable next button based on validation
     isNextEnabled() {
       // Step 1 validation
       if (this.currentMainStep === 1) {
-        if (this.currentSubStep === 0 || this.currentSubStep === 1) {
-          return true; // Welcome and Get Started pages
-        }
+        if (this.currentSubStep === 0) return true;
         if (this.currentSubStep === 2) {
           return this.formData.propertyType && this.formData.guestAccess;
         }
@@ -237,52 +182,38 @@ new Vue({
           );
         }
         if (this.currentSubStep === 7) {
-          return true; // Counter fields always valid
+          return true;
         }
       }
 
       // Step 2 validation
       if (this.currentMainStep === 2) {
-        if (this.currentSubStep === 0) {
-          return true; // Intro page
-        }
-        if (this.currentSubStep === 1) {
-          return true; // Amenities optional
-        }
+        if (this.currentSubStep === 0) return true;
+        if (this.currentSubStep === 1) return true;
         if (this.currentSubStep === 2) {
-          return this.formData.photos.length >= 5; // Minimum 5 photos required
+          return this.formData.photos.length >= 1; // At least 1 photo for edit
         }
         if (this.currentSubStep === 3) {
           return this.formData.title && this.formData.description;
         }
         if (this.currentSubStep === 4) {
-          return true; // Highlights optional but limited
+          return true;
         }
       }
 
       // Step 3 validation
       if (this.currentMainStep === 3) {
-        if (this.currentSubStep === 0) {
-          return true; // Intro page
-        }
+        if (this.currentSubStep === 0) return true;
         if (this.currentSubStep === 1) {
           return this.formData.bookingType;
         }
         if (this.currentSubStep === 2) {
           return this.formData.basePrice > 0;
         }
-        if (this.currentSubStep === 3) {
-          return true; // Just viewing breakdown
-        }
-        if (this.currentSubStep === 4) {
-          return true; // Weekend price optional
-        }
-        if (this.currentSubStep === 5) {
-          return true; // Discounts optional
-        }
-        if (this.currentSubStep === 6) {
-          return true; // Safety items optional
-        }
+        if (this.currentSubStep === 3) return true;
+        if (this.currentSubStep === 4) return true;
+        if (this.currentSubStep === 5) return true;
+        if (this.currentSubStep === 6) return true;
         if (this.currentSubStep === 7) {
           return (
             this.formData.residentialStreet &&
@@ -298,141 +229,40 @@ new Vue({
 
       return true;
     },
-    
-    // NEW: Calculated weekend price based on base price and premium
-    calculatedWeekendPrice() {
-      const base = parseInt(this.formData.basePrice) || 0;
-      const premium = parseInt(this.formData.weekendPremium) || 2;
-      return Math.round(base * (1 + premium / 100));
-    },
   },
-  
-  // NEW: Watchers to automatically update weekend price
-  watch: {
-    'formData.basePrice': {
-      handler: function(newVal, oldVal) {
-        if (newVal !== oldVal) {
-          this.updateWeekendPrice();
-        }
-      },
-      immediate: true
-    },
-    'formData.weekendPremium': {
-      handler: function() {
-        this.updateWeekendPrice();
-      },
-      immediate: true
-    }
-  },
-  
   methods: {
-    // Update saveState to NOT save file objects (they can't be serialized)
-    saveState() {
-      // Create a copy of formData without the file objects
-      const stateForStorage = {
-        currentStep: this.currentStep,
-        currentMainStep: this.currentMainStep,
-        currentSubStep: this.currentSubStep,
-        selectedType: this.selectedType,
-        formData: {
-          ...this.formData,
-          photos: this.formData.photos.map((photo) => {
-            // Store only preview URLs, not the file objects
-            if (photo.file) {
-              return { preview: photo.preview, isNew: true };
-            }
-            return photo;
-          }),
-        },
-      };
-      sessionStorage.setItem("listingDraft", JSON.stringify(stateForStorage));
-    },
-
-    // Update loadState to restore but without files
-    loadState() {
-      const saved = sessionStorage.getItem("listingDraft");
-      if (saved) {
-        try {
-          const state = JSON.parse(saved);
-          this.currentStep = state.currentStep;
-          this.currentMainStep = state.currentMainStep;
-          this.currentSubStep = state.currentSubStep;
-          this.selectedType = state.selectedType;
-
-          // Restore form data but note: file objects are lost
-          this.formData = { ...this.formData, ...state.formData };
-
-          // Important: We need to inform user that files need to be re-uploaded
-          // You could add a flag to show a message
-          console.log("Loaded saved state (files need to be re-uploaded)");
-        } catch (e) {
-          console.error("Error loading saved state:", e);
-        }
-      }
-    },
-
-    // Clear saved state (call after successful submission)
-    clearState() {
-      sessionStorage.removeItem("listingDraft");
-    },
-
-    selectType(type) {
-      this.selectedType = type;
-      this.currentStep = 1;
-      this.currentSubStep = 0;
-      this.saveState();
-    },
-
-    closeModal() {
-      window.location.href = "/host/listings";
-    },
-
-    startNewListing() {
-      this.currentSubStep = 1;
-      this.saveState();
-    },
-
     goToSubStep(step) {
       this.currentSubStep = step;
-      this.saveState();
     },
 
     goToMainStep2() {
       this.currentMainStep = 2;
       this.currentSubStep = 0;
-      this.saveState();
     },
 
     goBackToBasics() {
       this.currentMainStep = 1;
       this.currentSubStep = 7;
-      this.saveState();
     },
 
     goToAmenities() {
       this.currentSubStep = 1;
-      this.saveState();
     },
 
     goToStep2Intro() {
       this.currentSubStep = 0;
-      this.saveState();
     },
 
     goToPhotoUpload() {
       this.currentSubStep = 2;
-      this.saveState();
     },
 
     goToTitleDescription() {
-      if (this.formData.photos.length < 5) {
-        alert(
-          `Please upload at least 5 photos. You have ${this.formData.photos.length} photo(s).`,
-        );
+      if (this.formData.photos.length < 1) {
+        alert("Please add at least 1 photo");
         return;
       }
       this.currentSubStep = 3;
-      this.saveState();
     },
 
     goToHighlights() {
@@ -441,93 +271,76 @@ new Vue({
         return;
       }
       this.currentSubStep = 4;
-      this.saveState();
     },
 
     goToMainStep3() {
       this.currentMainStep = 3;
       this.currentSubStep = 0;
-      this.saveState();
     },
 
     goBackToHighlights() {
       this.currentMainStep = 2;
       this.currentSubStep = 4;
-      this.saveState();
     },
 
     goToMainStep3Intro() {
       this.currentSubStep = 0;
-      this.saveState();
     },
 
     goToBookingSettings() {
       this.currentSubStep = 1;
-      this.saveState();
     },
 
     goToBasePrice() {
       this.currentSubStep = 2;
-      this.saveState();
     },
 
     goToPriceBreakdown() {
       this.currentSubStep = 3;
-      this.saveState();
     },
 
     goToWeekendPrice() {
       this.currentSubStep = 4;
-      this.saveState();
     },
 
     goToDiscounts() {
       this.currentSubStep = 5;
-      this.saveState();
     },
 
     goToSafetyDetails() {
       this.currentSubStep = 6;
-      this.saveState();
     },
 
     goToResidentialAddress() {
       this.currentSubStep = 7;
-      this.saveState();
     },
 
     goToBusinessType() {
       this.currentSubStep = 8;
-      this.saveState();
     },
 
     validateHighlights() {
       if (this.formData.highlights.length > 2) {
         this.formData.highlights.pop();
       }
-      this.saveState();
     },
 
     increment(field) {
       this.formData[field]++;
-      this.saveState();
     },
 
     decrement(field) {
       if (this.formData[field] > 1) {
         this.formData[field]--;
       }
-      this.saveState();
     },
 
-    // New unified navigation method
     handleNext() {
       if (!this.isNextEnabled) return;
 
       // Step 1 navigation
       if (this.currentMainStep === 1) {
-        if (this.currentSubStep === 0) this.goToSubStep(1);
-        else if (this.currentSubStep === 1) this.goToSubStep(2);
+        if (this.currentSubStep === 0) this.goToSubStep(2);
         else if (this.currentSubStep === 2) this.goToSubStep(3);
         else if (this.currentSubStep === 3) this.goToSubStep(4);
         else if (this.currentSubStep === 4) this.goToSubStep(5);
@@ -541,12 +354,10 @@ new Vue({
         if (this.currentSubStep === 0) this.goToAmenities();
         else if (this.currentSubStep === 1) this.goToPhotoUpload();
         else if (this.currentSubStep === 2) {
-          if (this.formData.photos.length >= 5) {
+          if (this.formData.photos.length >= 1) {
             this.goToTitleDescription();
           } else {
-            alert(
-              `Please add at least 5 photos. You currently have ${this.formData.photos.length} photo(s).`,
-            );
+            alert("Please add at least 1 photo");
           }
         } else if (this.currentSubStep === 3) {
           if (this.formData.title && this.formData.description) {
@@ -569,18 +380,16 @@ new Vue({
         else if (this.currentSubStep === 5) this.goToSafetyDetails();
         else if (this.currentSubStep === 6) this.goToResidentialAddress();
         else if (this.currentSubStep === 7) this.goToBusinessType();
-        else if (this.currentSubStep === 8) this.submitListing();
+        else if (this.currentSubStep === 8) this.submitUpdate();
       }
     },
 
-    // New unified back navigation
     goBack() {
-      if (this.isFirstStep) return; // No back on first step
+      if (this.isFirstStep) return;
 
       // Step 1 back navigation
       if (this.currentMainStep === 1) {
-        if (this.currentSubStep === 1) this.goToSubStep(0);
-        else if (this.currentSubStep === 2) this.goToSubStep(1);
+        if (this.currentSubStep === 2) this.goToSubStep(0);
         else if (this.currentSubStep === 3) this.goToSubStep(2);
         else if (this.currentSubStep === 4) this.goToSubStep(3);
         else if (this.currentSubStep === 5) this.goToSubStep(4);
@@ -631,8 +440,8 @@ new Vue({
         try {
           const response = await fetch(
             `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
-              this.formData.address,
-            )}.json?access_token=${this.mapboxToken}&autocomplete=true&limit=5`,
+              this.formData.address
+            )}.json?access_token=${this.mapboxToken}&autocomplete=true&limit=5`
           );
 
           const data = await response.json();
@@ -660,8 +469,8 @@ new Vue({
       this.formData.lat = location.lat;
       this.formData.lng = location.lng;
       this.formData.country = this.extractCountry(location);
-      this.suggestions = [];
       this.formData.city = this.extractCity(location);
+      this.suggestions = [];
       this.saveToRecentSearches(location);
 
       if (this.map && this.marker) {
@@ -672,18 +481,12 @@ new Vue({
         });
         this.marker.setLngLat([location.lng, location.lat]);
       }
-
-      this.saveState();
     },
 
     extractCountry(location) {
       if (location.context) {
         for (const item of location.context) {
-          if (
-            typeof item === "object" &&
-            item.id &&
-            item.id.includes("country")
-          ) {
+          if (typeof item === "object" && item.id && item.id.includes("country")) {
             return item.text || "India";
           }
         }
@@ -695,11 +498,7 @@ new Vue({
       if (location.context) {
         for (const item of location.context) {
           if (typeof item === "object" && item.id) {
-            if (
-              item.id.includes("place") ||
-              item.id.includes("locality") ||
-              item.id.includes("neighborhood")
-            ) {
+            if (item.id.includes("place") || item.id.includes("locality") || item.id.includes("neighborhood")) {
               return item.text || location.place_name.split(",")[0];
             }
           }
@@ -712,10 +511,7 @@ new Vue({
       const exists = this.recentSearches.some((s) => s.id === location.id);
       if (!exists) {
         this.recentSearches = [location, ...this.recentSearches].slice(0, 5);
-        localStorage.setItem(
-          "recentSearches",
-          JSON.stringify(this.recentSearches),
-        );
+        localStorage.setItem("recentSearches", JSON.stringify(this.recentSearches));
       }
     },
 
@@ -735,11 +531,7 @@ new Vue({
 
       this.mapboxToken = window.MAP_TOKEN || window.MAPBOX_TOKEN;
 
-      if (
-        !this.mapboxToken ||
-        this.mapboxToken === "YOUR_MAPBOX_TOKEN" ||
-        this.mapboxToken === "undefined"
-      ) {
+      if (!this.mapboxToken || this.mapboxToken === "YOUR_MAPBOX_TOKEN" || this.mapboxToken === "undefined") {
         console.error("Mapbox token not configured properly");
         return;
       }
@@ -752,11 +544,16 @@ new Vue({
       try {
         mapboxgl.accessToken = this.mapboxToken;
 
+        const initialCenter = this.formData.lng && this.formData.lat 
+          ? [this.formData.lng, this.formData.lat] 
+          : [78.5, 20.5];
+        const initialZoom = this.formData.lng && this.formData.lat ? 14 : 4;
+
         this.map = new mapboxgl.Map({
           container: "locationMap",
           style: "mapbox://styles/mapbox/streets-v12",
-          center: [78.5, 20.5],
-          zoom: 4,
+          center: initialCenter,
+          zoom: initialZoom,
         });
 
         this.map.addControl(new mapboxgl.NavigationControl(), "top-right");
@@ -766,7 +563,7 @@ new Vue({
             color: "#ff385c",
             draggable: true,
           })
-            .setLngLat([78.5, 20.5])
+            .setLngLat(initialCenter)
             .addTo(this.map);
 
           this.marker.on("dragend", async () => {
@@ -776,7 +573,7 @@ new Vue({
 
             try {
               const response = await fetch(
-                `https://api.mapbox.com/geocoding/v5/mapbox.places/${lngLat.lng},${lngLat.lat}.json?access_token=${this.mapboxToken}`,
+                `https://api.mapbox.com/geocoding/v5/mapbox.places/${lngLat.lng},${lngLat.lat}.json?access_token=${this.mapboxToken}`
               );
               const data = await response.json();
 
@@ -803,7 +600,7 @@ new Vue({
 
             try {
               const response = await fetch(
-                `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${this.mapboxToken}`,
+                `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${this.mapboxToken}`
               );
               const data = await response.json();
 
@@ -831,45 +628,42 @@ new Vue({
       }
     },
 
-    copyListing(id) {
-      window.location.href = `/listings/copy/${id}?type=${this.selectedType}`;
-    },
-
-    // Handle photo upload - UPDATED to store file objects
     handlePhotoUpload(event) {
       const files = Array.from(event.target.files);
 
-      // Check if adding these files would exceed the limit
-      if (this.formData.photos.length + files.length > 10) {
-        alert(
-          `You can only upload up to 10 photos. You have ${this.formData.photos.length} already.`,
-        );
-        return;
-      }
-
-      // Process each file
       files.forEach((file) => {
-        // Create a preview URL
+        if (this.formData.photos.length >= 10) {
+          alert("Maximum 10 photos allowed");
+          return;
+        }
+
         const reader = new FileReader();
         reader.onload = (e) => {
-          // Add to photos array with preview and file object
           this.formData.photos.push({
-            preview: e.target.result,
             file: file,
-            isNew: true,
+            url: e.target.result,
+            name: file.name,
+            isNew: true // Mark as new photo
           });
-          this.saveState();
         };
         reader.readAsDataURL(file);
       });
 
-      // Clear the input
       event.target.value = "";
     },
 
     removePhoto(index) {
+      const photo = this.formData.photos[index];
+      
+      // If it's an existing photo from the server (has filename), track for deletion
+      if (photo.filename && !photo.isNew) {
+        this.deletedPhotos.push({
+          url: photo.url,
+          filename: photo.filename
+        });
+      }
+      
       this.formData.photos.splice(index, 1);
-      this.saveState();
     },
 
     calculateGuestPrice(price) {
@@ -887,217 +681,127 @@ new Vue({
       return Math.round(base * 0.97);
     },
 
-    // UPDATED: Calculate weekend price based on base price and premium
     calculateWeekendPrice(basePrice) {
       const base = parseInt(basePrice) || 0;
-      const premium = parseInt(this.formData.weekendPremium) || 2;
+      const premium = this.formData.weekendPremium || 2;
       return Math.round(base * (1 + premium / 100));
     },
 
-    // UPDATED: Update weekend price and save state
     updateWeekendPrice() {
-      this.formData.weekendPrice = this.calculateWeekendPrice(
-        this.formData.basePrice,
-      );
-      this.saveState();
+      this.formData.weekendPrice = this.calculateWeekendPrice(this.formData.basePrice);
     },
 
-    togglePriceBreakdown() {
-      this.showFullBreakdown = !this.showFullBreakdown;
+    saveAndExit() {
+      if (confirm("Save changes and exit?")) {
+        this.submitUpdate();
+      }
     },
 
-    submitListing() {
-      // Check minimum photos requirement before submission
-      if (this.formData.photos.length < 5) {
-        alert(
-          `Please add at least 5 photos. You currently have ${this.formData.photos.length} photo(s).`,
-        );
-        this.currentMainStep = 2;
-        this.currentSubStep = 2;
-        return;
-      }
+    submitUpdate() {
+      // Create form for submission
+      const form = document.createElement("form");
+      form.method = "POST";
+      form.action = `/listings/${this.listingId}?_method=PUT`;
+      form.enctype = "multipart/form-data";
 
-      // Check if photos have file objects
-      const hasFileObjects = this.formData.photos.some(photo => photo.file);
-      if (!hasFileObjects) {
-        alert("Please re-upload your photos. They were lost during the session. This can happen if you reloaded the page or came back to a saved draft.");
-        this.currentMainStep = 2;
-        this.currentSubStep = 2;
-        return;
-      }
-
-      // Set loading state to true
-      this.isSubmitting = true;
-
-      // Create FormData object for multipart/form-data upload
-      const formData = new FormData();
-
-      // Helper to append fields
-      const appendField = (name, value) => {
+      const addField = (name, value) => {
         if (value !== undefined && value !== null && value !== "") {
-          formData.append(name, String(value));
+          const input = document.createElement("input");
+          input.type = "hidden";
+          input.name = name;
+          input.value = String(value);
+          form.appendChild(input);
         }
       };
 
-      // Determine category from property type
-      let category = "";
-      const propertyTypeToCategory = {
-        house: "Rooms",
-        apartment: "Rooms",
-        condo: "Rooms",
-        townhouse: "Rooms",
-        flat: "Rooms",
-        bnb: "Rooms",
-        cabin: "Camping",
-        camper: "Camping",
-        barn: "Farms",
-        castle: "Castles",
-        boat: "Amazing Pools",
-        casa: "General",
-      };
+      // Add all form data
+      addField("listing[title]", this.formData.title || "Untitled");
+      addField("listing[description]", this.formData.description || "");
+      addField("listing[basePrice]", this.formData.basePrice || 0);
+      addField("listing[weekendPrice]", this.formData.weekendPrice || this.formData.basePrice);
+      addField("listing[address]", this.formData.address);
+      addField("listing[fullAddress]", this.formData.fullAddress || this.formData.address);
+      addField("listing[country]", this.formData.country);
+      addField("listing[propertyType]", this.formData.propertyType);
+      addField("listing[guestAccess]", this.formData.guestAccess);
+      addField("listing[detailedPropertyType]", this.formData.detailedPropertyType);
+      addField("listing[placeType]", this.formData.placeType);
+      addField("listing[addressLine1]", this.formData.addressLine1);
+      addField("listing[addressLine2]", this.formData.addressLine2);
+      addField("listing[city]", this.formData.city);
+      addField("listing[state]", this.formData.state);
+      addField("listing[postalCode]", this.formData.postalCode);
+      addField("listing[instructions]", this.formData.instructions);
+      addField("listing[guests]", this.formData.guests);
+      addField("listing[bedrooms]", this.formData.bedrooms);
+      addField("listing[beds]", this.formData.beds);
+      addField("listing[bathrooms]", this.formData.bathrooms);
+      addField("listing[bookingType]", this.formData.bookingType);
+      addField("listing[isBusiness]", this.formData.isBusiness === "yes");
+      addField("listing[weekendPremium]", this.formData.weekendPremium);
 
-      const propertyType =
-        this.formData.propertyType || this.formData.detailedPropertyType;
-      if (propertyType && propertyTypeToCategory[propertyType]) {
-        category = propertyTypeToCategory[propertyType];
-      } else {
-        category = "General";
-      }
-
-      // Append all form fields
-      appendField("listing[title]", this.formData.title || "Untitled");
-      appendField("listing[description]", this.formData.description || "");
-      appendField("listing[price]", this.formData.basePrice || 0);
-      appendField(
-        "listing[weekendPrice]",
-        this.formData.weekendPrice || this.formData.basePrice,
-      );
-      appendField(
-        "listing[location]",
-        this.formData.fullAddress ||
-          `${this.formData.address}, ${this.formData.country}`,
-      );
-      appendField("listing[country]", this.formData.country);
-      appendField("listing[category]", category);
-      appendField("listing[totalRooms]", this.formData.bedrooms || 1);
-      appendField("listing[propertyType]", this.formData.propertyType);
-      appendField("listing[guestAccess]", this.formData.guestAccess);
-      appendField(
-        "listing[detailedPropertyType]",
-        this.formData.detailedPropertyType,
-      );
-      appendField("listing[placeType]", this.formData.placeType);
-      appendField("listing[addressLine1]", this.formData.addressLine1);
-      appendField("listing[addressLine2]", this.formData.addressLine2);
-      appendField("listing[city]", this.formData.city);
-      appendField("listing[state]", this.formData.state);
-      appendField("listing[postalCode]", this.formData.postalCode);
-      appendField("listing[instructions]", this.formData.instructions);
-      appendField("listing[guests]", this.formData.guests);
-      appendField("listing[bedrooms]", this.formData.bedrooms);
-      appendField("listing[beds]", this.formData.beds);
-      appendField("listing[bathrooms]", this.formData.bathrooms);
-      appendField("listing[bookingType]", this.formData.bookingType);
-      appendField("listing[isBusiness]", this.formData.isBusiness === "yes");
-
-      // Handle array fields (convert to comma-separated strings)
+      // Add arrays
       if (this.formData.amenities && this.formData.amenities.length) {
-        appendField("listing[amenities]", this.formData.amenities.join(","));
+        addField("listing[amenities]", this.formData.amenities.join(","));
       }
 
       if (this.formData.highlights && this.formData.highlights.length) {
-        appendField("listing[highlights]", this.formData.highlights.join(","));
+        addField("listing[highlights]", this.formData.highlights.join(","));
       }
 
       if (this.formData.discounts && this.formData.discounts.length) {
-        appendField("listing[discounts]", this.formData.discounts.join(","));
+        addField("listing[discounts]", this.formData.discounts.join(","));
       }
 
       if (this.formData.safetyItems && this.formData.safetyItems.length) {
-        appendField(
-          "listing[safetyItems]",
-          this.formData.safetyItems.join(","),
-        );
+        addField("listing[safetyItems]", this.formData.safetyItems.join(","));
       }
 
-      // Handle residential address as JSON
+      // Add residential address
       if (this.formData.residentialStreet || this.formData.residentialCity) {
-        const residentialAddress = {
-          country: this.formData.residentialCountry || "India",
-          flatNumber: this.formData.flatNumber || "",
-          street: this.formData.residentialStreet || "",
-          landmark: this.formData.landmark || "",
-          city: this.formData.residentialCity || "",
-          state: this.formData.residentialState || "",
-          pincode: this.formData.residentialPincode || "",
-        };
-        appendField(
-          "listing[residentialAddress]",
-          JSON.stringify(residentialAddress),
-        );
+        addField("listing[residentialCountry]", this.formData.residentialCountry || "India");
+        addField("listing[flatNumber]", this.formData.flatNumber || "");
+        addField("listing[residentialStreet]", this.formData.residentialStreet || "");
+        addField("listing[landmark]", this.formData.landmark || "");
+        addField("listing[residentialCity]", this.formData.residentialCity || "");
+        addField("listing[residentialState]", this.formData.residentialState || "");
+        addField("listing[residentialPincode]", this.formData.residentialPincode || "");
       }
 
-      // Handle geometry coordinates
+      // Add coordinates
       if (this.formData.lng && this.formData.lat) {
-        appendField("listing[geometry][coordinates][0]", this.formData.lng);
-        appendField("listing[geometry][coordinates][1]", this.formData.lat);
+        addField("listing[lng]", this.formData.lng);
+        addField("listing[lat]", this.formData.lat);
       }
 
-      // Append photo files to FormData
-      if (this.formData.photos && this.formData.photos.length > 0) {
-        this.formData.photos.forEach((photo) => {
-          if (photo.file) {
-            formData.append("listing[images]", photo.file);
-          }
-        });
+      // Add deleted photos
+      if (this.deletedPhotos.length > 0) {
+        addField("listing[deletedPhotos]", JSON.stringify(this.deletedPhotos));
       }
 
-      // Submit the form using fetch API
-      fetch("/listings", {
-        method: "POST",
-        body: formData,
-        credentials: "same-origin",
-      })
-        .then((response) => {
-          if (response.redirected) {
-            // Clear saved state on success
-            this.clearState();
-            window.location.href = response.url;
-          } else {
-            return response.json().then((data) => {
-              throw new Error(data.message || "Error creating listing");
-            });
-          }
-        })
-        .catch((error) => {
-          console.error("Error:", error);
-          alert("Error creating listing: " + error.message);
-          // Reset loading state on error
-          this.isSubmitting = false;
-        });
+      // Add new photo files
+      this.formData.photos.forEach((photo, index) => {
+        if (photo.isNew && photo.file) {
+          const fileInput = document.createElement("input");
+          fileInput.type = "file";
+          fileInput.name = `listing[photos][${index}]`;
+          fileInput.style.display = "none";
+          
+          // Create a FileList-like structure
+          const dataTransfer = new DataTransfer();
+          dataTransfer.items.add(photo.file);
+          fileInput.files = dataTransfer.files;
+          
+          form.appendChild(fileInput);
+        }
+      });
+
+      document.body.appendChild(form);
+      form.submit();
     },
   },
   mounted() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const typeParam = urlParams.get("type");
-
-    this.loadState();
-
-    if (
-      typeParam &&
-      ["home", "experience", "service"].includes(typeParam) &&
-      this.currentStep === 0
-    ) {
-      this.selectedType = typeParam;
-      this.currentStep = 1;
-      this.currentSubStep = 0;
-      this.saveState();
-    }
-
-    this.loadRecentSearches();
-
-    this.mapboxToken = window.MAP_TOKEN || window.MAPBOX_TOKEN;
-
+    // Initialize map when on location step
     this.$watch("currentSubStep", (newVal) => {
       if (newVal === 5) {
         this.$nextTick(() => {
@@ -1107,5 +811,12 @@ new Vue({
         });
       }
     });
+
+    this.loadRecentSearches();
+    this.mapboxToken = window.MAP_TOKEN || window.MAPBOX_TOKEN;
+
+    // Start from basics step
+    this.currentMainStep = 1;
+    this.currentSubStep = 2; // Start from property type selection
   },
 });
