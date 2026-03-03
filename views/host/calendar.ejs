@@ -8,25 +8,66 @@
         <div class="calendar-main">
             <div class="calendar-header">
                 <div class="month-nav">
-                    <h1 class="month-title" id="monthTitle">March 2026</h1>
-                    <div class="nav-buttons">
-                        <button class="nav-btn" id="todayBtn">Today</button>
-                        <button class="nav-btn" id="prevMonth">←</button>
-                        <button class="nav-btn" id="nextMonth">→</button>
+                    <div class="month-selector">
+                        <h1 class="month-title" id="monthTitle">March 2026</h1>
+                        <button class="month-dropdown-btn" id="monthDropdownBtn">
+                            <i class="fa-solid fa-chevron-down"></i>
+                        </button>
+                        <div class="month-dropdown" id="monthDropdown">
+                            <div class="quick-jump">
+                                <span>Jump to</span>
+                                <div class="quick-jump-buttons">
+                                    <button data-months="1">Next month</button>
+                                    <button data-months="3">3 months</button>
+                                    <button data-months="6">6 months</button>
+                                    <button data-months="12">Next year</button>
+                                </div>
+                            </div>
+                            <div class="year-selector">
+                                <button id="prevYear"><i class="fa-solid fa-chevron-left"></i></button>
+                                <span id="currentYear">2026</span>
+                                <button id="nextYear"><i class="fa-solid fa-chevron-right"></i></button>
+                            </div>
+                            <div class="month-grid" id="monthGrid"></div>
+                        </div>
+                    </div>
+                    <div class="nav-buttons" id="navButtons">
+                        <button class="nav-btn" id="todayBtn" title="Go to today">
+                            <i class="fa-regular fa-calendar-check"></i>
+                            <span>Today</span>
+                        </button>
+                        <button class="nav-btn" id="prevMonth" title="Previous month">
+                            <i class="fa-solid fa-chevron-left"></i>
+                        </button>
+                        <button class="nav-btn" id="nextMonth" title="Next month">
+                            <i class="fa-solid fa-chevron-right"></i>
+                        </button>
                     </div>
                 </div>
                 
                 <div class="calendar-controls">
-                    <select id="listingFilter" class="listing-select">
-                        <option value="all">All Listings</option>
-                        <% listings.forEach(listing => { %>
-                            <option value="<%= listing._id %>"><%= listing.title %></option>
-                        <% }) %>
-                    </select>
+                    <div class="listing-select-wrapper">
+                        <i class="fa-regular fa-home"></i>
+                        <select id="listingFilter" class="listing-select">
+                            <option value="all">All Listings</option>
+                            <% listings.forEach(listing => { %>
+                                <option value="<%= listing._id %>"><%= listing.title %></option>
+                            <% }) %>
+                        </select>
+                    </div>
                     <div class="view-toggle">
-                        <button class="toggle-btn active" data-view="month">Month</button>
-                        <button class="toggle-btn" data-view="week">Week</button>
-                        <button class="toggle-btn" data-view="day">Day</button>
+                        <button class="toggle-btn active" data-view="month" title="Month view">
+                            <i class="fa-regular fa-calendar"></i>
+                            <span>Month</span>
+                        </button>
+                        <button class="toggle-btn" data-view="week" title="Week view">
+                            <i class="fa-regular fa-calendar-week"></i>
+                            <span>Week</span>
+                        </button>
+                        <button class="toggle-btn" data-view="day" title="Day view">
+                            <i class="fa-regular fa-calendar-day"></i>
+                            <span>Day</span>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -45,70 +86,120 @@
             <!-- Calendar Grid -->
             <div class="calendar-grid" id="calendarGrid"></div>
 
-            <!-- Legend -->
+            <!-- Legend with tooltips -->
             <div class="calendar-legend">
-                <div class="legend-item">
+                <div class="legend-item" data-tooltip="Dates available for booking">
                     <span class="dot available"></span>
                     <span>Available</span>
                 </div>
-                <div class="legend-item">
+                <div class="legend-item" data-tooltip="Dates with confirmed bookings">
                     <span class="dot booked"></span>
                     <span>Booked</span>
                 </div>
-                <div class="legend-item">
+                <div class="legend-item" data-tooltip="Dates you have blocked">
                     <span class="dot blocked"></span>
                     <span>Blocked by you</span>
+                </div>
+                <div class="legend-item" data-tooltip="Today's date">
+                    <span class="dot today-dot"></span>
+                    <span>Today</span>
                 </div>
             </div>
         </div>
 
-        <!-- RIGHT: Quick Stats Sidebar -->
+        <!-- RIGHT: Stats Sidebar -->
         <div class="calendar-sidebar">
-            <h3>Quick Stats</h3>
-            <div class="stat-item">
-                <span class="stat-label">Booked nights</span>
-                <span class="stat-value" id="bookedNights">0</span>
+            <div class="sidebar-header">
+                <h3>Dashboard</h3>
+                <button class="refresh-btn" id="refreshStats" title="Refresh data">
+                    <i class="fa-regular fa-rotate"></i>
+                </button>
             </div>
-            <div class="stat-item">
-                <span class="stat-label">Available nights</span>
-                <span class="stat-value" id="availableNights">0</span>
+            
+            <!-- Stats Cards -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon booked-icon">
+                        <i class="fa-regular fa-calendar-check"></i>
+                    </div>
+                    <div class="stat-content">
+                        <span class="stat-label">Booked nights</span>
+                        <span class="stat-value" id="bookedNights">0</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon available-icon">
+                        <i class="fa-regular fa-calendar"></i>
+                    </div>
+                    <div class="stat-content">
+                        <span class="stat-label">Available nights</span>
+                        <span class="stat-value" id="availableNights">0</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon blocked-icon">
+                        <i class="fa-regular fa-ban"></i>
+                    </div>
+                    <div class="stat-content">
+                        <span class="stat-label">Blocked nights</span>
+                        <span class="stat-value" id="blockedNights">0</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon earnings-icon">
+                        <i class="fa-regular fa-indian-rupee-sign"></i>
+                    </div>
+                    <div class="stat-content">
+                        <span class="stat-label">Est. earnings</span>
+                        <span class="stat-value" id="estimatedEarnings">₹0</span>
+                    </div>
+                </div>
             </div>
-            <div class="stat-item">
-                <span class="stat-label">Blocked nights</span>
-                <span class="stat-value" id="blockedNights">0</span>
-            </div>
-            <div class="stat-item">
-                <span class="stat-label">Estimated earnings</span>
-                <span class="stat-value" id="estimatedEarnings">₹0</span>
+
+            <!-- Occupancy Rate -->
+            <div class="occupancy-card">
+                <div class="occupancy-header">
+                    <span>Monthly occupancy</span>
+                    <span class="occupancy-percent" id="occupancyPercent">0%</span>
+                </div>
+                <div class="progress-bar-container">
+                    <div class="progress-bar" id="occupancyBar" style="width: 0%"></div>
+                </div>
+                <div class="occupancy-breakdown">
+                    <span><span class="dot available"></span> Available: <span id="availableCount">0</span></span>
+                    <span><span class="dot booked"></span> Booked: <span id="bookedCount">0</span></span>
+                    <span><span class="dot blocked"></span> Blocked: <span id="blockedCount">0</span></span>
+                </div>
             </div>
             
             <div class="sidebar-divider"></div>
             
-            <h4>Today's bookings</h4>
-            <div class="today-bookings" id="todayBookings">
-                <!-- Will be populated by JS -->
-            </div>
-            
-            <div class="sidebar-divider"></div>
-            
-            <h4>Upcoming bookings</h4>
-            <div class="upcoming-bookings" id="upcomingBookings">
-                <!-- Will be populated by JS -->
+            <!-- Bookings Tabs -->
+            <div class="bookings-section">
+                <div class="section-tabs">
+                    <button class="tab-btn active" data-tab="today">Today</button>
+                    <button class="tab-btn" data-tab="upcoming">Upcoming</button>
+                    <button class="tab-btn" data-tab="recent">Recent</button>
+                </div>
+                
+                <div class="tab-content active" id="todayBookings"></div>
+                <div class="tab-content" id="upcomingBookings"></div>
+                <div class="tab-content" id="recentBookings"></div>
             </div>
         </div>
     </div>
 
-    <!-- Popup Modal (appears when date clicked) -->
+    <!-- Popup Modal -->
     <div class="date-popup" id="datePopup">
         <div class="popup-content">
             <button class="popup-close" id="closePopup">✕</button>
             
             <div class="popup-header">
-                <h3 id="popupDate">3 Mar 2026</h3>
+                <h3 id="popupDate">Mar 5, 2026</h3>
                 <span class="date-status" id="popupStatus">Available</span>
             </div>
 
-            <!-- Booking details (shown if date has booking) -->
+            <!-- Booking details -->
             <div class="booking-details" id="bookingDetails" style="display: none;">
                 <h4>Booking Information</h4>
                 <div class="booking-info">
@@ -131,7 +222,7 @@
                 </div>
             </div>
 
-            <!-- Last-minute price option (only show if available) -->
+            <!-- Last-minute price option -->
             <div class="popup-option" id="lastMinuteOption">
                 <div class="option-header">
                     <span class="option-title">Last-minute price</span>
@@ -159,8 +250,19 @@
                 </label>
             </div>
 
+            <!-- Quick prices -->
+            <div class="price-presets">
+                <span class="preset-title">Quick prices:</span>
+                <button class="preset-btn" data-price="2000">₹2,000</button>
+                <button class="preset-btn" data-price="2500">₹2,500</button>
+                <button class="preset-btn" data-price="3000">₹3,000</button>
+                <button class="preset-btn" data-price="3500">₹3,500</button>
+            </div>
+
             <!-- Custom settings link -->
-            <a href="#" class="custom-settings" id="customSettings">Custom settings →</a>
+            <a href="#" class="custom-settings" id="customSettings">
+                Custom settings <i class="fa-regular fa-arrow-right"></i>
+            </a>
 
             <!-- Action buttons -->
             <div class="popup-actions">
@@ -169,7 +271,19 @@
             </div>
         </div>
     </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+        <span>Loading calendar...</span>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
 </div>
+
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
 <style>
     * {
@@ -184,21 +298,86 @@
         min-height: 100vh;
     }
 
+    /* Loading Overlay */
+    .loading-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(255,255,255,0.9);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        z-index: 10000;
+    }
+
+    .loading-overlay.show {
+        display: flex;
+    }
+
+    .spinner {
+        width: 40px;
+        height: 40px;
+        border: 3px solid #f3f3f3;
+        border-top: 3px solid #ff385c;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-bottom: 1rem;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    /* Toast */
+    .toast-container {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 10001;
+    }
+
+    .toast {
+        background: white;
+        border-radius: 8px;
+        padding: 12px 16px;
+        margin-bottom: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        transform: translateX(120%);
+        transition: transform 0.3s;
+        border-left: 3px solid;
+    }
+
+    .toast.show {
+        transform: translateX(0);
+    }
+
+    .toast.success { border-left-color: #28a745; }
+    .toast.error { border-left-color: #dc3545; }
+    .toast.info { border-left-color: #17a2b8; }
+
+    /* Layout */
     .calendar-layout {
         display: grid;
-        grid-template-columns: 1fr 320px;
+        grid-template-columns: 1fr 360px;
         max-width: 1600px;
         margin: 0 auto;
         padding: 24px;
         gap: 24px;
     }
 
-    /* Left Calendar Section */
+    /* Left Section */
     .calendar-main {
         background: white;
-        border-radius: 24px;
+        border-radius: 16px;
         padding: 24px;
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
     }
 
     .calendar-header {
@@ -213,13 +392,116 @@
     .month-nav {
         display: flex;
         align-items: center;
-        gap: 12px;
+        gap: 16px;
+        position: relative;
     }
 
     .month-title {
         font-size: 28px;
         font-weight: 600;
         color: #222;
+    }
+
+    .month-dropdown-btn {
+        background: none;
+        border: none;
+        font-size: 16px;
+        color: #717171;
+        cursor: pointer;
+        padding: 8px;
+        border-radius: 50%;
+        transition: background 0.2s;
+    }
+
+    .month-dropdown-btn:hover {
+        background: #f0f0f0;
+    }
+
+    .month-dropdown {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        padding: 20px;
+        z-index: 1000;
+        min-width: 280px;
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(10px);
+        transition: all 0.3s;
+    }
+
+    .month-dropdown.show {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+    }
+
+    .quick-jump span {
+        font-size: 12px;
+        color: #717171;
+        display: block;
+        margin-bottom: 8px;
+    }
+
+    .quick-jump-buttons {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+        margin-bottom: 16px;
+    }
+
+    .quick-jump-buttons button {
+        padding: 8px;
+        border: 1px solid #ddd;
+        border-radius: 20px;
+        background: white;
+        cursor: pointer;
+        font-size: 12px;
+        transition: all 0.2s;
+    }
+
+    .quick-jump-buttons button:hover {
+        border-color: #ff385c;
+        color: #ff385c;
+    }
+
+    .year-selector {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+    }
+
+    .year-selector button {
+        width: 32px;
+        height: 32px;
+        border: 1px solid #ddd;
+        border-radius: 50%;
+        background: white;
+        cursor: pointer;
+    }
+
+    .month-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+    }
+
+    .month-grid button {
+        padding: 8px;
+        border: none;
+        background: #f7f7f7;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 13px;
+    }
+
+    .month-grid button.active {
+        background: #ff385c;
+        color: white;
     }
 
     .nav-buttons {
@@ -236,37 +518,46 @@
         font-size: 14px;
         display: flex;
         align-items: center;
-        justify-content: center;
+        gap: 6px;
         transition: all 0.2s;
-        min-width: 60px;
     }
 
     .nav-btn:hover {
         border-color: #222;
-        background: #f7f7f7;
+        background: #fafafa;
     }
 
     #todayBtn {
         background: #ff385c;
         color: white;
         border-color: #ff385c;
-        font-weight: 500;
     }
 
     #todayBtn:hover {
         background: #e31c5f;
-        border-color: #e31c5f;
     }
 
     .calendar-controls {
         display: flex;
         gap: 12px;
         align-items: center;
-        flex-wrap: wrap;
+    }
+
+    .listing-select-wrapper {
+        position: relative;
+    }
+
+    .listing-select-wrapper i {
+        position: absolute;
+        left: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #717171;
+        font-size: 14px;
     }
 
     .listing-select {
-        padding: 10px 16px;
+        padding: 10px 16px 10px 40px;
         border: 1px solid #ddd;
         border-radius: 30px;
         font-size: 14px;
@@ -274,10 +565,10 @@
         cursor: pointer;
         outline: none;
         min-width: 200px;
-    }
-
-    .listing-select:focus {
-        border-color: #ff385c;
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23717171' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 14px center;
     }
 
     .view-toggle {
@@ -285,6 +576,7 @@
         background: #f0f0f0;
         padding: 4px;
         border-radius: 30px;
+        gap: 4px;
     }
 
     .toggle-btn {
@@ -295,12 +587,15 @@
         cursor: pointer;
         font-size: 14px;
         font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 6px;
         transition: all 0.2s;
     }
 
     .toggle-btn.active {
         background: white;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
 
     .weekdays {
@@ -311,7 +606,6 @@
         font-size: 14px;
         font-weight: 500;
         margin-bottom: 16px;
-        padding: 0 8px;
     }
 
     .calendar-grid {
@@ -335,11 +629,11 @@
 
     .date-cell:hover {
         border-color: #ddd;
-        background-color: #fafafa;
+        background: #fafafa;
     }
 
     .date-cell.selected {
-        background-color: #f0f0f0;
+        background: #f0f0f0;
         border-color: #222;
     }
 
@@ -352,68 +646,9 @@
     .price {
         font-size: 11px;
         color: #717171;
-        margin-bottom: 2px;
     }
 
-    .booking-indicator {
-        font-size: 10px;
-        padding: 2px 4px;
-        border-radius: 4px;
-        background: #ff385c;
-        color: white;
-        width: fit-content;
-        max-width: 100%;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-        margin-top: 2px;
-    }
-
-    /* Status colors */
-    .date-cell.available {
-        background-color: white;
-    }
-    
-    .date-cell.available .price {
-        color: #28a745;
-        font-weight: 500;
-    }
-
-    .date-cell.booked {
-        background-color: #fff1f1;
-        border-left: 3px solid #ff385c;
-    }
-    
-    .date-cell.booked .price {
-        color: #ff385c;
-        text-decoration: line-through;
-        opacity: 0.8;
-    }
-
-    .date-cell.blocked {
-        background-color: #f5f5f5;
-        border-left: 3px solid #dc3545;
-        background-image: repeating-linear-gradient(
-            45deg,
-            rgba(220, 53, 69, 0.05),
-            rgba(220, 53, 69, 0.05) 10px,
-            rgba(220, 53, 69, 0.1) 10px,
-            rgba(220, 53, 69, 0.1) 20px
-        );
-    }
-    
-    .date-cell.blocked .price {
-        color: #dc3545;
-        text-decoration: line-through;
-        font-weight: 500;
-    }
-    
-    .date-cell.blocked .date-number {
-        color: #dc3545;
-        font-weight: 600;
-    }
-
-    /* Today highlight */
+    /* Today indicator - Fixed */
     .date-cell.today {
         border: 2px solid #ff385c;
         position: relative;
@@ -426,10 +661,35 @@
         right: -8px;
         background: #ff385c;
         color: white;
-        font-size: 8px;
+        font-size: 9px;
         padding: 2px 6px;
         border-radius: 12px;
-        font-weight: 600;
+        font-weight: 500;
+        white-space: nowrap;
+    }
+
+    /* Status colors */
+    .date-cell.available .price {
+        color: #28a745;
+    }
+
+    .date-cell.booked {
+        background: #fff1f1;
+    }
+    
+    .date-cell.booked .price {
+        color: #ff385c;
+        text-decoration: line-through;
+    }
+
+    .date-cell.blocked {
+        background: #f5f5f5;
+        opacity: 0.7;
+    }
+    
+    .date-cell.blocked .price {
+        color: #dc3545;
+        text-decoration: line-through;
     }
 
     /* Legend */
@@ -438,7 +698,6 @@
         gap: 24px;
         padding-top: 16px;
         border-top: 1px solid #eee;
-        flex-wrap: wrap;
     }
 
     .legend-item {
@@ -447,6 +706,8 @@
         gap: 8px;
         font-size: 13px;
         color: #717171;
+        position: relative;
+        cursor: help;
     }
 
     .dot {
@@ -455,67 +716,184 @@
         border-radius: 50%;
     }
 
-    .dot.available {
-        background: #28a745;
-    }
-
-    .dot.booked {
-        background: #ff385c;
-    }
-
-    .dot.blocked {
-        background: #dc3545;
-    }
+    .dot.available { background: #28a745; }
+    .dot.booked { background: #ff385c; }
+    .dot.blocked { background: #dc3545; }
+    .dot.today-dot { background: #ff385c; }
 
     /* Right Sidebar */
     .calendar-sidebar {
         background: white;
-        border-radius: 24px;
+        border-radius: 16px;
         padding: 24px;
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
         height: fit-content;
-        max-height: calc(100vh - 48px);
-        overflow-y: auto;
     }
 
-    .calendar-sidebar h3 {
-        font-size: 18px;
-        font-weight: 600;
-        margin-bottom: 20px;
-        color: #222;
-    }
-
-    .calendar-sidebar h4 {
-        font-size: 16px;
-        font-weight: 500;
-        margin-bottom: 16px;
-        color: #222;
-    }
-
-    .stat-item {
+    .sidebar-header {
         display: flex;
         justify-content: space-between;
-        margin-bottom: 12px;
-        font-size: 14px;
+        align-items: center;
+        margin-bottom: 20px;
     }
 
-    .stat-label {
+    .sidebar-header h3 {
+        font-size: 18px;
+        font-weight: 600;
+        color: #222;
+    }
+
+    .refresh-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 8px;
+        border-radius: 50%;
         color: #717171;
+        transition: all 0.2s;
+    }
+
+    .refresh-btn:hover {
+        background: #f0f0f0;
+        color: #222;
+        transform: rotate(180deg);
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+        margin-bottom: 20px;
+    }
+
+    .stat-card {
+        background: #fafafa;
+        border-radius: 12px;
+        padding: 16px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .stat-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+    }
+
+    .stat-icon.booked-icon { background: rgba(255,56,92,0.1); color: #ff385c; }
+    .stat-icon.available-icon { background: rgba(40,167,69,0.1); color: #28a745; }
+    .stat-icon.blocked-icon { background: rgba(220,53,69,0.1); color: #dc3545; }
+    .stat-icon.earnings-icon { background: rgba(0,0,0,0.05); color: #222; }
+
+    .stat-label {
+        display: block;
+        font-size: 12px;
+        color: #717171;
+        margin-bottom: 2px;
     }
 
     .stat-value {
-        font-weight: 500;
+        display: block;
+        font-size: 18px;
+        font-weight: 600;
         color: #222;
+    }
+
+    /* Occupancy */
+    .occupancy-card {
+        background: #fafafa;
+        border-radius: 12px;
+        padding: 16px;
+        margin-bottom: 20px;
+    }
+
+    .occupancy-header {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 10px;
+        font-size: 13px;
+    }
+
+    .occupancy-percent {
+        font-weight: 600;
+        color: #222;
+    }
+
+    .progress-bar-container {
+        height: 6px;
+        background: #e0e0e0;
+        border-radius: 3px;
+        overflow: hidden;
+        margin-bottom: 12px;
+    }
+
+    .progress-bar {
+        height: 100%;
+        background: #ff385c;
+        transition: width 0.3s;
+    }
+
+    .occupancy-breakdown {
+        display: flex;
+        justify-content: space-between;
+        font-size: 12px;
+        color: #717171;
+    }
+
+    .occupancy-breakdown span {
+        display: flex;
+        align-items: center;
+        gap: 4px;
     }
 
     .sidebar-divider {
         height: 1px;
         background: #eee;
-        margin: 24px 0;
+        margin: 20px 0;
     }
 
-    .today-bookings, .upcoming-bookings {
-        min-height: 100px;
+    /* Bookings Tabs */
+    .bookings-section {
+        margin-bottom: 20px;
+    }
+
+    .section-tabs {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 16px;
+        background: #f0f0f0;
+        padding: 4px;
+        border-radius: 30px;
+    }
+
+    .tab-btn {
+        flex: 1;
+        padding: 6px 12px;
+        border: none;
+        background: transparent;
+        border-radius: 30px;
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 500;
+        transition: all 0.2s;
+    }
+
+    .tab-btn.active {
+        background: white;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    .tab-content {
+        display: none;
+    }
+
+    .tab-content.active {
+        display: block;
     }
 
     .booking-item {
@@ -524,39 +902,39 @@
         border-radius: 12px;
         margin-bottom: 8px;
         border-left: 3px solid #ff385c;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .booking-item:hover {
+        transform: translateX(4px);
+        background: white;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
     }
 
     .booking-guest {
         font-weight: 500;
-        font-size: 14px;
+        font-size: 13px;
         margin-bottom: 4px;
     }
 
     .booking-dates {
-        font-size: 12px;
+        font-size: 11px;
         color: #717171;
     }
 
-    .no-bookings {
-        color: #717171;
-        font-size: 13px;
-        text-align: center;
-        padding: 20px 0;
-    }
-
-    /* Popup Modal */
+    /* Popup Modal - Fixed close button */
     .date-popup {
         position: fixed;
         top: 0;
         left: 0;
         width: 100%;
         height: 100%;
-        background: rgba(0, 0, 0, 0.5);
+        background: rgba(0,0,0,0.5);
         display: none;
         align-items: center;
         justify-content: center;
-        z-index: 1000;
-        animation: fadeIn 0.2s ease;
+        z-index: 9999;
     }
 
     .date-popup.show {
@@ -565,43 +943,26 @@
 
     .popup-content {
         background: white;
-        border-radius: 24px;
-        padding: 32px;
+        border-radius: 20px;
+        padding: 28px;
         width: 90%;
-        max-width: 500px;
+        max-width: 480px;
         position: relative;
-        animation: slideUp 0.3s ease;
         max-height: 90vh;
         overflow-y: auto;
     }
 
-    @keyframes fadeIn {
-        from { opacity: 0; }
-        to { opacity: 1; }
-    }
-
-    @keyframes slideUp {
-        from {
-            opacity: 0;
-            transform: translateY(20px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
     .popup-close {
         position: absolute;
-        top: 20px;
-        right: 20px;
-        background: none;
+        top: 16px;
+        right: 16px;
+        background: #f0f0f0;
         border: none;
-        font-size: 20px;
+        font-size: 18px;
         cursor: pointer;
         color: #717171;
-        width: 32px;
-        height: 32px;
+        width: 36px;
+        height: 36px;
         border-radius: 50%;
         display: flex;
         align-items: center;
@@ -610,11 +971,13 @@
     }
 
     .popup-close:hover {
-        background: #f0f0f0;
+        background: #e0e0e0;
+        color: #222;
     }
 
     .popup-header {
         margin-bottom: 24px;
+        padding-right: 40px;
     }
 
     .popup-header h3 {
@@ -627,7 +990,7 @@
     .date-status {
         font-size: 14px;
         padding: 4px 12px;
-        border-radius: 30px;
+        border-radius: 20px;
         background: #e8f5e9;
         color: #28a745;
         display: inline-block;
@@ -643,16 +1006,16 @@
         color: #dc3545;
     }
 
-    /* Booking details in popup */
+    /* Booking details */
     .booking-details {
         background: #f8f9fa;
-        border-radius: 16px;
+        border-radius: 12px;
         padding: 16px;
         margin-bottom: 20px;
     }
 
     .booking-details h4 {
-        font-size: 16px;
+        font-size: 15px;
         font-weight: 600;
         margin-bottom: 12px;
         color: #222;
@@ -661,7 +1024,7 @@
     .info-row {
         display: flex;
         margin-bottom: 8px;
-        font-size: 14px;
+        font-size: 13px;
     }
 
     .info-label {
@@ -675,8 +1038,9 @@
         font-weight: 500;
     }
 
+    /* Popup options */
     .popup-option {
-        margin-bottom: 20px;
+        margin-bottom: 24px;
         padding-bottom: 20px;
         border-bottom: 1px solid #eee;
     }
@@ -687,29 +1051,29 @@
 
     .option-title {
         display: block;
-        font-weight: 500;
+        font-weight: 600;
         font-size: 16px;
         color: #222;
-        margin-bottom: 4px;
+        margin-bottom: 2px;
     }
 
     .option-subtitle {
         display: block;
-        font-size: 13px;
+        font-size: 12px;
         color: #717171;
     }
 
     .price-range {
         display: flex;
         align-items: center;
-        gap: 16px;
+        gap: 12px;
         background: #fafafa;
         padding: 12px;
         border-radius: 12px;
     }
 
     .original-price {
-        font-size: 16px;
+        font-size: 15px;
         color: #999;
         text-decoration: line-through;
     }
@@ -725,7 +1089,7 @@
         background: white;
         border: 1px solid #ddd;
         border-radius: 8px;
-        padding: 0 12px;
+        padding: 0 10px;
         flex: 1;
     }
 
@@ -739,7 +1103,7 @@
         width: 100px;
         border: none;
         padding: 8px 0;
-        font-size: 16px;
+        font-size: 15px;
         outline: none;
     }
 
@@ -747,8 +1111,8 @@
     .toggle-switch {
         position: relative;
         display: inline-block;
-        width: 50px;
-        height: 26px;
+        width: 48px;
+        height: 24px;
     }
 
     .toggle-switch input {
@@ -764,29 +1128,58 @@
         left: 0;
         right: 0;
         bottom: 0;
-        background-color: #ccc;
+        background: #ccc;
         transition: .2s;
-        border-radius: 34px;
+        border-radius: 24px;
     }
 
     .toggle-slider:before {
         position: absolute;
         content: "";
-        height: 20px;
-        width: 20px;
+        height: 18px;
+        width: 18px;
         left: 3px;
         bottom: 3px;
-        background-color: white;
+        background: white;
         transition: .2s;
         border-radius: 50%;
     }
 
     input:checked + .toggle-slider {
-        background-color: #dc3545;
+        background: #dc3545;
     }
 
     input:checked + .toggle-slider:before {
         transform: translateX(24px);
+    }
+
+    /* Price presets */
+    .price-presets {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+    }
+
+    .preset-title {
+        font-size: 12px;
+        color: #717171;
+    }
+
+    .preset-btn {
+        padding: 6px 12px;
+        border: 1px solid #ddd;
+        border-radius: 20px;
+        background: white;
+        cursor: pointer;
+        font-size: 12px;
+        transition: all 0.2s;
+    }
+
+    .preset-btn:hover {
+        border-color: #ff385c;
+        color: #ff385c;
     }
 
     .custom-settings {
@@ -796,21 +1189,21 @@
         text-decoration: none;
         font-size: 14px;
         font-weight: 500;
+        transition: color 0.2s;
     }
 
     .custom-settings:hover {
-        text-decoration: underline;
+        color: #ff385c;
     }
 
     .popup-actions {
         display: flex;
         gap: 12px;
-        margin-top: 8px;
     }
 
     .btn-secondary, .btn-primary {
         flex: 1;
-        padding: 14px;
+        padding: 12px;
         border: none;
         border-radius: 30px;
         font-size: 14px;
@@ -838,13 +1231,77 @@
         background: #e31c5f;
     }
 
-    /* Disabled state for booked dates */
     .popup-option.disabled {
         opacity: 0.5;
         pointer-events: none;
     }
 
-    /* Responsive */
+    /* Week View */
+    .week-view-cell {
+        aspect-ratio: auto;
+        min-height: 100px;
+    }
+
+    /* Day View */
+    .day-view-container {
+        display: grid;
+        grid-template-columns: 200px 1fr;
+        gap: 20px;
+        padding: 20px;
+    }
+
+    .day-view-cell {
+        aspect-ratio: auto;
+        height: 200px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .status-badge {
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        margin-top: 8px;
+    }
+
+    .status-badge.available {
+        background: #e8f5e9;
+        color: #28a745;
+    }
+
+    .status-badge.booked {
+        background: #ffebee;
+        color: #ff385c;
+    }
+
+    .status-badge.blocked {
+        background: #ffebee;
+        color: #dc3545;
+    }
+
+    .day-view-bookings-container {
+        background: #f8f9fa;
+        border-radius: 12px;
+        padding: 20px;
+    }
+
+    .day-view-booking {
+        background: white;
+        border-radius: 8px;
+        padding: 12px;
+        margin-bottom: 8px;
+        border-left: 3px solid #ff385c;
+        cursor: pointer;
+    }
+
+    .booking-time {
+        font-size: 12px;
+        color: #717171;
+        margin-bottom: 4px;
+    }
+
     @media (max-width: 1024px) {
         .calendar-layout {
             grid-template-columns: 1fr;
@@ -857,17 +1314,26 @@
             align-items: flex-start;
         }
         
-        .month-nav {
-            width: 100%;
-            justify-content: space-between;
-        }
-        
         .calendar-controls {
             width: 100%;
+            flex-direction: column;
         }
         
         .listing-select {
             width: 100%;
+        }
+        
+        .view-toggle {
+            width: 100%;
+        }
+        
+        .toggle-btn {
+            flex: 1;
+            justify-content: center;
+        }
+        
+        .day-view-container {
+            grid-template-columns: 1fr;
         }
     }
 </style>
@@ -879,8 +1345,11 @@
         let currentMonth = currentDate.getMonth();
         let currentYear = currentDate.getFullYear();
         let selectedDate = null;
+        let currentView = 'month';
+        let weekStartDate = new Date(currentYear, currentMonth, 1);
+        let selectedDayView = new Date(currentYear, currentMonth, 1);
         
-        // Store custom status for each date independently
+        // Store custom status for each date
         let dateStatuses = {};
         let datePrices = {};
         let blockedDates = [];
@@ -889,17 +1358,13 @@
         // Bookings data from server
         const bookings = <%- JSON.stringify(bookings) %>;
         
-        // Get listings data from server
+        // Get listings data
         const listings = <%- JSON.stringify(listings) %>;
         
-        // Generate consistent colors for listings
+        // Listing colors
         const listingColors = {};
-        const colorPalette = [
-            '#FF385C', '#00A699', '#FC642D', '#484848', '#008489',
-            '#FFB400', '#767676', '#D93954', '#6B3E96', '#0F7276'
-        ];
+        const colorPalette = ['#FF385C', '#00A699', '#FC642D', '#484848', '#008489', '#FFB400'];
         
-        // Assign colors to listings
         if (listings && listings.length > 0) {
             listings.forEach((listing, index) => {
                 const colorIndex = index % colorPalette.length;
@@ -916,6 +1381,7 @@
         const todayBtn = document.getElementById('todayBtn');
         const prevBtn = document.getElementById('prevMonth');
         const nextBtn = document.getElementById('nextMonth');
+        const navButtons = document.getElementById('navButtons');
         const listingFilter = document.getElementById('listingFilter');
         const viewToggle = document.querySelectorAll('.toggle-btn');
         const popup = document.getElementById('datePopup');
@@ -931,140 +1397,155 @@
         const bookingDetails = document.getElementById('bookingDetails');
         const lastMinuteOption = document.getElementById('lastMinuteOption');
         const blockOption = document.getElementById('blockOption');
-        
-        // Booking detail elements
-        const bookingGuest = document.getElementById('bookingGuest');
-        const bookingCheckIn = document.getElementById('bookingCheckIn');
-        const bookingCheckOut = document.getElementById('bookingCheckOut');
-        const bookingListing = document.getElementById('bookingListing');
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const toastContainer = document.getElementById('toastContainer');
+        const refreshBtn = document.getElementById('refreshStats');
+        const monthDropdownBtn = document.getElementById('monthDropdownBtn');
+        const monthDropdown = document.getElementById('monthDropdown');
+        const prevYear = document.getElementById('prevYear');
+        const nextYear = document.getElementById('nextYear');
+        const currentYearSpan = document.getElementById('currentYear');
+        const monthGrid = document.getElementById('monthGrid');
+        const pricePresets = document.querySelectorAll('.preset-btn');
+        const tabBtns = document.querySelectorAll('.tab-btn');
         
         // Stats elements
         const bookedNightsEl = document.getElementById('bookedNights');
         const availableNightsEl = document.getElementById('availableNights');
         const blockedNightsEl = document.getElementById('blockedNights');
         const estimatedEarningsEl = document.getElementById('estimatedEarnings');
+        const occupancyPercent = document.getElementById('occupancyPercent');
+        const occupancyBar = document.getElementById('occupancyBar');
+        const availableCount = document.getElementById('availableCount');
+        const bookedCount = document.getElementById('bookedCount');
+        const blockedCount = document.getElementById('blockedCount');
         const todayBookingsEl = document.getElementById('todayBookings');
         const upcomingBookingsEl = document.getElementById('upcomingBookings');
+        const recentBookingsEl = document.getElementById('recentBookings');
         
-        // ============== BACKEND API FUNCTIONS ==============
-        
+        // Booking detail elements
+        const bookingGuest = document.getElementById('bookingGuest');
+        const bookingCheckIn = document.getElementById('bookingCheckIn');
+        const bookingCheckOut = document.getElementById('bookingCheckOut');
+        const bookingListing = document.getElementById('bookingListing');
+
+        // ============== UTILITY FUNCTIONS ==============
+
+        function showLoading() {
+            loadingOverlay.classList.add('show');
+        }
+
+        function hideLoading() {
+            loadingOverlay.classList.remove('show');
+        }
+
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `
+                <i class="fa-regular fa-circle-check"></i>
+                <span>${message}</span>
+            `;
+            toastContainer.appendChild(toast);
+            
+            setTimeout(() => toast.classList.add('show'), 100);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        function formatNumber(num) {
+            return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        }
+
+        function formatDate(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        function formatPrice(price) {
+            if (price >= 1000) {
+                return '₹' + (price / 1000).toFixed(1) + 'K';
+            }
+            return '₹' + price;
+        }
+
+        // ============== API FUNCTIONS ==============
+
         async function fetchBlockedDates(listingId, year, month) {
+            if (listingId === 'all') {
+                blockedDates = [];
+                return;
+            }
+            
             try {
-                if (listingId === 'all') {
-                    blockedDates = [];
-                    return;
-                }
-                
                 const response = await fetch(`/host/calendar/blocked-dates?listingId=${listingId}&year=${year}&month=${month + 1}`);
                 const data = await response.json();
                 blockedDates = data.blockedDates || [];
                 
-                // Clear existing blocked statuses
                 Object.keys(dateStatuses).forEach(key => {
-                    if (dateStatuses[key] === 'blocked') {
-                        delete dateStatuses[key];
-                    }
+                    if (dateStatuses[key] === 'blocked') delete dateStatuses[key];
                 });
                 
-                // Update dateStatuses with blocked dates
-                blockedDates.forEach(dateStr => {
-                    dateStatuses[dateStr] = 'blocked';
-                });
-                
+                blockedDates.forEach(dateStr => dateStatuses[dateStr] = 'blocked');
             } catch (error) {
-                console.error('Error fetching blocked dates:', error);
-                blockedDates = [];
+                console.error('Error:', error);
             }
         }
-        
+
         async function fetchPriceOverrides(listingId, year, month) {
+            if (listingId === 'all') {
+                priceOverrides = [];
+                return;
+            }
+            
             try {
-                if (listingId === 'all') {
-                    priceOverrides = [];
-                    return;
-                }
-                
                 const response = await fetch(`/host/calendar/price-overrides?listingId=${listingId}&year=${year}&month=${month + 1}`);
                 const data = await response.json();
                 priceOverrides = data.priceOverrides || [];
-                
-                // Clear existing price overrides
                 datePrices = {};
-                
-                // Update datePrices with overrides
-                priceOverrides.forEach(override => {
-                    datePrices[override.date] = override.price;
-                });
-                
+                priceOverrides.forEach(override => datePrices[override.date] = override.price);
             } catch (error) {
-                console.error('Error fetching price overrides:', error);
-                priceOverrides = [];
+                console.error('Error:', error);
             }
         }
-        
+
         async function saveBlockedDate(listingId, dateStr, isBlocked) {
             try {
                 const response = await fetch('/host/calendar/block-date', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        listingId: listingId,
-                        date: dateStr,
-                        blocked: isBlocked
-                    })
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ listingId, date: dateStr, blocked: isBlocked })
                 });
-                
                 const data = await response.json();
-                if (data.success) {
-                    console.log('Date status saved successfully');
-                    return true;
-                }
-                return false;
+                return data.success;
             } catch (error) {
-                console.error('Error saving blocked date:', error);
+                console.error('Error:', error);
                 return false;
             }
         }
-        
+
         async function savePriceOverride(listingId, dateStr, price) {
             try {
                 const response = await fetch('/host/calendar/update-price', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        listingId: listingId,
-                        date: dateStr,
-                        price: price
-                    })
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ listingId, date: dateStr, price })
                 });
-                
                 const data = await response.json();
-                if (data.success) {
-                    console.log('Price saved successfully');
-                    return true;
-                }
-                return false;
+                return data.success;
             } catch (error) {
-                console.error('Error saving price override:', error);
+                console.error('Error:', error);
                 return false;
             }
         }
-        
+
         // ============== CALENDAR FUNCTIONS ==============
-        
-        async function initializeCalendar() {
-            currentListingId = listingFilter.value;
-            await fetchBlockedDates(currentListingId, currentYear, currentMonth);
-            await fetchPriceOverrides(currentListingId, currentYear, currentMonth);
-            renderCalendar();
-        }
-        
+
         function getBookingsForDate(date) {
-            const dateStr = formatDate(date);
             return bookings.filter(booking => {
                 const checkIn = new Date(booking.checkIn);
                 const checkOut = new Date(booking.checkOut);
@@ -1075,123 +1556,24 @@
                 return compareDate >= checkIn && compareDate < checkOut;
             });
         }
-        
+
         function getDateStatus(date, dateStr) {
-            // Check if blocked by host
-            if (dateStatuses.hasOwnProperty(dateStr)) {
-                return 'blocked';
-            }
-            
-            // Check bookings
-            const bookingsForDate = getBookingsForDate(date);
-            if (bookingsForDate.length > 0) {
-                return 'booked';
-            }
-            
+            if (dateStatuses.hasOwnProperty(dateStr)) return 'blocked';
+            if (getBookingsForDate(date).length > 0) return 'booked';
             return 'available';
         }
-        
+
         function getDatePrice(date, dateStr) {
-            // Return custom price if set
-            if (datePrices.hasOwnProperty(dateStr)) {
-                return datePrices[dateStr];
-            }
+            if (datePrices.hasOwnProperty(dateStr)) return datePrices[dateStr];
             
-            // Default price from first listing or standard
-            // In production, you'd get this from the actual listing
             const defaultPrice = 2289;
-            
-            // Weekend pricing example (Fri = 5, Sat = 6)
             const dayOfWeek = date.getDay();
             if (dayOfWeek === 5 || dayOfWeek === 6) {
-                return Math.round(defaultPrice * 1.1); // 10% higher on weekends
+                return Math.round(defaultPrice * 1.1);
             }
-            
             return defaultPrice;
         }
-        
-        function formatDate(date) {
-            const year = date.getFullYear();
-            const month = String(date.getMonth() + 1).padStart(2, '0');
-            const day = String(date.getDate()).padStart(2, '0');
-            return `${year}-${month}-${day}`;
-        }
-        
-        function formatPrice(price) {
-            if (price >= 1000) {
-                return '₹' + (price / 1000).toFixed(1) + 'K';
-            }
-            return '₹' + price;
-        }
-        
-        function renderCalendar() {
-            const firstDay = new Date(currentYear, currentMonth, 1);
-            const startDay = firstDay.getDay();
-            const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
-            const today = new Date();
-            
-            const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
-                'July', 'August', 'September', 'October', 'November', 'December'];
-            monthTitle.textContent = `${monthNames[currentMonth]} ${currentYear}`;
-            
-            let html = '';
-            
-            // Empty cells for days before month starts
-            for (let i = 0; i < startDay; i++) {
-                html += '<div class="date-cell empty"></div>';
-            }
-            
-            // Fill in the days
-            for (let day = 1; day <= daysInMonth; day++) {
-                const date = new Date(currentYear, currentMonth, day);
-                const dateStr = formatDate(date);
-                
-                const isToday = date.toDateString() === today.toDateString();
-                const status = getDateStatus(date, dateStr);
-                const price = getDatePrice(date, dateStr);
-                const formattedPrice = formatPrice(price);
-                
-                // Get bookings for this date
-                const bookingsForDate = getBookingsForDate(date);
-                const isSelected = selectedDate && selectedDate.toDateString() === date.toDateString();
-                
-                // Build booking indicators
-                let bookingIndicators = '';
-                if (bookingsForDate.length > 0) {
-                    bookingIndicators = '<div class="booking-indicators">';
-                    bookingsForDate.forEach(booking => {
-                        const listingId = booking.listing?._id || booking.listing;
-                        const color = listingColors[listingId] || '#FF385C';
-                        const guestName = booking.guest?.username || booking.guestDetails?.name || 'Guest';
-                        
-                        bookingIndicators += `
-                            <div class="booking-indicator" style="background-color: ${color}" title="${guestName}">
-                                ${guestName.substring(0, 1)}
-                            </div>
-                        `;
-                    });
-                    bookingIndicators += '</div>';
-                }
-                
-                let cellClasses = `date-cell ${status}`;
-                if (isSelected) cellClasses += ' selected';
-                if (isToday) cellClasses += ' today';
-                
-                html += `
-                    <div class="${cellClasses}" data-date="${dateStr}">
-                        <span class="date-number">${day}</span>
-                        <span class="price">${formattedPrice}</span>
-                        ${bookingIndicators}
-                    </div>
-                `;
-            }
-            
-            calendarGrid.innerHTML = html;
-            updateStats();
-            updateTodayBookings();
-            updateUpcomingBookings();
-        }
-        
+
         function updateStats() {
             const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
             let booked = 0, available = 0, blocked = 0, totalEarnings = 0;
@@ -1203,26 +1585,28 @@
                 const price = getDatePrice(date, dateStr);
                 
                 switch(status) {
-                    case 'booked':
-                        booked++;
-                        totalEarnings += price;
-                        break;
-                    case 'available':
-                        available++;
-                        break;
-                    case 'blocked':
-                        blocked++;
-                        break;
+                    case 'booked': booked++; totalEarnings += price; break;
+                    case 'available': available++; break;
+                    case 'blocked': blocked++; break;
                 }
             }
             
             bookedNightsEl.textContent = booked;
             availableNightsEl.textContent = available;
             blockedNightsEl.textContent = blocked;
-            estimatedEarningsEl.textContent = '₹' + totalEarnings.toLocaleString();
+            estimatedEarningsEl.textContent = '₹' + formatNumber(totalEarnings);
+            
+            const totalNights = booked + available + blocked;
+            const occupancyRate = totalNights > 0 ? Math.round((booked / totalNights) * 100) : 0;
+            occupancyPercent.textContent = occupancyRate + '%';
+            occupancyBar.style.width = occupancyRate + '%';
+            
+            availableCount.textContent = available;
+            bookedCount.textContent = booked;
+            blockedCount.textContent = blocked;
         }
-        
-        function updateTodayBookings() {
+
+        function updateBookingsTabs() {
             const today = new Date();
             today.setHours(0, 0, 0, 0);
             
@@ -1232,60 +1616,223 @@
                 return checkIn.getTime() === today.getTime();
             });
             
-            if (todaysBookings.length === 0) {
-                todayBookingsEl.innerHTML = '<p class="no-bookings">No check-ins today</p>';
-                return;
-            }
-            
-            let html = '';
-            todaysBookings.forEach(booking => {
-                const guestName = booking.guest?.username || booking.guestDetails?.name || 'Guest';
-                const checkOut = new Date(booking.checkOut).toLocaleDateString();
-                const listingId = booking.listing?._id || booking.listing;
-                const color = listingColors[listingId] || '#FF385C';
-                
-                html += `
-                    <div class="booking-item" style="border-left-color: ${color}">
-                        <div class="booking-guest">${guestName}</div>
-                        <div class="booking-dates">Check-out: ${checkOut}</div>
-                    </div>
-                `;
-            });
-            
-            todayBookingsEl.innerHTML = html;
-        }
-        
-        function updateUpcomingBookings() {
-            const today = new Date();
             const upcoming = bookings
                 .filter(booking => new Date(booking.checkIn) > today)
                 .sort((a, b) => new Date(a.checkIn) - new Date(b.checkIn))
                 .slice(0, 5);
             
-            if (upcoming.length === 0) {
-                upcomingBookingsEl.innerHTML = '<p class="no-bookings">No upcoming bookings</p>';
+            const recent = [...bookings]
+                .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+                .slice(0, 5);
+            
+            renderBookingsTab(todayBookingsEl, todaysBookings, 'No check-ins today');
+            renderBookingsTab(upcomingBookingsEl, upcoming, 'No upcoming bookings');
+            renderBookingsTab(recentBookingsEl, recent, 'No recent bookings');
+        }
+
+        function renderBookingsTab(container, bookingsList, emptyMessage) {
+            if (bookingsList.length === 0) {
+                container.innerHTML = `<p class="no-bookings">${emptyMessage}</p>`;
                 return;
             }
             
             let html = '';
-            upcoming.forEach(booking => {
-                const checkIn = new Date(booking.checkIn).toLocaleDateString();
+            bookingsList.forEach(booking => {
                 const guestName = booking.guest?.username || booking.guestDetails?.name || 'Guest';
+                const checkIn = new Date(booking.checkIn).toLocaleDateString();
+                const checkOut = new Date(booking.checkOut).toLocaleDateString();
                 const listingId = booking.listing?._id || booking.listing;
                 const color = listingColors[listingId] || '#FF385C';
                 
                 html += `
-                    <div class="booking-item" style="border-left-color: ${color}">
+                    <div class="booking-item" style="border-left-color: ${color}" data-booking-id="${booking._id}">
                         <div class="booking-guest">${guestName}</div>
-                        <div class="booking-dates">Check-in: ${checkIn}</div>
+                        <div class="booking-dates">${checkIn} → ${checkOut}</div>
                     </div>
                 `;
             });
             
-            upcomingBookingsEl.innerHTML = html;
+            container.innerHTML = html;
+            
+            container.querySelectorAll('.booking-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    const bookingId = item.dataset.bookingId;
+                    window.location.href = `/bookings/${bookingId}`;
+                });
+            });
         }
-        
-        // Date click handler
+
+        function renderMonthGrid() {
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            let html = '';
+            
+            months.forEach((month, index) => {
+                const isCurrent = index === currentMonth;
+                html += `<button class="${isCurrent ? 'active' : ''}" data-month="${index}">${month}</button>`;
+            });
+            
+            monthGrid.innerHTML = html;
+            
+            monthGrid.querySelectorAll('button').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    currentMonth = parseInt(btn.dataset.month);
+                    renderCalendar();
+                    monthDropdown.classList.remove('show');
+                });
+            });
+        }
+
+        // ============== VIEW RENDERERS ==============
+
+        function renderCalendar() {
+            if (currentView === 'month') renderMonthView();
+            else if (currentView === 'week') renderWeekView();
+            else renderDayView();
+        }
+
+        function renderMonthView() {
+            const firstDay = new Date(currentYear, currentMonth, 1);
+            const startDay = firstDay.getDay();
+            const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+            const today = new Date();
+            
+            const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+                'July', 'August', 'September', 'October', 'November', 'December'];
+            monthTitle.textContent = `${monthNames[currentMonth]} ${currentYear}`;
+            
+            let html = '';
+            
+            for (let i = 0; i < startDay; i++) {
+                html += '<div class="date-cell empty"></div>';
+            }
+            
+            for (let day = 1; day <= daysInMonth; day++) {
+                const date = new Date(currentYear, currentMonth, day);
+                const dateStr = formatDate(date);
+                const isToday = date.toDateString() === today.toDateString();
+                const status = getDateStatus(date, dateStr);
+                const price = getDatePrice(date, dateStr);
+                const formattedPrice = formatPrice(price);
+                const bookingsForDate = getBookingsForDate(date);
+                const isSelected = selectedDate && selectedDate.toDateString() === date.toDateString();
+                
+                let cellClasses = `date-cell ${status}`;
+                if (isSelected) cellClasses += ' selected';
+                if (isToday) cellClasses += ' today';
+                
+                html += `
+                    <div class="${cellClasses}" data-date="${dateStr}">
+                        <span class="date-number">${day}</span>
+                        <span class="price">${formattedPrice}</span>
+                    </div>
+                `;
+            }
+            
+            calendarGrid.innerHTML = html;
+            updateStats();
+            updateBookingsTabs();
+        }
+
+        function renderWeekView() {
+            const weekStart = new Date(weekStartDate);
+            weekStart.setHours(0, 0, 0, 0);
+            
+            while (weekStart.getDay() !== 0) {
+                weekStart.setDate(weekStart.getDate() - 1);
+            }
+            
+            const weekEnd = new Date(weekStart);
+            weekEnd.setDate(weekEnd.getDate() + 6);
+            
+            const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+                'July', 'August', 'September', 'October', 'November', 'December'];
+            
+            const startFormatted = `${monthNames[weekStart.getMonth()]} ${weekStart.getDate()}`;
+            const endFormatted = `${monthNames[weekEnd.getMonth()]} ${weekEnd.getDate()}, ${weekEnd.getFullYear()}`;
+            monthTitle.textContent = `${startFormatted} - ${endFormatted}`;
+            
+            let html = '';
+            
+            for (let i = 0; i < 7; i++) {
+                const date = new Date(weekStart);
+                date.setDate(weekStart.getDate() + i);
+                const dateStr = formatDate(date);
+                const isToday = date.toDateString() === new Date().toDateString();
+                const status = getDateStatus(date, dateStr);
+                const price = getDatePrice(date, dateStr);
+                const formattedPrice = formatPrice(price);
+                const bookingsForDate = getBookingsForDate(date);
+                const isSelected = selectedDate && selectedDate.toDateString() === date.toDateString();
+                
+                let cellClasses = `date-cell week-view-cell ${status}`;
+                if (isSelected) cellClasses += ' selected';
+                if (isToday) cellClasses += ' today';
+                
+                const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+                
+                html += `
+                    <div class="${cellClasses}" data-date="${dateStr}">
+                        <span class="date-number">${dayNames[date.getDay()]} ${date.getDate()}</span>
+                        <span class="price">${formattedPrice}</span>
+                    </div>
+                `;
+            }
+            
+            calendarGrid.innerHTML = html;
+            updateStats();
+        }
+
+        function renderDayView() {
+            const date = new Date(selectedDayView);
+            date.setHours(0, 0, 0, 0);
+            const dateStr = formatDate(date);
+            
+            const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+                'July', 'August', 'September', 'October', 'November', 'December'];
+            const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            
+            monthTitle.textContent = `${dayNames[date.getDay()]}, ${monthNames[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
+            
+            const isToday = date.toDateString() === new Date().toDateString();
+            const status = getDateStatus(date, dateStr);
+            const price = getDatePrice(date, dateStr);
+            const formattedPrice = formatPrice(price);
+            const bookingsForDate = getBookingsForDate(date);
+            
+            let bookingDetails = '';
+            if (bookingsForDate.length > 0) {
+                bookingDetails = '<div class="day-view-bookings-container">';
+                bookingsForDate.forEach(booking => {
+                    const guestName = booking.guest?.username || booking.guestDetails?.name || 'Guest';
+                    const checkIn = new Date(booking.checkIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                    const checkOut = new Date(booking.checkOut).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                    
+                    bookingDetails += `
+                        <div class="day-view-booking" data-booking-id="${booking._id}">
+                            <div class="booking-time">${checkIn} - ${checkOut}</div>
+                            <div class="booking-guest">${guestName}</div>
+                        </div>
+                    `;
+                });
+                bookingDetails += '</div>';
+            } else {
+                bookingDetails = '<div class="no-bookings">No bookings for this day</div>';
+            }
+            
+            calendarGrid.innerHTML = `
+                <div class="day-view-container">
+                    <div class="day-view-cell ${status}">
+                        <span class="date-number">${date.getDate()}</span>
+                        <span class="price">${formattedPrice}</span>
+                        <span class="status-badge ${status}">${status}</span>
+                    </div>
+                    ${bookingDetails}
+                </div>
+            `;
+        }
+
+        // ============== EVENT HANDLERS ==============
+
         calendarGrid.addEventListener('click', (e) => {
             const cell = e.target.closest('.date-cell');
             if (!cell || cell.classList.contains('empty')) return;
@@ -1293,16 +1840,13 @@
             const dateStr = cell.dataset.date;
             selectedDate = new Date(dateStr + 'T00:00:00');
             
-            // Remove previous selection
             document.querySelectorAll('.date-cell').forEach(c => c.classList.remove('selected'));
             cell.classList.add('selected');
             
-            // Get date info
             const status = getDateStatus(selectedDate, dateStr);
             const price = getDatePrice(selectedDate, dateStr);
             const bookingsForDate = getBookingsForDate(selectedDate);
             
-            // Update popup with date info
             popupDate.textContent = selectedDate.toLocaleDateString('en-US', { 
                 month: 'short', day: 'numeric', year: 'numeric' 
             });
@@ -1326,41 +1870,141 @@
                 blockOption.classList.remove('disabled');
             }
             
-            originalPrice.textContent = '₹' + price.toLocaleString();
+            originalPrice.textContent = '₹' + formatNumber(price);
             lastMinutePrice.value = Math.round(price * 0.95);
             blockDate.checked = status === 'blocked';
             
             popup.classList.add('show');
         });
-        
-        // Today button handler
+
+        // Today button
         todayBtn.addEventListener('click', () => {
             const today = new Date();
             currentMonth = today.getMonth();
             currentYear = today.getFullYear();
+            weekStartDate = new Date(today);
+            selectedDayView = new Date(today);
             
-            // Re-fetch data for current month
+            if (currentView === 'month') renderMonthView();
+            else if (currentView === 'week') renderWeekView();
+            else renderDayView();
+            
+            showToast('Jumped to today', 'info');
+        });
+
+        // Navigation
+        prevBtn.addEventListener('click', async () => {
+            showLoading();
+            if (currentView === 'month') {
+                if (currentMonth === 0) {
+                    currentMonth = 11;
+                    currentYear--;
+                } else {
+                    currentMonth--;
+                }
+            } else if (currentView === 'week') {
+                weekStartDate.setDate(weekStartDate.getDate() - 7);
+            } else {
+                selectedDayView.setDate(selectedDayView.getDate() - 1);
+            }
+            
             if (currentListingId !== 'all') {
-                fetchBlockedDates(currentListingId, currentYear, currentMonth);
-                fetchPriceOverrides(currentListingId, currentYear, currentMonth);
+                await fetchBlockedDates(currentListingId, currentYear, currentMonth);
+                await fetchPriceOverrides(currentListingId, currentYear, currentMonth);
             }
             
             renderCalendar();
-            
-            // Find and highlight today's date
-            const todayStr = formatDate(today);
-            const todayCell = document.querySelector(`.date-cell[data-date="${todayStr}"]`);
-            if (todayCell) {
-                document.querySelectorAll('.date-cell').forEach(c => c.classList.remove('selected'));
-                todayCell.classList.add('selected');
-                selectedDate = today;
-            }
+            hideLoading();
         });
-        
-        // Popup event handlers
+
+        nextBtn.addEventListener('click', async () => {
+            showLoading();
+            if (currentView === 'month') {
+                if (currentMonth === 11) {
+                    currentMonth = 0;
+                    currentYear++;
+                } else {
+                    currentMonth++;
+                }
+            } else if (currentView === 'week') {
+                weekStartDate.setDate(weekStartDate.getDate() + 7);
+            } else {
+                selectedDayView.setDate(selectedDayView.getDate() + 1);
+            }
+            
+            if (currentListingId !== 'all') {
+                await fetchBlockedDates(currentListingId, currentYear, currentMonth);
+                await fetchPriceOverrides(currentListingId, currentYear, currentMonth);
+            }
+            
+            renderCalendar();
+            hideLoading();
+        });
+
+        // View toggle
+        viewToggle.forEach(btn => {
+            btn.addEventListener('click', function() {
+                viewToggle.forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                
+                currentView = this.dataset.view;
+                
+                // Update navigation buttons
+                if (currentView === 'month') {
+                    navButtons.innerHTML = `
+                        <button class="nav-btn" id="todayBtn" title="Go to today">
+                            <i class="fa-regular fa-calendar-check"></i>
+                            <span>Today</span>
+                        </button>
+                        <button class="nav-btn" id="prevMonth" title="Previous month">
+                            <i class="fa-solid fa-chevron-left"></i>
+                        </button>
+                        <button class="nav-btn" id="nextMonth" title="Next month">
+                            <i class="fa-solid fa-chevron-right"></i>
+                        </button>
+                    `;
+                } else if (currentView === 'week') {
+                    navButtons.innerHTML = `
+                        <button class="nav-btn" id="todayBtn" title="Go to today">
+                            <i class="fa-regular fa-calendar-check"></i>
+                            <span>Today</span>
+                        </button>
+                        <button class="nav-btn" id="prevMonth" title="Previous week">
+                            <i class="fa-solid fa-chevron-left"></i>
+                        </button>
+                        <button class="nav-btn" id="nextMonth" title="Next week">
+                            <i class="fa-solid fa-chevron-right"></i>
+                        </button>
+                    `;
+                } else {
+                    navButtons.innerHTML = `
+                        <button class="nav-btn" id="todayBtn" title="Go to today">
+                            <i class="fa-regular fa-calendar-check"></i>
+                            <span>Today</span>
+                        </button>
+                        <button class="nav-btn" id="prevMonth" title="Previous day">
+                            <i class="fa-solid fa-chevron-left"></i>
+                        </button>
+                        <button class="nav-btn" id="nextMonth" title="Next day">
+                            <i class="fa-solid fa-chevron-right"></i>
+                        </button>
+                    `;
+                }
+                
+                // Re-attach event listeners
+                document.getElementById('todayBtn').addEventListener('click', todayBtn.click);
+                document.getElementById('prevMonth').addEventListener('click', prevBtn.click);
+                document.getElementById('nextMonth').addEventListener('click', nextBtn.click);
+                
+                renderCalendar();
+                showToast(`Switched to ${currentView} view`, 'info');
+            });
+        });
+
+        // Popup handlers
         closePopup.addEventListener('click', () => popup.classList.remove('show'));
         cancelPopup.addEventListener('click', () => popup.classList.remove('show'));
-        
+
         savePopup.addEventListener('click', async () => {
             if (!selectedDate) return;
             
@@ -1368,93 +2012,68 @@
             const newPrice = parseInt(lastMinutePrice.value);
             const isBlocked = blockDate.checked;
             
-            let saveSuccess = true;
-            
-            if (currentListingId !== 'all') {
-                // Save price if changed
-                const currentPrice = getDatePrice(selectedDate, dateStr);
-                if (newPrice && !isNaN(newPrice) && newPrice !== currentPrice) {
-                    const priceSaved = await savePriceOverride(currentListingId, dateStr, newPrice);
-                    if (!priceSaved) saveSuccess = false;
-                }
-                
-                // Save blocked status
-                const blockedSaved = await saveBlockedDate(currentListingId, dateStr, isBlocked);
-                if (!blockedSaved) saveSuccess = false;
-            } else {
-                alert('Please select a specific listing to save changes');
+            if (currentListingId === 'all') {
+                showToast('Please select a specific listing', 'error');
                 return;
             }
             
-            if (saveSuccess) {
+            showLoading();
+            
+            let success = true;
+            const currentPrice = getDatePrice(selectedDate, dateStr);
+            
+            if (newPrice && !isNaN(newPrice) && newPrice !== currentPrice) {
+                success = await savePriceOverride(currentListingId, dateStr, newPrice);
+            }
+            
+            if (success) {
+                success = await saveBlockedDate(currentListingId, dateStr, isBlocked);
+            }
+            
+            hideLoading();
+            
+            if (success) {
                 popup.classList.remove('show');
-                
-                // Refresh data
                 await fetchBlockedDates(currentListingId, currentYear, currentMonth);
                 await fetchPriceOverrides(currentListingId, currentYear, currentMonth);
-                
                 renderCalendar();
+                showToast('Changes saved!', 'success');
             } else {
-                alert('Failed to save changes. Please try again.');
+                showToast('Failed to save changes', 'error');
             }
         });
-        
-        // Click outside to close popup
+
         popup.addEventListener('click', (e) => {
             if (e.target === popup) popup.classList.remove('show');
         });
-        
-        // ESC key to close popup
+
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && popup.classList.contains('show')) {
                 popup.classList.remove('show');
             }
         });
-        
-        // Custom settings link
+
+        // Custom settings
         customSettings.addEventListener('click', (e) => {
             e.preventDefault();
-            alert('Advanced settings would open here');
+            showToast('Advanced settings coming soon!', 'info');
         });
-        
-        // Navigation
-        prevBtn.addEventListener('click', async () => {
-            if (currentMonth === 0) {
-                currentMonth = 11;
-                currentYear--;
-            } else {
-                currentMonth--;
-            }
-            
-            if (currentListingId !== 'all') {
-                await fetchBlockedDates(currentListingId, currentYear, currentMonth);
-                await fetchPriceOverrides(currentListingId, currentYear, currentMonth);
-            }
-            
+
+        // Refresh
+        refreshBtn.addEventListener('click', async () => {
+            showLoading();
+            await fetchBlockedDates(currentListingId, currentYear, currentMonth);
+            await fetchPriceOverrides(currentListingId, currentYear, currentMonth);
             renderCalendar();
+            hideLoading();
+            showToast('Calendar refreshed!', 'success');
         });
-        
-        nextBtn.addEventListener('click', async () => {
-            if (currentMonth === 11) {
-                currentMonth = 0;
-                currentYear++;
-            } else {
-                currentMonth++;
-            }
-            
-            if (currentListingId !== 'all') {
-                await fetchBlockedDates(currentListingId, currentYear, currentMonth);
-                await fetchPriceOverrides(currentListingId, currentYear, currentMonth);
-            }
-            
-            renderCalendar();
-        });
-        
+
         // Filter by listing
         listingFilter.addEventListener('change', async (e) => {
             currentListingId = e.target.value;
+            showLoading();
             
-            // Clear existing data
             dateStatuses = {};
             datePrices = {};
             
@@ -1464,19 +2083,81 @@
             }
             
             renderCalendar();
+            hideLoading();
+            showToast(`Switched to ${e.target.options[e.target.selectedIndex].text}`, 'info');
         });
-        
-        // View toggle (placeholder)
-        viewToggle.forEach(btn => {
-            btn.addEventListener('click', function() {
-                viewToggle.forEach(b => b.classList.remove('active'));
-                this.classList.add('active');
-                console.log('Switching to', this.dataset.view, 'view');
-                // Here you would implement week/day views
+
+        // Month dropdown
+        monthDropdownBtn.addEventListener('click', () => {
+            monthDropdown.classList.toggle('show');
+            currentYearSpan.textContent = currentYear;
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!monthDropdownBtn.contains(e.target) && !monthDropdown.contains(e.target)) {
+                monthDropdown.classList.remove('show');
+            }
+        });
+
+        prevYear.addEventListener('click', () => {
+            currentYear--;
+            currentYearSpan.textContent = currentYear;
+        });
+
+        nextYear.addEventListener('click', () => {
+            currentYear++;
+            currentYearSpan.textContent = currentYear;
+        });
+
+        // Quick jump
+        document.querySelectorAll('.quick-jump-buttons button').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const months = parseInt(btn.dataset.months);
+                currentMonth += months;
+                while (currentMonth > 11) {
+                    currentMonth -= 12;
+                    currentYear++;
+                }
+                renderCalendar();
+                monthDropdown.classList.remove('show');
+                showToast(`Jumped ${months} month${months > 1 ? 's' : ''} ahead`, 'info');
             });
         });
-        
-        // Initialize calendar
-        initializeCalendar();
+
+        // Price presets
+        pricePresets.forEach(btn => {
+            btn.addEventListener('click', () => {
+                lastMinutePrice.value = btn.dataset.price;
+            });
+        });
+
+        // Tab switching
+        tabBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                tabBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                const tab = btn.dataset.tab;
+                document.querySelectorAll('.tab-content').forEach(content => {
+                    content.classList.remove('active');
+                });
+                document.getElementById(tab === 'today' ? 'todayBookings' : 
+                                      tab === 'upcoming' ? 'upcomingBookings' : 'recentBookings')
+                    .classList.add('active');
+            });
+        });
+
+        // Initialize
+        async function initialize() {
+            showLoading();
+            currentListingId = listingFilter.value;
+            await fetchBlockedDates(currentListingId, currentYear, currentMonth);
+            await fetchPriceOverrides(currentListingId, currentYear, currentMonth);
+            renderMonthGrid();
+            renderCalendar();
+            hideLoading();
+        }
+
+        initialize();
     });
 </script>
