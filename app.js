@@ -33,6 +33,7 @@ const profileRoutes = require("./routes/profile.js");
 const connectionRoutes = require("./routes/connections");
 const messageRoutes = require("./routes/messages");
 const travelBuddyRoutes = require("./routes/travelBuddies");
+const { initCronJobs } = require("./services/cronScheduler");
 
 // Import review routes (NEW)
 const reviewRoutes = require("./routes/review.js");
@@ -48,10 +49,9 @@ mongoose
   .connect(dbUrl)
   .then(() => {
     console.log("Connected to MongoDB");
-    
+
     // Initialize cron jobs AFTER database connection is established
     if (process.env.NODE_ENV !== "test") {
-      const { initCronJobs } = require("./services/cronScheduler");
       initCronJobs();
       console.log("🕐 Cron jobs initialized");
     }
@@ -122,7 +122,7 @@ app.use(async (req, res, next) => {
   } else {
     res.locals.currUser = null;
   }
-  
+
   if (req.user) {
     const pendingCount = await Connection.countDocuments({
       recipient: req.user._id,
@@ -130,7 +130,7 @@ app.use(async (req, res, next) => {
     });
     res.locals.pendingRequestCount = pendingCount;
   }
-  
+
   res.locals.mode = req.session.mode || "traveller";
   res.locals.requestOriginal = req.originalUrl;
   res.locals.success = req.flash("success");
@@ -170,40 +170,40 @@ app.use("/users", userRouter);
 app.use("/", authRouter);
 
 // TEMPORARY TEST ROUTE - Add this to your app.js
-app.get('/test/activate-booking/:bookingId', async (req, res) => {
+app.get("/test/activate-booking/:bookingId", async (req, res) => {
   try {
-    const Booking = require('./models/booking');
+    const Booking = require("./models/booking");
     const booking = await Booking.findById(req.params.bookingId);
-    
+
     if (!booking) {
-      return res.send('❌ Booking not found');
+      return res.send("❌ Booking not found");
     }
-    
+
     // Set checkout to yesterday (to simulate completed stay)
     const yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);
-    
+
     // Set review window to 14 days from now
     const reviewWindowExpires = new Date();
     reviewWindowExpires.setDate(reviewWindowExpires.getDate() + 14);
-    
+
     booking.checkOut = yesterday;
     booking.canReview = true;
     booking.reviewWindowExpires = reviewWindowExpires;
-    booking.status = 'completed'; // Change status to completed
-    
+    booking.status = "completed"; // Change status to completed
+
     await booking.save();
-    
+
     res.json({
       success: true,
-      message: '✅ Review window activated',
+      message: "✅ Review window activated",
       booking: {
         id: booking._id,
         checkOut: booking.checkOut,
         canReview: booking.canReview,
         reviewWindowExpires: booking.reviewWindowExpires,
-        status: booking.status
-      }
+        status: booking.status,
+      },
     });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
@@ -211,21 +211,21 @@ app.get('/test/activate-booking/:bookingId', async (req, res) => {
 });
 
 // TEMPORARY ROUTE - Manually publish a review
-app.get('/test/publish-review/:reviewId', async (req, res) => {
+app.get("/test/publish-review/:reviewId", async (req, res) => {
   try {
-    const Review = require('./models/review');
-    const { updateListingAverages } = require('./services/reviewService');
-    
+    const Review = require("./models/review");
+    const { updateListingAverages } = require("./services/reviewService");
+
     const review = await Review.findById(req.params.reviewId);
     if (!review) {
-      return res.send('Review not found');
+      return res.send("Review not found");
     }
-    
+
     review.isPublished = true;
     await review.save();
-    
+
     await updateListingAverages(review.listing);
-    
+
     res.send(`✅ Review ${req.params.reviewId} published!`);
   } catch (error) {
     res.status(500).send(`❌ Error: ${error.message}`);
@@ -233,9 +233,9 @@ app.get('/test/publish-review/:reviewId', async (req, res) => {
 });
 
 // TEMPORARY ROUTE - Calculate listing averages
-app.get('/test/calculate-averages/:listingId', async (req, res) => {
+app.get("/test/calculate-averages/:listingId", async (req, res) => {
   try {
-    const { updateListingAverages } = require('./services/reviewService');
+    const { updateListingAverages } = require("./services/reviewService");
     await updateListingAverages(req.params.listingId);
     res.send(`✅ Calculated averages for listing ${req.params.listingId}`);
   } catch (error) {
@@ -254,10 +254,8 @@ app.use((err, req, res, next) => {
   res.status(statusCode).render("listings/error", { err });
 });
 
-
 // Start server
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
   console.log(`Serving on port ${port}`);
 });
-

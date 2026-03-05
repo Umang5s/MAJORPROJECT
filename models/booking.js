@@ -1,3 +1,5 @@
+// models/booking.js - Update the schema
+
 const mongoose = require("mongoose");
 
 const bookingSchema = new mongoose.Schema({
@@ -31,8 +33,8 @@ const bookingSchema = new mongoose.Schema({
   paymentId: String,
   status: {
     type: String,
-    default: "confirmed",
-    enum: ["pending", "confirmed", "completed", "cancelled", "no-show"],
+    default: "pending", // Changed default to 'pending'
+    enum: ["pending", "confirmed", "completed", "cancelled", "no-show", "expired"],
   },
   reminderSent: {
     type: Boolean,
@@ -55,10 +57,10 @@ const bookingSchema = new mongoose.Schema({
   // Review-related fields
   canReview: {
     type: Boolean,
-    default: false, // Set to true after checkout
+    default: false,
   },
   reviewWindowExpires: {
-    type: Date, // 14 days after checkout
+    type: Date,
   },
   guestReviewed: {
     type: Boolean,
@@ -74,6 +76,18 @@ const bookingSchema = new mongoose.Schema({
   cancelTokenExpires: {
     type: Date,
   },
+  // New fields for pending booking system
+  pendingExpiresAt: {
+    type: Date,
+    default: function() {
+      // Pending bookings expire after 15 minutes
+      return new Date(Date.now() + 15 * 60 * 1000);
+    }
+  },
+  expirationNotified: {
+    type: Boolean,
+    default: false
+  },
   createdAt: {
     type: Date,
     default: Date.now,
@@ -88,6 +102,11 @@ const bookingSchema = new mongoose.Schema({
 bookingSchema.pre('save', function(next) {
   this.updatedAt = Date.now();
   next();
+});
+
+// Virtual to check if pending booking is expired
+bookingSchema.virtual('isPendingExpired').get(function() {
+  return this.status === 'pending' && this.pendingExpiresAt && this.pendingExpiresAt < new Date();
 });
 
 // Virtual to check if review window is still open
